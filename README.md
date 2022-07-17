@@ -2,7 +2,7 @@
 
 ## SUMMARY 
 
-The objective of the project to determine best days to begin your leave the for a specific leave day period for the next five years. This is recommended for employees that want to maximum their leave period by using hte least amount of annual leave. Sources data from the Calenderific API to determine public holidays of South Africa. Utilities python and SQL to manipulate data
+The objective of the project to determine best days to begin your leave the for a specific leave day period for the next five years. This is recommended for employees that want to maximum their leave period by using hte least amount of annual leave. Sources data from the Calenderific API to determine public holidays of South Africa. Utilities python and SQL to manipulate data. Code was done on Google Colab
 
 ## OBJECTIVES
 - Determine which year has the highest number weekday public holidays 
@@ -26,6 +26,6 @@ The objective of the project to determine best days to begin your leave the for 
 - Longer year period to identify any patterns
 
 ## BUGS & REQUIRED FIXES
-- interactive catplot heatmaps not showing. File needs to be downloaded first and run thru notebook (e.g. Google Collab)
+- interactive catplot heatmaps not showing. File needs to be downloaded first and run thru notebook (e.g. Google Colab)
 - Fix general spelling
 - Colour gradient of heatmaps can be confusion at times
