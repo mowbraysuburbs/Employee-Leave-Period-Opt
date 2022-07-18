@@ -15,11 +15,14 @@ The objective of the project to determine best days to begin your leave the for 
 ## FINDINGS
 - Weekday public holidays range is between 10-11 for the next 5 years.  
 - Difference in holiday count may be due to some national holidays occuring on a Saturday.
-- Total weekday public holiday range when December weekday public holidays is exluded is 8-9 days.
+- Total weekday public holiday range when December weekday public holidays is exluded is 7-9 days.
 - Generally, leave should be taken in the months of March, April and December
 - For 3-day leave period, it is recommended that you take leave on Friday or Saturday
 - For 5-day leave period, it is recommended that you take leave between Wednesday and Saturday
 - For 7-day leave period, the strategy is to take leave in March/April or December where the leave period lies over 1-2 public holidays.
+- When a public holiday occurs on Saturday stay in the same position
+- Sunday public holidays get celebrated on Monday and counts as public holiday
+- Holidays can occur on the same day e.g. Christmas day and Day of Goodwill 2022
 
 ## RECOMMENDATIONS & FURTHER RESEARCH
 - Look at other countries especially non-secular countries
