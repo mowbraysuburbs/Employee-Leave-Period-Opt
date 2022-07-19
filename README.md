@@ -1,4 +1,4 @@
-# Public_Holiay_Deductions
+# Employee Leave Period Optimisation
 
 ## SUMMARY 
 The objective of the project to determine best days to begin your leave the for a specific leave day period for the next five years. This is recommended for employees that want to maximum their leave period by using the least amount of annual leave days. Sources data from the Calenderific API to determine public holidays of South Africa. Utilities python and SQL to manipulate data. Code was done on Google Colab.
