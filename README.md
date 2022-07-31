@@ -1,7 +1,9 @@
 # Employee Leave Period Optimisation
 
 ## SUMMARY 
-The objective of the project to determine the best days to begin your leave the for a specific leave day period in South Africa. This is recommended for employees that want to maximise their leave period by using the least amount of their annual leave days. The scripts scrapes data from the Calenderific API to determine public holidays of South Africa. Uses Python and SQL to transform and load data. Various visualisations are provided. Script was done on Google Colab.
+The objective of the project to determine the best days to begin your leave the for a specific leave day period in South Africa. This is recommended for employees that want to maximise their leave period by using the least amount of their annual leave days. The scripts scrapes data from the Calenderific API to determine public holidays of South Africa. Uses Python and SQL to transform and load data. Various visualisations are provided. Script was done on Google Colab. Example of the output is shown in image below.
+
+![both](https://user-images.githubusercontent.com/60255967/182039139-0eb7340e-71e5-4b81-b923-17855908692d.PNG)
 
 ## BACKGROUND
 Generally, when employees want to take a few days off from work, they will have to book in leave with their company. Two main strategies are used in order to use the least amount annual leave days and subsequently get the longest leave period as far as reasonably possible:
