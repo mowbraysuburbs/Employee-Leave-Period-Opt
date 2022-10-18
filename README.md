@@ -1,46 +1,79 @@
-# Employee Leave Period Optimisation
+# Employee Leave Period Optimiser Heatmap
 
-## SUMMARY 
-The objective of the project to determine the best days to begin your leave the for a specific leave day period in South Africa. This is recommended for employees that want to maximise their leave period by using the least amount of their annual leave days. The scripts scrapes data from the Calenderific API to determine public holidays of South Africa. Uses Python and SQL to transform and load data. Various visualisations are provided. Script was done on Google Colab. Example of the output is shown in image below.
+## A script for South African employees who want the longest vacation possible using the least amount of annual leave days. 
 
-![both](https://user-images.githubusercontent.com/60255967/182039139-0eb7340e-71e5-4b81-b923-17855908692d.PNG)
+## Table of Contents
+- [Introduction](#introduction)
+- [Technologies](#technologies)
+- [Usage](#usage) 
+- [How it works](#how-it-works)
+- [Known Issues](#known-issues)
+- [References](#references)
 
-## BACKGROUND
-Generally, when employees want to take a few days off from work, they will have to book in leave with their company. Two main strategies are used in order to use the least amount annual leave days and subsequently get the longest leave period as far as reasonably possible:
+## Introduction
+Are you a tired South African employee looking to take a few days off but only have a few annual leave days? Then look no further! I developed a Python script which determines the best time to take leave in the year based on the total number of annual leave days you are willing to use. 
 
-1) Start their leave near the weekend (Saturday and Sunday).
-2) Start their leave near a national public holiday
+## Technologies
+- Python 
+- SQL 
+- Jupyter
 
-The best approach is to plan your leave using both of these strategies. Thus the equation for total annual leave required is the following:
+## Setup 
+- Install all relevant Python packages
+- Create your own API key by creating a free account with [Calendarific](https://calendarific.com/login)
+- Paste API key by 'key' variable situated in 'holiday_data_from_api' function
+```python
+def holiday_data_from_api(current_year):
+	key = 'insert your own API key here'
+```
 
-Total Annual Leave = Leave Period - Weekend/s - Public Holiday/s 
+- Choose the number of leave days you would like to use
+- The year is automatically set to the current year but can be changed if needed
+```python
+#input parameters
+current_year = int(datetime.datetime.now().date().strftime("%Y"))
+no_of_leave_days = 3
+```
 
-## OBJECTIVES
-- Determine which year has the highest number weekday public holidays 
-- Find the most annual leave-day reduction for a 3,5 and 7 leave day period for various years
+## Usage
 
-## SCOPE AND LIMITATIONS
-- Only considers the national public holidays of South Africa
-- Year period limited to five years. Can be adjusted if required
+![heatmap](https://user-images.githubusercontent.com/60255967/196540741-4c997f13-c14b-4349-971e-65d6cf3461b4.png)
 
-## FINDINGS
-- Total weekday national public holidays per a year ranges between 10-11 for the next 5 years.  
-- Difference in total national  public holiday count may be due to some national holidays occurring on a Saturday.
-- Total weekday national public holidays per a year when December weekday public holidays are excluded is between 7-9 days.
-- Generally, leave should be taken in the months of March, April and December
-- For 3-day leave period, begin your leave on Friday or Saturday if public holiday cannot be used 
-- For 5-day leave period, begin your leave on between Wednesday and Saturday  if public holiday cannot be used 
-- For 7-day leave period, the strategy is to take leave in March/April or December where the leave period lies over 1-2 public holidays.
-- When a public holiday occurs on Saturday, it remains the same position
-- Sunday public holidays get celebrated on Monday and thus  counts as a public holiday
-- Holidays can occur on the same day e.g. Christmas day and Day of Goodwill in year 2022
+- **Colour bar (far right):** total number of days off range
+- **Blocks in calendar heatmap:**
+	- **Number** - date 
+	- **Colour** - the number of leaves days (Refer to colour bar)
 
-## RECOMMENDATIONS & FURTHER RESEARCH
-- Look at other countries especially non-secular countries
-- Longer year period to identify any patterns
-- Create website where one can interact with the calender heat map 
+**Examples:** 
 
-## BUGS & REQUIRED FIXES
-- Interactive catplot heatmap not showing. File needs to be downloaded first and run thru notebook (e.g. Google Colab)
-- General spelling errors
-- Colour bar gradient of heatmaps can be confusion at times as it sometimes show float data types when days should be integers. 
+For employees willing to use *3 annual days*:
+
+- If you start your leave from the *16th June 2022*, you get *6 days off*. Leave will start on the *16th June 2022* and you will return to work on the *22nd June 2022*.
+- If you start your leave from the *21st March 2022*, you get *4 days off.* Leave will start on the *16th June 2022* and you will return to work on the *25th March 2022*.
+
+## How it Works
+The scripts assumes the South African employee works five days a week and takes the the weekends (Saturday and Sunday) off. Additionally, the assumption is that the company gives leave based on  **[South African public holidays](https://www.gov.za/about-sa/public-holidays)**.
+
+For each day, the script checks whether it is a working day/public holiday/weekend. If it is a working day, the chosen annual leave days are deducted by one until there are no days left. 
+
+If the day is a public holiday/weekend, the total days off is increased by one (Refer to function: '*total_days_off_sql*'). This can be summarised in the equation shown below:
+
+**Total Days Off = no. of Weekends + no. of Public Holidays + total no. of Annual leave days**
+
+
+A summary of the script can be seen in the image below. 
+![script layout](https://user-images.githubusercontent.com/60255967/196541268-e240c2bd-5f5d-4534-acb7-639b9a4a35d5.png)
+
+## Known Issues
+- [July](https://pypi.org/project/july/)'s Heatmap's days off colour bar can be confusion at times as it sometimes show float data types (e.g. 1.2, 1.4, 5.6, etc) when days should be integers.
+
+## References
+- **[July Documentation](https://pypi.org/project/july/)**
+- **[Calendarific](https://calendarific.com/)**
+- **[Create date range with Pandas](https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.date_range.html)**
+- **[Python Check if Date is Weekend or Weekday](https://www.itsolutionstuff.com/post/python-check-if-date-is-weekend-or-weekday-exampleexample.html)**
+- **[Continuous Color Scales and Color Bars in Python](https://plotly.com/python/colorscales/)**
+- **[Public holidays in South Africa](https://www.gov.za/about-sa/public-holidays)**
+
+*(Return to [Table of Contents](#table-of-contents))*
+---
