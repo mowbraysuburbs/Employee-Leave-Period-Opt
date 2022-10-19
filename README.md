@@ -1,14 +1,20 @@
 # Employee Leave Period Optimiser Heatmap
 
-**A script for South African employees who want the longest vacation possible using the least amount of annual leave days.** 
+ 
+<p align="center">
+A script for South African employees seeking the longest vacation possible using the least amount of annual leave days. (Refer to output folder for quick results)
+</p>
 
 ## Table of Contents
 - [Introduction](#introduction)
 - [Technologies](#technologies)
 - [Usage](#usage) 
 - [How it works](#how-it-works)
+	- [Examples](#examples)
+	- [Tips](#tips)
 - [Known Issues](#known-issues)
 - [References](#references)
+
 
 ## Introduction
 Are you a tired South African employee looking to take a few days off but only have a few annual leave days? Then look no further! I developed a Python script which determines the best time to take leave in the year based on the total number of annual leave days you are willing to use. 
@@ -27,12 +33,12 @@ def holiday_data_from_api(current_year):
 	key = 'insert your own API key here'
 ```
 
-- Choose the number of leave days you would like to use (Note, must be greater than zero!)
+- Choose the number of leave days you would like to use
 - The year is automatically set to the current year but can be changed if needed
 ```python
 #input parameters
 current_year = int(datetime.datetime.now().date().strftime("%Y"))
-no_of_leave_days = 3
+no_of_leave_days = "How many leave days are you willing to use?"
 ```
 
 ## Usage
@@ -42,35 +48,40 @@ no_of_leave_days = 3
 - **Colour bar (far right):** total number of days off range
 - **Blocks in calendar heatmap:**
 	- **Number** - date 
-	- **Colour** - the number of leaves days (Refer to colour bar)
+	- **Colour** - the total number of leaves days you receive if you start your leave on that block (Refer to colour bar)
 
-**Examples:** 
+### Examples
+For employees willing to use **_3 annual days_**:
 
-For employees willing to use *3 annual days*:
+-   If you start your leave from the **16th June 2022**:
+    -   you get **6 days off**. Leave will start on the **16th June 2022**
+    -   return to work on the **22nd June 2022**.
 
-- If you start your leave from the **16th June 2022**: 
-	- you get **6 days off**. Leave will start on the **16th June 2022**
-	- return to work on the **22nd June 2022**.
-- If you start your leave from the **21st March 2022**:
-	- you get **4 days off.** Leave will start on the **16th June 2022**
-	- return to work on the **25th March 2022**.
+-   If you start your leave from the **21st March 2022**:
+    -   you get **4 days off.** Leave will start on the **16th June 2022**
+    -   return to work on the **25th March 2022**.
+
+### Tips
+- Start with 'no_of_leave_days' = 0 to use how many days off you can get without using any leave. 
+- If you don't want to use the script, I placed output images for the current and following year using 0 - 3 annual days in the output folder.
 
 ## How it Works
 The scripts assumes the South African employee works five days a week and takes the the weekends (Saturday and Sunday) off. Additionally, the assumption is that the company gives leave based on  **[South African public holidays](https://www.gov.za/about-sa/public-holidays)**.
 
-For each day, the script checks whether it is a working day/public holiday/weekend. If it is a working day, the chosen annual leave days are deducted by one until there are no days left. 
+For each day, the script checks the starting leave day and the following days whether it is a working day/public holiday/weekend. If it is a working day, the chosen annual leave days are deducted by one until there are no days left. 
 
 If the day is a public holiday/weekend, the total days off is increased by one (Refer to function: '*total_days_off_sql*'). This can be summarised in the equation shown below:
 
+<p align="center">
 **Total Days Off = no. of Weekends + no. of Public Holidays + total no. of Annual leave days**
+</p>
 
 
 A summary of the script can be seen in the image below. 
-![script layout](https://user-images.githubusercontent.com/60255967/196541268-e240c2bd-5f5d-4534-acb7-639b9a4a35d5.png)
 
+![script layout](https://user-images.githubusercontent.com/60255967/196541268-e240c2bd-5f5d-4534-acb7-639b9a4a35d5.png)
 ## Known Issues
-- [July](https://pypi.org/project/july/)'s Heatmap's days off colour bar can be confusion at times as it sometimes show float data types (e.g. 1.2, 1.4, 5.6, etc) when days should be integers.
-- Chosen leave days has to be greater than **zero** otherwise script will break
+- **[July](https://pypi.org/project/july/)'s** Heatmap's days off colour bar can be confusion at times as it sometimes show float data types (e.g. 1.2, 1.4, 5.6, etc) when days should be integers. Additionally, the numbers at times are slightly offset from its designate colour.
 - Keep number of leave days relatively small (< 10 days) for reasonable values
 
 ## References
