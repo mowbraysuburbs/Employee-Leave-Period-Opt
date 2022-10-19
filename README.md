@@ -27,7 +27,7 @@ def holiday_data_from_api(current_year):
 	key = 'insert your own API key here'
 ```
 
-- Choose the number of leave days you would like to use
+- Choose the number of leave days you would like to use (Note, must be greater than zero!)
 - The year is automatically set to the current year but can be changed if needed
 ```python
 #input parameters
@@ -66,6 +66,8 @@ A summary of the script can be seen in the image below.
 
 ## Known Issues
 - [July](https://pypi.org/project/july/)'s Heatmap's days off colour bar can be confusion at times as it sometimes show float data types (e.g. 1.2, 1.4, 5.6, etc) when days should be integers.
+- Chosen leave days has to be greater than **zero** otherwise script will break
+- Keep number of leave days relatively small (< 10 days) for reasonable values
 
 ## References
 - **[July Documentation](https://pypi.org/project/july/)**
@@ -76,4 +78,5 @@ A summary of the script can be seen in the image below.
 - **[Public holidays in South Africa](https://www.gov.za/about-sa/public-holidays)**
 
 *(Return to [Table of Contents](#table-of-contents))*
+
 ---
