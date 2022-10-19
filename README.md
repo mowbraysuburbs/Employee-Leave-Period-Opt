@@ -48,8 +48,12 @@ no_of_leave_days = 3
 
 For employees willing to use *3 annual days*:
 
-- If you start your leave from the *16th June 2022*, you get *6 days off*. Leave will start on the *16th June 2022* and you will return to work on the *22nd June 2022*.
-- If you start your leave from the *21st March 2022*, you get *4 days off.* Leave will start on the *16th June 2022* and you will return to work on the *25th March 2022*.
+- If you start your leave from the *16th June 2022*: 
+	- you get *6 days off*. Leave will start on the *16th June 2022*
+	- return to work on the *22nd June 2022*.
+- If you start your leave from the *21st March 2022*:
+	- you get *4 days off.* Leave will start on the *16th June 2022*
+	- return to work on the *25th March 2022*.
 
 ## How it Works
 The scripts assumes the South African employee works five days a week and takes the the weekends (Saturday and Sunday) off. Additionally, the assumption is that the company gives leave based on  **[South African public holidays](https://www.gov.za/about-sa/public-holidays)**.
