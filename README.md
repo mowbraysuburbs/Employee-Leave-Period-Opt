@@ -1,6 +1,10 @@
 # Employee Leave Period Optimiser Heatmap
 
- 
+
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/60255967/196750554-2fd4254c-5e23-458a-a8b4-721533b0b5c2.png" />
+</p>
+
 <p align="center">
 A script for South African employees seeking the longest vacation possible using the least amount of annual leave days. (Refer to output folder for quick results)
 </p>
