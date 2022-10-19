@@ -46,9 +46,7 @@ no_of_leave_days = "How many leave days are you willing to use?"
 ```
 
 ## Usage
-
-![heatmap](https://user-images.githubusercontent.com/60255967/196540741-4c997f13-c14b-4349-971e-65d6cf3461b4.png)
-
+![2022_Annual_Leave_Days_3](https://user-images.githubusercontent.com/60255967/196751285-b93b095e-6611-49fb-adf0-b0d54bd5614b.png)
 - **Colour bar (far right):** total number of days off range
 - **Blocks in calendar heatmap:**
 	- **Number** - date 
@@ -77,7 +75,7 @@ For each day, the script checks the starting leave day and the following days wh
 If the day is a public holiday/weekend, the total days off is increased by one (Refer to function: '*total_days_off_sql*'). This can be summarised in the equation shown below:
 
 <p align="center">
-**Total Days Off = no. of Weekends + no. of Public Holidays + total no. of Annual leave days**
+Total Days Off = no. of Weekends + no. of Public Holidays + total no. of Annual leave days
 </p>
 
 
