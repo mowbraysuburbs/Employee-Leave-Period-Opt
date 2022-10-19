@@ -66,7 +66,7 @@ For employees willing to use **_3 annual days_**:
     -   return to work on the **25th March 2022**.
 
 ### Tips
-- Start with 'no_of_leave_days' = 0 to use how many days off you can get without using any leave. 
+- Start with 'no_of_leave_days' = 0 to see how many days off you can get without using any leave. 
 - If you don't want to use the script, I placed output images for the current and following year using 0 - 3 annual days in the output folder.
 
 ## How it Works
