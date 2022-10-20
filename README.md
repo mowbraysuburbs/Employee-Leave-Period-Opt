@@ -17,7 +17,7 @@ A script for South African employees seeking the longest vacation possible using
 ## Table of Contents
 - [Introduction](#introduction)
 - [Technologies](#technologies)
-- [Usage](#usage) 
+- [How to Use](#how-to-usage) 
 	- [Examples](#examples)
 	- [Tips](#tips)
 - [How it works](#how-it-works)
@@ -50,7 +50,7 @@ current_year = int(datetime.datetime.now().date().strftime("%Y"))
 no_of_leave_days = "How many leave days are you willing to use?"
 ```
 
-## Usage
+## How to Use
 ![2022_Annual_Leave_Days_3](https://user-images.githubusercontent.com/60255967/196751285-b93b095e-6611-49fb-adf0-b0d54bd5614b.png)
 - **Colour bar (far right):** total number of days off range
 - **Blocks in calendar heatmap:**
