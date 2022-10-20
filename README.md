@@ -9,6 +9,11 @@
 A script for South African employees seeking the longest vacation possible using the least amount of annual leave days. (APPROVAL OF LEAVE NOT INCLUDED)
 </p>
 
+<p align="center">
+(APPROVAL OF LEAVE NOT INCLUDED)
+</p>
+
+
 ## Table of Contents
 - [Introduction](#introduction)
 - [Technologies](#technologies)
