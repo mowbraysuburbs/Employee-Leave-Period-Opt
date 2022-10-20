@@ -17,7 +17,7 @@ A script for South African employees seeking the longest vacation possible using
 ## Table of Contents
 - [Introduction](#introduction)
 - [Technologies](#technologies)
-- [How to Use](#how-to-usage) 
+- [How to Use](#how-to-use) 
 	- [Examples](#examples)
 	- [Tips](#tips)
 - [How it works](#how-it-works)
