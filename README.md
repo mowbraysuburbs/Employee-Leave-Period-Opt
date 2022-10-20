@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-A script for South African employees seeking the longest vacation possible using the least amount of annual leave days. (Refer to output folder for quick results)
+A script for South African employees seeking the longest vacation possible using the least amount of annual leave days. (APPROVAL OF LEAVE NOT INCLUDED)
 </p>
 
 ## Table of Contents
@@ -56,11 +56,13 @@ no_of_leave_days = "How many leave days are you willing to use?"
 For employees willing to use **_3 annual days_**:
 
 -   If you start your leave from the **16th June 2022**:
-    -   you get **6 days off**. Leave will start on the **16th June 2022**
+    -   you get **6 days off**. 
+    - 	Leave will start on the **16th June 2022**
     -   return to work on the **22nd June 2022**.
 
 -   If you start your leave from the **21st March 2022**:
-    -   you get **4 days off.** Leave will start on the **16th June 2022**
+    -   you get **4 days off.** 
+    - 	Leave will start on the **16th June 2022**
     -   return to work on the **25th March 2022**.
 
 ### Tips
