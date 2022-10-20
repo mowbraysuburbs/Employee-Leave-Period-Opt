@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-A script for South African employees seeking the longest vacation possible using the least amount of annual leave days. (APPROVAL OF LEAVE NOT INCLUDED)
+A script for South African employees seeking the longest vacation possible using the least amount of annual leave days. 
 </p>
 
 <p align="center">
