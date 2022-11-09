@@ -1,0 +1,185 @@
+date,weekday,holiday_name,holiday_type
+2023-01-01,Sunday,New Year's Day,National holiday
+2023-01-02,Monday,New Year's Day observed,National holiday
+2023-01-03,Tuesday,2nd January (substitute day),Local holiday
+2023-01-05,Thursday,Twelfth Night,Observance
+2023-01-06,Friday,Epiphany,Observance
+2023-01-07,Saturday,Orthodox Christmas Day,Observance
+2023-01-14,Saturday,Orthodox New Year,Observance
+2023-01-22,Sunday,Lunar New Year,Observance
+2023-01-25,Wednesday,Burns Night,Local observance
+2023-02-06,Monday,Tu B'Shevat (Arbor Day),Observance
+2023-02-14,Tuesday,Valentine's Day,Observance
+2023-02-18,Saturday,Maha Shivaratri,Observance
+2023-02-18,Saturday,Isra and Mi'raj,Observance
+2023-02-21,Tuesday,Carnival / Shrove Tuesday / Pancake Day,Observance
+2023-02-22,Wednesday,Carnival / Ash Wednesday,Observance
+2023-03-01,Wednesday,St. David's Day,Local observance
+2023-03-07,Tuesday,Purim,Observance
+2023-03-17,Friday,St Patrick's Day,Local holiday
+2023-03-19,Sunday,Mother's Day,Observance
+2023-03-20,Monday,March Equinox,Season
+2023-03-23,Thursday,Ramadan Start,Observance
+2023-03-26,Sunday,Daylight Saving Time starts,Clock change/Daylight Saving Time
+2023-04-02,Sunday,Palm Sunday,Observance
+2023-04-06,Thursday,Maundy Thursday,Observance
+2023-04-06,Thursday,First day of Passover,Observance
+2023-04-07,Friday,Good Friday,National holiday
+2023-04-08,Saturday,Holy Saturday,Observance
+2023-04-09,Sunday,Easter Sunday,Observance
+2023-04-10,Monday,Easter Monday,Christian
+2023-04-10,Monday,Easter Monday,Local observance
+2023-04-13,Thursday,Last day of Passover,Observance
+2023-04-14,Friday,Orthodox Good Friday,Observance
+2023-04-15,Saturday,Orthodox Holy Saturday,Observance
+2023-04-16,Sunday,Orthodox Easter,Observance
+2023-04-17,Monday,Laylatul Qadr (Night of Power),Observance
+2023-04-17,Monday,Orthodox Easter Monday,Observance
+2023-04-18,Tuesday,Yom HaShoah,Observance
+2023-04-22,Saturday,Eid ul Fitr,Observance
+2023-04-22,Saturday,Stephen Lawrence Day,Observance
+2023-04-23,Sunday,St. George's Day,Observance
+2023-04-23,Sunday,St. George's Day,Observance
+2023-04-23,Sunday,Shakespeare Day,Observance
+2023-04-26,Wednesday,Yom HaAtzmaut,Observance
+2023-05-01,Monday,Early May Bank Holiday,National holiday
+2023-05-09,Tuesday,Lag B'Omer,Observance
+2023-05-18,Thursday,Ascension Day,Observance
+2023-05-26,Friday,Shavuot,Observance
+2023-05-28,Sunday,Pentecost,Observance
+2023-05-29,Monday,Whit Monday,Observance
+2023-05-29,Monday,Spring Bank Holiday,National holiday
+2023-06-04,Sunday,Trinity Sunday,Observance
+2023-06-08,Thursday,Corpus Christi,Observance
+2023-06-12,Monday,King's Birthday,Observance
+2023-06-18,Sunday,Father's Day,Observance
+2023-06-21,Wednesday,June Solstice,Season
+2023-06-22,Thursday,Windrush Day,Observance
+2023-06-29,Thursday,Eid al-Adha,Observance
+2023-07-12,Wednesday,Battle of the Boyne,Local holiday
+2023-07-19,Wednesday,Muharram/Islamic New Year,Observance
+2023-07-27,Thursday,Tisha B'Av,Observance
+2023-07-28,Friday,Ashura,Observance
+2023-08-07,Monday,Summer Bank Holiday,Common local holiday
+2023-08-15,Tuesday,Assumption of Mary,Observance
+2023-08-28,Monday,Summer Bank Holiday,Common local holiday
+2023-09-06,Wednesday,Janmashtami (Smarta),Observance
+2023-09-07,Thursday,Janmashtami,Observance
+2023-09-16,Saturday,Rosh Hashana,Observance
+2023-09-23,Saturday,September Equinox,Season
+2023-09-25,Monday,Yom Kippur,Observance
+2023-09-27,Wednesday,Milad un Nabi (Mawlid),Observance
+2023-09-30,Saturday,First day of Sukkot,Observance
+2023-10-04,Wednesday,Feast of St Francis of Assisi,Observance
+2023-10-06,Friday,Hoshana Rabbah,Observance
+2023-10-07,Saturday,Shemini Atzeret,Observance
+2023-10-08,Sunday,Simchat Torah,Observance
+2023-10-29,Sunday,Daylight Saving Time ends,Clock change/Daylight Saving Time
+2023-10-31,Tuesday,Halloween,Observance
+2023-11-01,Wednesday,All Saints' Day,Observance
+2023-11-02,Thursday,All Souls' Day,Observance
+2023-11-05,Sunday,Guy Fawkes Day,Observance
+2023-11-12,Sunday,Diwali/Deepavali,Observance
+2023-11-12,Sunday,Remembrance Sunday,Observance
+2023-11-30,Thursday,St Andrew's Day,Local holiday
+2023-12-03,Sunday,First Sunday of Advent,Observance
+2023-12-08,Friday,Feast of the Immaculate Conception,Observance
+2023-12-08,Friday,First Day of Hanukkah,Observance
+2023-12-15,Friday,Last day of Hanukkah,Observance
+2023-12-22,Friday,December Solstice,Season
+2023-12-24,Sunday,Christmas Eve,Observance
+2023-12-25,Monday,Christmas Day,National holiday
+2023-12-26,Tuesday,Boxing Day,National holiday
+2023-12-31,Sunday,New Year's Eve,Observance
+2024-01-01,Monday,New Year's Day,National holiday
+2024-01-02,Tuesday,2nd January,Local holiday
+2024-01-05,Friday,Twelfth Night,Observance
+2024-01-06,Saturday,Epiphany,Observance
+2024-01-07,Sunday,Orthodox Christmas Day,Observance
+2024-01-14,Sunday,Orthodox New Year,Observance
+2024-01-25,Thursday,Tu B'Shevat (Arbor Day),Observance
+2024-01-25,Thursday,Burns Night,Local observance
+2024-02-07,Wednesday,Isra and Mi'raj,Observance
+2024-02-10,Saturday,Lunar New Year,Observance
+2024-02-13,Tuesday,Carnival / Shrove Tuesday / Pancake Day,Observance
+2024-02-14,Wednesday,Carnival / Ash Wednesday,Observance
+2024-02-14,Wednesday,Valentine's Day,Observance
+2024-03-01,Friday,St. David's Day,Local observance
+2024-03-08,Friday,Maha Shivaratri,Observance
+2024-03-10,Sunday,Mother's Day,Observance
+2024-03-11,Monday,Ramadan Start,Observance
+2024-03-17,Sunday,St Patrick's Day,Local holiday
+2024-03-18,Monday,Day off for St Patrick's Day,Local holiday
+2024-03-20,Wednesday,March Equinox,Season
+2024-03-24,Sunday,Palm Sunday,Observance
+2024-03-24,Sunday,Purim,Observance
+2024-03-28,Thursday,Maundy Thursday,Observance
+2024-03-29,Friday,Good Friday,National holiday
+2024-03-30,Saturday,Holy Saturday,Observance
+2024-03-31,Sunday,Easter Sunday,Observance
+2024-03-31,Sunday,Daylight Saving Time starts,Clock change/Daylight Saving Time
+2024-04-01,Monday,Easter Monday,Local observance
+2024-04-01,Monday,Easter Monday,Christian
+2024-04-05,Friday,Laylatul Qadr (Night of Power),Observance
+2024-04-10,Wednesday,Eid ul Fitr,Observance
+2024-04-22,Monday,Stephen Lawrence Day,Observance
+2024-04-23,Tuesday,First day of Passover,Observance
+2024-04-23,Tuesday,St. George's Day,Observance
+2024-04-23,Tuesday,St. George's Day,Observance
+2024-04-23,Tuesday,Shakespeare Day,Observance
+2024-04-30,Tuesday,Last day of Passover,Observance
+2024-05-03,Friday,Orthodox Good Friday,Observance
+2024-05-04,Saturday,Orthodox Holy Saturday,Observance
+2024-05-05,Sunday,Yom HaShoah,Observance
+2024-05-05,Sunday,Orthodox Easter,Observance
+2024-05-06,Monday,Orthodox Easter Monday,Observance
+2024-05-06,Monday,Early May Bank Holiday,National holiday
+2024-05-09,Thursday,Ascension Day,Observance
+2024-05-14,Tuesday,Yom HaAtzmaut,Observance
+2024-05-19,Sunday,Pentecost,Observance
+2024-05-20,Monday,Whit Monday,Observance
+2024-05-26,Sunday,Trinity Sunday,Observance
+2024-05-26,Sunday,Lag B'Omer,Observance
+2024-05-27,Monday,Spring Bank Holiday,National holiday
+2024-05-30,Thursday,Corpus Christi,Observance
+2024-06-10,Monday,King's Birthday,Observance
+2024-06-12,Wednesday,Shavuot,Observance
+2024-06-16,Sunday,Father's Day,Observance
+2024-06-17,Monday,Eid al-Adha,Observance
+2024-06-20,Thursday,June Solstice,Season
+2024-06-22,Saturday,Windrush Day,Observance
+2024-07-08,Monday,Muharram/Islamic New Year,Observance
+2024-07-12,Friday,Battle of the Boyne,Local holiday
+2024-07-17,Wednesday,Ashura,Observance
+2024-08-05,Monday,Summer Bank Holiday,Common local holiday
+2024-08-13,Tuesday,Tisha B'Av,Observance
+2024-08-15,Thursday,Assumption of Mary,Observance
+2024-08-26,Monday,Janmashtami (Smarta),Observance
+2024-08-26,Monday,Janmashtami,Observance
+2024-08-26,Monday,Summer Bank Holiday,Common local holiday
+2024-09-16,Monday,Milad un Nabi (Mawlid),Observance
+2024-09-22,Sunday,September Equinox,Season
+2024-10-03,Thursday,Rosh Hashana,Observance
+2024-10-04,Friday,Feast of St Francis of Assisi,Observance
+2024-10-12,Saturday,Yom Kippur,Observance
+2024-10-17,Thursday,First day of Sukkot,Observance
+2024-10-23,Wednesday,Hoshana Rabbah,Observance
+2024-10-24,Thursday,Shemini Atzeret,Observance
+2024-10-25,Friday,Simchat Torah,Observance
+2024-10-27,Sunday,Daylight Saving Time ends,Clock change/Daylight Saving Time
+2024-10-31,Thursday,Halloween,Observance
+2024-11-01,Friday,All Saints' Day,Observance
+2024-11-01,Friday,Diwali/Deepavali,Observance
+2024-11-02,Saturday,All Souls' Day,Observance
+2024-11-05,Tuesday,Guy Fawkes Day,Observance
+2024-11-10,Sunday,Remembrance Sunday,Observance
+2024-11-30,Saturday,St Andrew's Day,Local holiday
+2024-12-01,Sunday,First Sunday of Advent,Observance
+2024-12-02,Monday,St Andrew's Day observed,Local holiday
+2024-12-08,Sunday,Feast of the Immaculate Conception,Observance
+2024-12-21,Saturday,December Solstice,Season
+2024-12-24,Tuesday,Christmas Eve,Observance
+2024-12-25,Wednesday,Christmas Day,National holiday
+2024-12-26,Thursday,First Day of Hanukkah,Observance
+2024-12-26,Thursday,Boxing Day,National holiday
+2024-12-31,Tuesday,New Year's Eve,Observance
