@@ -51,6 +51,9 @@ no_of_leave_days = "How many leave days are you willing to use?"
 ```
 
 ## How to Use
+
+If you don't want to use the script, there is an infographic for the current year using 0 - 3 annual days in the output folder.
+
 ![2022_Annual_Leave_Days_3](https://user-images.githubusercontent.com/60255967/196751285-b93b095e-6611-49fb-adf0-b0d54bd5614b.png)
 - **Colour bar (far right):** total number of days off range
 - **Blocks in calendar heatmap:**
@@ -72,7 +75,6 @@ For employees willing to use **_3 annual days_**:
 
 ### Tips
 - Start with 'no_of_leave_days' = 0 to see how many days off you can get without using any leave. 
-- If you don't want to use the script, I placed output images for the current and following year using 0 - 3 annual days in the output folder.
 
 ## How it Works
 The scripts assumes the South African employee works five days a week and takes the the weekends (Saturday and Sunday) off. Additionally, the assumption is that the company gives leave based on  **[South African public holidays](https://www.gov.za/about-sa/public-holidays)**.
