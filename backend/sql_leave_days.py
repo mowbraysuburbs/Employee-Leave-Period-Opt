@@ -4,6 +4,8 @@ import requests
 import datetime
 import sqlite3
 from datetime import timedelta
+from flask import Flask
+import jsonify
 
 #input parameters
 year = 2024
@@ -142,31 +144,16 @@ date = calender(year)
 
 for day in range(0,leave_days):
 
-
     date[f"leave_days_{day}"] = total_days_off_sql(year, day)
 
 
-# leave_db = date.to_sql('leave_days', 
-#             conn, 
-#             if_exists='replace', 
-#             index = False
-#             )
+leave_db = date.to_sql('leave_days', 
+            conn, 
+            if_exists='replace', 
+            index = False
+            )
 
-# conn.commit()
-# conn.close()
+conn.commit()
+conn.close()
 
-# # Connect to the SQLite database
-# conn = sqlite3.connect('holiday&dates_db')
-# cursor = conn.cursor()
-
-# # Execute a SELECT query
-# cursor.execute("SELECT * FROM leave_days")
-# rows = cursor.fetchall()
-
-# # Print the rows
-# for row in rows:
-#     print(row)
-
-# # Close the connection
-# conn.close()
                             
