@@ -12,7 +12,7 @@ def get_data():
 
     conn = sqlite3.connect('holiday&dates_db')  # Adjust the DB path/name accordingly
     cursor = conn.cursor()
-    cursor.execute(f"SELECT date, weekday, weekday_type, {selected_column} FROM leave_days")
+    cursor.execute(f"SELECT date,  {selected_column} FROM leave_days")
     data = cursor.fetchall()
     if data:
         return jsonify({'result': data})
