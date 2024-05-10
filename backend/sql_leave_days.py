@@ -7,7 +7,7 @@ from datetime import timedelta
 
 #input parameters
 year = 2024
-leave_days = 1
+leave_days = 5
 
 def holiday_data_from_api(year):
 
@@ -140,21 +140,33 @@ c = conn.cursor()
 
 date = calender(year)
 
-date["leave_days"] = total_days_off_sql(year, leave_days)
+for day in range(0,leave_days):
 
 
-leave_db = date.to_sql('leave_days', 
-            conn, 
-            if_exists='replace', 
-            index = False
-            )
-# # Insert data into the table
-# for date, leave in zip(date, leave):
-#     c.execute("INSERT INTO leave (date, leave) VALUES (?, ?)", (date, leave))
+    date[f"leave_days_{day}"] = total_days_off_sql(year, day)
 
-# # Commit the changes and close the connection
+
+# leave_db = date.to_sql('leave_days', 
+#             conn, 
+#             if_exists='replace', 
+#             index = False
+#             )
+
 # conn.commit()
 # conn.close()
 
+# # Connect to the SQLite database
+# conn = sqlite3.connect('holiday&dates_db')
+# cursor = conn.cursor()
 
+# # Execute a SELECT query
+# cursor.execute("SELECT * FROM leave_days")
+# rows = cursor.fetchall()
+
+# # Print the rows
+# for row in rows:
+#     print(row)
+
+# # Close the connection
+# conn.close()
                             
