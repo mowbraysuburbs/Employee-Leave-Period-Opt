@@ -166,15 +166,23 @@ for day in range(0,leave_days):
     date['colour'] =  date['total_leave'].map(colours)
     final = pd.concat([final, date], ignore_index=True)
 
-# print(final)
+print(final)
 
-leave_db = date.to_sql('leave_days', 
+leave_db = final.to_sql('leave_days_za', 
             conn, 
             if_exists='replace', 
             index = False
             )
 
+# number = 1
 conn.commit()
+
+
+# c.execute(f"SELECT * FROM leave_days_za WHERE leave_days = {number}")
+# data = c.fetchall()
+
+print(data)
+
 conn.close()
 
                             
