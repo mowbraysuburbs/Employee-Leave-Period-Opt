@@ -10,6 +10,7 @@ import jsonify
 #input parameters
 year = 2024
 leave_days = 5
+country = "za"
 
 def holiday_data_from_api(year):
 
@@ -137,15 +138,35 @@ def total_days_off_sql(year, leave_days):
 # print(calender(year))
 # print( holiday_data_from_api(year) )
 
+colours = {
+ 0: "white",
+ 1: "pinkish-tone",
+ 2: "warm-peach",
+ 3: "light-aqua",
+ 4: "muted-pink",
+ 5: "soft-lavender",
+ 6: "serene-blue",
+ 7: "warm-peach-tone",
+ 8: "vibrant-pink",
+ 9: "pale-yellow",
+ 10: "green",
+ 11: "white",
+}
+    
+
 conn = sqlite3.connect('holiday&dates_db')
 c = conn.cursor()
 
 date = calender(year)
+final = pd.DataFrame()
 
 for day in range(0,leave_days):
+    date['leave_days'] = day
+    date['total_leave'] = total_days_off_sql(year, leave_days)
+    date['colour'] =  date['total_leave'].map(colours)
+    final = pd.concat([final, date], ignore_index=True)
 
-    date[f"leave_days_{day}"] = total_days_off_sql(year, day)
-
+# print(final)
 
 leave_db = date.to_sql('leave_days', 
             conn, 
