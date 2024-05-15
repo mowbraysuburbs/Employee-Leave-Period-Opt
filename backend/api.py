@@ -1,6 +1,8 @@
 from flask import Flask, jsonify, request
 import sqlite3
+from flask_cors import CORS
 
+CORS(app)
 app = Flask(__name__)
 
 @app.route('/data')
