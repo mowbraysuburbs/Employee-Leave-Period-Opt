@@ -2,9 +2,9 @@ from flask import Flask, jsonify, request
 import sqlite3
 from flask_cors import CORS
 
-CORS(app)
-app = Flask(__name__)
 
+app = Flask(__name__)
+CORS(app)
 @app.route('/data')
 def get_data():
     number = request.args.get('number', default=0, type=int)  # Get 'number' from query parameters

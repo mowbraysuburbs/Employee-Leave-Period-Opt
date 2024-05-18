@@ -150,7 +150,7 @@ colours = {
  8: "vibrant-pink",
  9: "pale-yellow",
  10: "green",
- 11: "white",
+ 11: "blue",
 }
     
 
@@ -162,7 +162,7 @@ final = pd.DataFrame()
 
 for day in range(0,leave_days):
     date['leave_days'] = day
-    date['total_leave'] = total_days_off_sql(year, leave_days)
+    date['total_leave'] = total_days_off_sql(year, day)
     date['colour'] =  date['total_leave'].map(colours)
     final = pd.concat([final, date], ignore_index=True)
 
@@ -174,14 +174,14 @@ leave_db = final.to_sql('leave_days_za',
             index = False
             )
 
-# number = 1
+number = 1
 conn.commit()
 
 
-# c.execute(f"SELECT * FROM leave_days_za WHERE leave_days = {number}")
-# data = c.fetchall()
+c.execute(f"SELECT * FROM leave_days_za WHERE leave_days = {number}")
+data = c.fetchall()
 
-print(data)
+# print(data)
 
 conn.close()
 
