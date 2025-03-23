@@ -28,10 +28,13 @@ A script for South African employees seeking the longest vacation possible using
 ## Introduction
 Are you a tired South African employee looking to take a few days off but only have a few annual leave days? Then look no further! I developed a Python script which determines the best time to take leave in the year based on the total number of annual leave days you are willing to use. 
 
-## Technologies
-- Python 
-- SQL 
-- Jupyter
+## Changes (25-03-23)
+The July package does not work with latest versions of NumPy and Matplotlib. Downgrade both packages before using code. 
+
+Known working package versions:
+- matplotlib = 3.5.0
+- numpy = 1.26.4
+
 
 ## Setup 
 - Install all relevant Python packages
