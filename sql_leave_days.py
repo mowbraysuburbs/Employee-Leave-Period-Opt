@@ -4,12 +4,12 @@ import requests
 import datetime
 import sqlite3
 from datetime import timedelta
-from flask import Flask
-import jsonify
+# from flask import Flask
+# import jsonify
 
 #input parameters
 year = 2024
-leave_days = 5
+leave_days = 3
 country = "za"
 
 def holiday_data_from_api(year):
@@ -182,6 +182,15 @@ c.execute(f"SELECT * FROM leave_days_za WHERE leave_days = {number}")
 data = c.fetchall()
 
 # print(data)
+
+# get column names
+cols = [desc[0] for desc in c.description]
+
+# make DataFrame
+df = pd.DataFrame(data, columns=cols)
+
+# save to CSV
+df.to_csv("/output/output.csv", index=False)
 
 conn.close()
 

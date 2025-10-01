@@ -1,0 +1,5 @@
+pandas
+numpy
+july==0.1.3
+matplotlib
+requests
