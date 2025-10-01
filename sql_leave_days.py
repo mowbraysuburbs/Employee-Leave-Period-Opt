@@ -190,7 +190,7 @@ cols = [desc[0] for desc in c.description]
 df = pd.DataFrame(data, columns=cols)
 
 # save to CSV
-df.to_csv("/output/output.csv", index=False)
+df.to_csv("output/output.csv", index=False)
 
 conn.close()
 
