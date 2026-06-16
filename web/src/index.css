@@ -3,6 +3,20 @@
 /* Enable class-based dark mode: add `.dark` to <html> to activate */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Leave-period hover band colours — swap automatically with dark mode */
+:root {
+  --range-border: rgba(0, 0, 0, 0.22);
+  --range-glow:   rgba(0, 0, 0, 0.55);
+  --range-row-cap: rgba(0, 0, 0, 0.12);
+  --range-fill:   rgba(0, 0, 0, 0.07);
+}
+.dark {
+  --range-border: rgba(255, 255, 255, 0.3);
+  --range-glow:   rgba(255, 255, 255, 0.7);
+  --range-row-cap: rgba(255, 255, 255, 0.2);
+  --range-fill:   rgba(255, 255, 255, 0.11);
+}
+
 * {
   box-sizing: border-box;
 }

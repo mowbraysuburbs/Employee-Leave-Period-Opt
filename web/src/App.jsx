@@ -5,63 +5,49 @@ import { BestPeriodsTable } from './components/Features/BestPeriodsTable'
 import { HolidaysList } from './components/Features/HolidaysList'
 import { PlanTab } from './components/Features/PlanTab'
 import { BottomTabBar } from './components/Layout/BottomTabBar'
-import { computeLeaveScores } from './utils/leaveCalculator'
+import { computeLeaveScores, getBestPeriods } from './utils/leaveCalculator'
+import { buildLegend } from './utils/colorScale'
 import { PROVINCES } from './data/schoolHolidays'
 
-// ── Date helpers ────────────────────────────────────────────────
 const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+const MAX_LEAVE = 10
 
 function addMonths(ym, n) {
   const total = ym.year * 12 + (ym.month - 1) + n
   return { year: Math.floor(total / 12), month: (total % 12) + 1 }
 }
 
-function ymToStr(ym) {
-  // e.g. { year: 2026, month: 6 } → "2026-6"
-  return `${ym.year}-${ym.month}`
-}
-
-function strToYm(str) {
-  const [y, m] = str.split('-')
-  return { year: parseInt(y, 10), month: parseInt(m, 10) }
-}
-
 function monthLabel(ym) {
   return `${MONTH_SHORT[ym.month - 1]} ${ym.year}`
 }
 
-// ── Rolling window: 24 months starting from today ───────────────
 const today = new Date()
 const WINDOW_START = { year: today.getFullYear(), month: today.getMonth() + 1 }
-const ALL_MONTHS = Array.from({ length: 24 }, (_, i) => addMonths(WINDOW_START, i))
-// WINDOW_START = Jun 2026, ALL_MONTHS ends at May 2028
+const ALL_MONTHS = Array.from({ length: 13 }, (_, i) => addMonths(WINDOW_START, i))
 
-const DEFAULT_START = WINDOW_START                   // Jun 2026
-const DEFAULT_END = addMonths(WINDOW_START, 11)      // May 2027 (12 months view)
-
-// ── App ──────────────────────────────────────────────────────────
 export default function App() {
   const [activeTab, setActiveTab] = useState('heatmap')
   const [leaveDays, setLeaveDays] = useState(3)
-  const [viewStart, setViewStart] = useState(DEFAULT_START)
-  const [viewEnd, setViewEnd] = useState(DEFAULT_END)
+  const [viewStart, setViewStart] = useState(WINDOW_START)
   const [showSchoolHols, setShowSchoolHols] = useState(false)
   const [provinceCode, setProvinceCode] = useState('GP')
   const [darkMode, setDarkMode] = useState(true)
   const [filterSet, setFilterSet] = useState(new Set())
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
+  const [helpOpen, setHelpOpen] = useState(false)
 
   useEffect(() => {
     document.documentElement.classList[darkMode ? 'add' : 'remove']('dark')
   }, [darkMode])
 
-  // Convert {year, month} bounds into date strings for the calculator
+  const viewEnd = addMonths(viewStart, 11)
+
   const startDateStr = `${viewStart.year}-${String(viewStart.month).padStart(2, '0')}-01`
   const endDateStr = (() => {
     const lastDay = new Date(viewEnd.year, viewEnd.month, 0).getDate()
     return `${viewEnd.year}-${String(viewEnd.month).padStart(2, '0')}-${lastDay}`
   })()
 
-  // List of {year, month} objects to render as calendar months
   const months = useMemo(() => {
     const result = []
     let cur = { ...viewStart }
@@ -70,31 +56,25 @@ export default function App() {
       cur = addMonths(cur, 1)
     }
     return result
-  }, [viewStart, viewEnd])
+  }, [viewStart])
 
-  // Compute leave scores for the entire visible range (memoised — only re-runs when range or leaveDays changes)
   const scores = useMemo(
     () => computeLeaveScores(startDateStr, endDateStr, leaveDays),
     [startDateStr, endDateStr, leaveDays]
   )
 
-  function handleViewStartChange(e) {
-    const ym = strToYm(e.target.value)
-    setViewStart(ym)
-    // Ensure end is never before start
-    if (ym.year > viewEnd.year || (ym.year === viewEnd.year && ym.month > viewEnd.month)) {
-      setViewEnd(ym)
-    }
-  }
+  const legend = useMemo(() => buildLegend(scores), [scores])
 
-  function handleViewEndChange(e) {
-    const ym = strToYm(e.target.value)
-    setViewEnd(ym)
-    // Ensure start is never after end
-    if (ym.year < viewStart.year || (ym.year === viewStart.year && ym.month < viewStart.month)) {
-      setViewStart(ym)
+  // Compute best periods for every leave-day count (1–MAX_LEAVE) once per date window.
+  // Slider filters results down to leaveDaysUsed <= selected value.
+  const allBestPeriods = useMemo(() => {
+    const all = []
+    for (let n = 1; n <= MAX_LEAVE; n++) {
+      const s = computeLeaveScores(startDateStr, endDateStr, n)
+      all.push(...getBestPeriods(s, n, null, 30))
     }
-  }
+    return all.sort((a, b) => (b.ratio ?? 0) - (a.ratio ?? 0) || b.daysOff - a.daysOff)
+  }, [startDateStr, endDateStr])
 
   const leaveSelectorProps = {
     selected: leaveDays,
@@ -104,69 +84,175 @@ export default function App() {
     provinceCode,
     onProvinceChange: setProvinceCode,
     provinces: PROVINCES,
+    viewStart,
+    allMonths: ALL_MONTHS,
+    onViewStartChange: setViewStart,
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col transition-colors">
+    <div className="h-screen bg-slate-50 dark:bg-slate-900 flex flex-col transition-colors">
       {/* Header */}
-      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 py-3 flex items-center justify-between sticky top-0 z-30 gap-3">
-        <div className="flex-shrink-0">
+      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30 flex-shrink-0">
+        {/* Title row */}
+        <div className="px-4 py-3 flex items-center justify-between md:justify-center">
+          {/* Hamburger — mobile only */}
+          <button
+            onClick={() => setMobileDrawerOpen(true)}
+            className="md:hidden w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            aria-label="Open filters"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+
           <h1 className="text-base font-bold text-slate-900 dark:text-slate-100 leading-none">
             Leave Optimiser 🇿🇦
           </h1>
-          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
-            {monthLabel(viewStart)} – {monthLabel(viewEnd)}
-          </p>
+
+          {/* Help button — mobile only */}
+          <button
+            onClick={() => setHelpOpen(true)}
+            className="md:hidden w-8 h-8 flex items-center justify-center rounded-full border-2 border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-bold transition-colors leading-none"
+            aria-label="Help"
+          >?</button>
         </div>
 
-        {/* Month range picker */}
-        <div className="flex items-center gap-1.5 flex-wrap justify-end">
-          <div className="flex items-center gap-1">
-            <label className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wide hidden sm:block">
-              From
-            </label>
-            <select
-              value={ymToStr(viewStart)}
-              onChange={handleViewStartChange}
-              className="text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg px-2 py-1.5 border-0 focus:outline-none focus:ring-1 focus:ring-sky-500"
-            >
-              {ALL_MONTHS.map((ym) => (
-                <option key={ymToStr(ym)} value={ymToStr(ym)}>
-                  {monthLabel(ym)}
-                </option>
-              ))}
-            </select>
+        {/* Leave days slider — mobile only, always visible */}
+        <div className="md:hidden px-4 pb-3 flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wide">
+              Annual leave days
+            </p>
+            <span className="text-sm font-bold text-slate-900 dark:text-slate-100 tabular-nums">
+              {leaveDays === 0 ? 'Free days' : `${leaveDays} day${leaveDays === 1 ? '' : 's'}`}
+            </span>
           </div>
-
-          <span className="text-slate-300 dark:text-slate-600 text-sm">→</span>
-
-          <div className="flex items-center gap-1">
-            <label className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-wide hidden sm:block">
-              To
-            </label>
-            <select
-              value={ymToStr(viewEnd)}
-              onChange={handleViewEndChange}
-              className="text-xs bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg px-2 py-1.5 border-0 focus:outline-none focus:ring-1 focus:ring-sky-500"
-            >
-              {ALL_MONTHS.map((ym) => (
-                <option key={ymToStr(ym)} value={ymToStr(ym)}>
-                  {monthLabel(ym)}
-                </option>
-              ))}
-            </select>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setLeaveDays((d) => Math.max(0, d - 1))}
+              disabled={leaveDays === 0}
+              className="w-7 h-7 flex-shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-base font-bold leading-none flex items-center justify-center hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              aria-label="Decrease leave days"
+            >−</button>
+            <input
+              type="range"
+              min={0}
+              max={MAX_LEAVE}
+              value={leaveDays}
+              onChange={(e) => setLeaveDays(Number(e.target.value))}
+              className="w-0 flex-1 h-2 rounded-full accent-sky-500 cursor-pointer"
+            />
+            <button
+              onClick={() => setLeaveDays((d) => Math.min(MAX_LEAVE, d + 1))}
+              disabled={leaveDays === MAX_LEAVE}
+              className="w-7 h-7 flex-shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-base font-bold leading-none flex items-center justify-center hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              aria-label="Increase leave days"
+            >+</button>
           </div>
-
-          {/* Dark / light mode toggle */}
-          <button
-            onClick={() => setDarkMode((v) => !v)}
-            className="ml-1 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors text-base"
-            aria-label="Toggle dark mode"
-          >
-            {darkMode ? '☀️' : '🌙'}
-          </button>
         </div>
       </header>
+
+      {/* Mobile filter drawer */}
+      {mobileDrawerOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setMobileDrawerOpen(false)} />
+          <div className="absolute left-0 top-0 h-full w-72 max-w-[85vw] bg-white dark:bg-slate-900 shadow-xl flex flex-col">
+            <div className="flex items-center justify-between px-4 py-4 border-b border-slate-200 dark:border-slate-700">
+              <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 uppercase tracking-wide">Filters</h2>
+              <button
+                onClick={() => setMobileDrawerOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                aria-label="Close filters"
+              >✕</button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-5">
+              <div className="flex flex-col gap-1.5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wide">From</p>
+                <select
+                  value={`${viewStart.year}-${viewStart.month}`}
+                  onChange={(e) => {
+                    const [y, m] = e.target.value.split('-')
+                    setViewStart({ year: parseInt(y, 10), month: parseInt(m, 10) })
+                  }}
+                  className="w-full bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm rounded-lg px-3 py-2 border border-slate-200 dark:border-slate-600 focus:outline-none focus:border-sky-500"
+                >
+                  {ALL_MONTHS.map((ym) => (
+                    <option key={`${ym.year}-${ym.month}`} value={`${ym.year}-${ym.month}`}>
+                      {monthLabel(ym)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-slate-700 dark:text-slate-300">School holidays</span>
+                <button
+                  onClick={() => setShowSchoolHols((v) => !v)}
+                  role="switch"
+                  aria-checked={showSchoolHols}
+                  className={`relative inline-flex w-11 h-6 rounded-full overflow-hidden transition-colors duration-200 focus:outline-none ${
+                    showSchoolHols ? 'bg-sky-500' : 'bg-slate-300 dark:bg-slate-600'
+                  }`}
+                >
+                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${
+                    showSchoolHols ? 'translate-x-5' : 'translate-x-0'
+                  }`} />
+                </button>
+              </div>
+
+              {showSchoolHols && (
+                <div className="flex flex-col gap-1.5">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wide">Province</p>
+                  <select
+                    value={provinceCode}
+                    onChange={(e) => setProvinceCode(e.target.value)}
+                    className="w-full bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm rounded-lg px-3 py-2 border border-slate-200 dark:border-slate-600 focus:outline-none focus:border-sky-500"
+                  >
+                    {PROVINCES.map(({ code, label }) => (
+                      <option key={code} value={code}>{label}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
+                <button
+                  onClick={() => setDarkMode((v) => !v)}
+                  className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                >
+                  <span>{darkMode ? '☀️' : '🌙'}</span>
+                  <span>{darkMode ? 'Light mode' : 'Dark mode'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Help modal */}
+      {helpOpen && (
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setHelpOpen(false)} />
+          <div className="relative z-10 w-full max-w-sm mx-4 mb-4 md:mb-0 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-slate-100 dark:border-slate-700">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide">How it works</h2>
+              <button
+                onClick={() => setHelpOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+              >✕</button>
+            </div>
+            <div className="px-5 py-4 flex flex-col gap-3 text-sm text-slate-600 dark:text-slate-300">
+              <p>Each coloured circle shows how many <strong className="text-slate-900 dark:text-slate-100">total days off</strong> you'd get if you start leave on that day — weekends and public holidays are included for free.</p>
+              <p>Tap any coloured day for a <strong className="text-slate-900 dark:text-slate-100">full breakdown</strong> of your leave period.</p>
+              <p>Use the <strong className="text-slate-900 dark:text-slate-100">filter bar</strong> to highlight only the day counts you care about.</p>
+              <p>Tap <strong className="text-slate-900 dark:text-slate-100">☰</strong> to change the date range or show school holidays.</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Body */}
       <div className="flex flex-1 overflow-hidden">
@@ -194,39 +280,89 @@ export default function App() {
               </button>
             ))}
           </nav>
+
+          <div className="mt-auto pt-4 border-t border-slate-200 dark:border-slate-700">
+            <button
+              onClick={() => setDarkMode((v) => !v)}
+              className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-sm text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              aria-label="Toggle dark mode"
+            >
+              <span>{darkMode ? '☀️' : '🌙'}</span>
+              <span>{darkMode ? 'Light mode' : 'Dark mode'}</span>
+            </button>
+          </div>
         </aside>
 
         {/* Main content area */}
         <div className="flex flex-col flex-1 overflow-hidden">
-          {activeTab === 'heatmap' && (
-            <div className="md:hidden border-b border-slate-200 dark:border-slate-700 px-4 py-3 bg-white dark:bg-slate-900">
-              <LeaveSelector {...leaveSelectorProps} />
-            </div>
-          )}
-
-          <main className="flex-1 p-4 pb-24 md:pb-6 overflow-y-auto">
+          <main className="flex-1 overflow-y-auto">
+            {/* Sticky legend / filter bar — heatmap tab only */}
             {activeTab === 'heatmap' && (
-              <CalendarHeatmap
-                scores={scores}
-                months={months}
-                leaveDays={leaveDays}
-                showSchoolHolidays={showSchoolHols}
-                provinceCode={provinceCode}
-                filterSet={filterSet}
-                onFilterChange={setFilterSet}
-              />
+              <div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 py-2.5">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                    Days off
+                  </span>
+                  {filterSet.size > 0 && (
+                    <button
+                      onClick={() => setFilterSet(new Set())}
+                      className="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+                    >
+                      Clear all ×
+                    </button>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {legend.map(({ daysOff, colour }) => {
+                    const isSelected = filterSet.has(daysOff)
+                    return (
+                      <button
+                        key={daysOff}
+                        onClick={() => setFilterSet((prev) => {
+                          const next = new Set(prev)
+                          if (next.has(daysOff)) next.delete(daysOff)
+                          else next.add(daysOff)
+                          return next
+                        })}
+                        title={`${daysOff} days off — click to filter`}
+                        className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold transition-transform hover:scale-110 focus:outline-none ${
+                          isSelected
+                            ? 'ring-2 ring-offset-2 ring-slate-900 dark:ring-white ring-offset-white dark:ring-offset-slate-900 scale-110'
+                            : 'opacity-80 hover:opacity-100'
+                        }`}
+                        style={{ backgroundColor: colour, color: '#1e293b' }}
+                      >
+                        {daysOff}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
             )}
-            {activeTab === 'picks' && (
-              <BestPeriodsTable scores={scores} leaveDays={leaveDays} />
-            )}
-            {activeTab === 'holidays' && (
-              <HolidaysList
-                months={months}
-                showSchoolHolidays={showSchoolHols}
-                provinceCode={provinceCode}
-              />
-            )}
-            {activeTab === 'plan' && <PlanTab />}
+
+            <div className="p-4 pb-24 md:pb-6">
+              {activeTab === 'heatmap' && (
+                <CalendarHeatmap
+                  scores={scores}
+                  months={months}
+                  leaveDays={leaveDays}
+                  showSchoolHolidays={showSchoolHols}
+                  provinceCode={provinceCode}
+                  filterSet={filterSet}
+                />
+              )}
+              {activeTab === 'picks' && (
+                <BestPeriodsTable allBestPeriods={allBestPeriods} leaveDays={leaveDays} />
+              )}
+              {activeTab === 'holidays' && (
+                <HolidaysList
+                  months={months}
+                  showSchoolHolidays={showSchoolHols}
+                  provinceCode={provinceCode}
+                />
+              )}
+              {activeTab === 'plan' && <PlanTab />}
+            </div>
           </main>
         </div>
       </div>

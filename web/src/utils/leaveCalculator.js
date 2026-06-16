@@ -120,18 +120,18 @@ export function getLeaveRange(startDateStr, leaveDays) {
 }
 
 /**
- * From a scores array, return the top N leave periods sorted by daysOff descending.
+ * From a scores array, return the top N leave periods sorted by daysOff/leaveDays ratio.
  * Deduplicates overlapping periods.
  *
- * Each result: { startDate, endDate, daysOff, leaveDaysUsed }
+ * Each result: { startDate, endDate, daysOff, leaveDaysUsed, ratio }
  */
 export function getBestPeriods(scores, leaveDays, _holidaySet, limit = 10) {
   const sorted = [...scores].sort((a, b) => b.daysOff - a.daysOff)
-  const results = []
+  const candidates = []
   const usedDates = new Set()
 
   for (const { date, daysOff } of sorted) {
-    if (results.length >= limit) break
+    if (candidates.length >= limit * 2) break
     if (usedDates.has(date)) continue
 
     const startDate = new Date(date + 'T00:00:00')
@@ -144,10 +144,13 @@ export function getBestPeriods(scores, leaveDays, _holidaySet, limit = 10) {
       cursor = addDays(cursor, 1)
     }
 
-    results.push({ startDate: date, endDate: endDateStr, daysOff, leaveDaysUsed: leaveDays })
+    const ratio = leaveDays > 0 ? daysOff / leaveDays : null
+    candidates.push({ startDate: date, endDate: endDateStr, daysOff, leaveDaysUsed: leaveDays, ratio })
   }
 
-  return results
+  return candidates
+    .sort((a, b) => (b.ratio ?? b.daysOff) - (a.ratio ?? a.daysOff))
+    .slice(0, limit)
 }
 
 /**

@@ -9,52 +9,38 @@ const MONTH_NAMES = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ]
 
-/**
- * Renders a single month as a 7-column calendar grid.
- *
- * Props:
- *   year         – number
- *   month        – 1–12
- *   scoreMap     – Map<"YYYY-MM-DD", number> of daysOff scores
- *   showSchoolHolidays – bool
- *   provinceCode – string (e.g. "GP")
- */
-export function MonthGrid({ year, month, scoreMap, showSchoolHolidays, provinceCode, filterSet, onDayClick }) {
+export function MonthGrid({
+  year, month, scoreMap, showSchoolHolidays, provinceCode, filterSet, onDayClick,
+  hoveredRange, onDayHover, onDayLeave,
+}) {
   const monthName = MONTH_NAMES[month - 1]
 
-  // Find what weekday the 1st of this month falls on (0=Sun…6=Sat)
-  // We want Mon-first grid, so convert: Mon=0, Tue=1 … Sun=6
-  const firstDayRaw = new Date(year, month - 1, 1).getDay() // 0=Sun
-  const firstDayMon = (firstDayRaw + 6) % 7 // shift so Mon=0
-
+  const firstDayRaw = new Date(year, month - 1, 1).getDay()
+  const firstDayMon = (firstDayRaw + 6) % 7
   const daysInMonth = new Date(year, month, 0).getDate()
 
-  // Build the cell list: leading empty pads + actual days
   const cells = []
-  for (let i = 0; i < firstDayMon; i++) cells.push({ isEmpty: true, day: null })
+  for (let i = 0; i < firstDayMon; i++) cells.push({ isEmpty: true, weekdayIndex: i })
   for (let d = 1; d <= daysInMonth; d++) {
     const mm = String(month).padStart(2, '0')
     const dd = String(d).padStart(2, '0')
     const dateStr = `${year}-${mm}-${dd}`
-    cells.push({ isEmpty: false, day: d, dateStr })
+    const weekdayIndex = (firstDayMon + d - 1) % 7
+    cells.push({ isEmpty: false, day: d, dateStr, weekdayIndex })
   }
 
   return (
     <div className="flex flex-col gap-1 w-full">
-      {/* Month label */}
       <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-0.5 uppercase tracking-wide">
         {monthName}
       </h3>
 
-      {/* Weekday header row — Sat (i=5) and Sun (i=6) slightly darker to distinguish weekends */}
       <div className="grid grid-cols-7 gap-0.5 mb-0.5">
         {WEEKDAY_HEADERS.map((label, i) => (
           <div
             key={i}
             className={`text-center text-[10px] font-medium uppercase ${
-              i >= 5
-                ? 'text-slate-500 dark:text-slate-400'
-                : 'text-slate-400 dark:text-slate-600'
+              i >= 5 ? 'text-slate-500 dark:text-slate-400' : 'text-slate-400 dark:text-slate-600'
             }`}
           >
             {label}
@@ -62,16 +48,21 @@ export function MonthGrid({ year, month, scoreMap, showSchoolHolidays, provinceC
         ))}
       </div>
 
-      {/* Day cells grid */}
-      <div className="grid grid-cols-7 gap-0.5">
+      {/* onMouseLeave clears the hover range when mouse exits the month entirely */}
+      <div className="grid grid-cols-7 gap-0.5" onMouseLeave={onDayLeave}>
         {cells.map((cell, i) => {
           if (cell.isEmpty) {
-            return <DayCell key={`empty-${i}`} isEmpty />
+            return (
+              <div
+                key={`empty-${i}`}
+                className="aspect-square"
+                onMouseEnter={onDayLeave}
+              />
+            )
           }
 
-          const { day, dateStr } = cell
+          const { day, dateStr, weekdayIndex } = cell
           const rawDaysOff = scoreMap.get(dateStr) ?? 0
-          // Multi-select filter: blank out cells not in the active set
           const daysOff = filterSet && filterSet.size > 0 && !filterSet.has(rawDaysOff) ? 0 : rawDaysOff
           const pubHoliday = isPublicHoliday(dateStr, year)
           const schoolHol = showSchoolHolidays && isSchoolHoliday(dateStr, provinceCode, year)
@@ -85,10 +76,11 @@ export function MonthGrid({ year, month, scoreMap, showSchoolHolidays, provinceC
               isPublicHoliday={pubHoliday}
               holidayName={getHolidayName(dateStr, year)}
               isSchoolHoliday={schoolHol}
-              schoolBreakLabel={
-                schoolHol ? getSchoolBreakLabel(dateStr, provinceCode, year) : null
-              }
+              schoolBreakLabel={schoolHol ? getSchoolBreakLabel(dateStr, provinceCode, year) : null}
               onDayClick={onDayClick}
+              hoveredRange={hoveredRange}
+              weekdayIndex={weekdayIndex}
+              onDayHover={onDayHover}
             />
           )
         })}
