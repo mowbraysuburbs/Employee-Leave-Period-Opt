@@ -93,7 +93,7 @@ export function DayCell({
         onClick={() => isClickable && onDayClick(date)}
       >
         <span
-          className={`text-xs leading-none ${
+          className={`text-sm sm:text-xs leading-none ${
             isPublicHoliday
               ? 'text-white font-bold italic'
               : hasBackground
