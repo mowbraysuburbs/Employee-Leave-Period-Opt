@@ -1,7 +1,29 @@
-import { useState } from 'react'
+import { useState, memo } from 'react'
 import { getColourForDaysOff } from '../../utils/colorScale'
 
-export function DayCell({
+function inRange(hr, date) { return !!hr && date >= hr.start && date <= hr.end }
+
+function dayCellEqual(prev, next) {
+  if (
+    prev.date            !== next.date            ||
+    prev.daysOff         !== next.daysOff         ||
+    prev.isPublicHoliday !== next.isPublicHoliday ||
+    prev.isSchoolHoliday !== next.isSchoolHoliday ||
+    prev.weekdayIndex    !== next.weekdayIndex    ||
+    prev.onDayClick      !== next.onDayClick      ||
+    prev.onDayHover      !== next.onDayHover
+  ) return false
+
+  // Skip re-render if this cell's in-range / start / end status is unchanged
+  const d = prev.date
+  if (inRange(prev.hoveredRange, d) !== inRange(next.hoveredRange, d)) return false
+  if ((prev.hoveredRange?.start === d) !== (next.hoveredRange?.start === d)) return false
+  if ((prev.hoveredRange?.end   === d) !== (next.hoveredRange?.end   === d)) return false
+
+  return true
+}
+
+export const DayCell = memo(function DayCell({
   date,
   dayNumber,
   daysOff,
@@ -29,10 +51,10 @@ export function DayCell({
   const isInRange = !!(hoveredRange && date >= hoveredRange.start && date <= hoveredRange.end)
   const isRangeStart = isInRange && date === hoveredRange.start
   const isRangeEnd = isInRange && date === hoveredRange.end
-  const isRowStart = weekdayIndex === 0  // Monday — soft left cap at row wrap
-  const isRowEnd = weekdayIndex === 6    // Sunday — soft right cap at row wrap
+  const isRowStart = weekdayIndex === 0
+  const isRowEnd = weekdayIndex === 6
 
-  // Shape: circle by default; when in range the band overrides with square caps
+  // Shape: circle by default; band caps when in range
   let shapeClass = 'rounded-full'
   if (isInRange) {
     const leftCap = isRangeStart || isRowStart
@@ -44,12 +66,11 @@ export function DayCell({
   }
 
   // Box-shadow draws the band border + endpoint glows without affecting layout.
-  // Uses CSS variables so light mode gets dark outlines, dark mode gets white ones.
   let rangeBoxShadow = null
   if (isInRange) {
     const parts = [
-      '0 -1px 0 1px var(--range-border)',  // top band line
-      '0 1px 0 1px var(--range-border)',   // bottom band line
+      '0 -1px 0 1px var(--range-border)',
+      '0 1px 0 1px var(--range-border)',
     ]
     if (isRangeStart) parts.push('-3px 0 8px 0 var(--range-glow)')
     else if (isRowStart) parts.push('-1px 0 0 1px var(--range-row-cap)')
@@ -87,8 +108,6 @@ export function DayCell({
         }}
         onMouseLeave={() => {
           setTooltipVisible(false)
-          // Range is cleared by empty-cell mouseEnter and grid-container mouseLeave — not here,
-          // so moving between adjacent scored cells doesn't cause a flicker.
         }}
         onClick={() => isClickable && onDayClick(date)}
       >
@@ -97,7 +116,7 @@ export function DayCell({
             isPublicHoliday
               ? 'text-white font-bold italic'
               : hasBackground
-              ? 'text-slate-800 dark:text-slate-900 font-medium'
+              ? 'text-black dark:text-slate-900 font-medium'
               : isInRange
               ? 'text-slate-300 dark:text-slate-300 font-medium'
               : 'text-slate-400 dark:text-slate-600 font-normal'
@@ -122,4 +141,4 @@ export function DayCell({
       )}
     </div>
   )
-}
+}, dayCellEqual)

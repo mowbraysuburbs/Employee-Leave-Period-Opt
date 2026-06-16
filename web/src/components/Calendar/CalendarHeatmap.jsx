@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import { MonthGrid } from './MonthGrid'
+import { ContinuousCalendar } from './ContinuousCalendar'
 import { LeavePeriodPanel } from './LeavePeriodPanel'
 import { getLeaveRange } from '../../utils/leaveCalculator'
 
@@ -13,58 +14,69 @@ export function CalendarHeatmap({
   showSchoolHolidays,
   provinceCode,
   filterSet,
+  smartFilter,
 }) {
   const [selectedDate, setSelectedDate] = useState(null)
   const [hoveredRange, setHoveredRange] = useState(null)
 
   const scoreMap = useMemo(() => {
     const map = new Map()
-    for (const { date, daysOff } of scores) map.set(date, daysOff)
+    for (const { date, daysOff, publicHolidays } of scores) {
+      map.set(date, smartFilter && (publicHolidays ?? 0) === 0 ? 0 : daysOff)
+    }
     return map
-  }, [scores])
+  }, [scores, smartFilter])
 
-  function handleDayHover(dateStr) {
+  const handleDayHover = useCallback((dateStr) => {
     if (leaveDays === 0) return
     const range = getLeaveRange(dateStr, leaveDays)
-    setHoveredRange({ start: range.startDate, end: range.endDate })
-  }
+    setHoveredRange(prev =>
+      prev?.start === range.startDate ? prev : { start: range.startDate, end: range.endDate }
+    )
+  }, [leaveDays])
 
-  function handleDayLeave() {
+  const handleDayLeave = useCallback(() => {
     setHoveredRange(null)
-  }
+  }, [])
 
-  function handleDayClick(dateStr) {
+  const handleDayClick = useCallback((dateStr) => {
     if (isTouch) {
-      // Mobile: tap toggles the leave-period highlight instead of opening a panel
       if (leaveDays === 0) return
       const range = getLeaveRange(dateStr, leaveDays)
-      if (hoveredRange?.start === range.startDate) {
-        setHoveredRange(null)
-      } else {
-        setHoveredRange({ start: range.startDate, end: range.endDate })
-      }
+      setHoveredRange(prev =>
+        prev?.start === range.startDate ? null : { start: range.startDate, end: range.endDate }
+      )
     } else {
       setSelectedDate(dateStr)
     }
+  }, [leaveDays])
+
+  const sharedProps = {
+    scoreMap,
+    showSchoolHolidays,
+    provinceCode,
+    filterSet,
+    onDayClick: handleDayClick,
+    hoveredRange,
+    onDayHover: handleDayHover,
+    onDayLeave: handleDayLeave,
   }
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Month grids — 1 column on mobile so cells are large enough to tap */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {/* Mobile: continuous single-column calendar */}
+      <div className="sm:hidden">
+        <ContinuousCalendar months={months} {...sharedProps} />
+      </div>
+
+      {/* Desktop: month card grid */}
+      <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         {months.map(({ year, month }) => (
           <MonthGrid
             key={`${year}-${month}`}
             year={year}
             month={month}
-            scoreMap={scoreMap}
-            showSchoolHolidays={showSchoolHolidays}
-            provinceCode={provinceCode}
-            filterSet={filterSet}
-            onDayClick={handleDayClick}
-            hoveredRange={hoveredRange}
-            onDayHover={handleDayHover}
-            onDayLeave={handleDayLeave}
+            {...sharedProps}
           />
         ))}
       </div>

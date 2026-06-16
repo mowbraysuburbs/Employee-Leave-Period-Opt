@@ -39,8 +39,8 @@ export function MonthGrid({
         {WEEKDAY_HEADERS.map((label, i) => (
           <div
             key={i}
-            className={`text-center text-[10px] font-medium uppercase ${
-              i >= 5 ? 'text-slate-500 dark:text-slate-400' : 'text-slate-400 dark:text-slate-600'
+            className={`text-center text-[10px] font-semibold uppercase ${
+              i >= 5 ? 'text-slate-600 dark:text-slate-300' : 'text-slate-700 dark:text-slate-200'
             }`}
           >
             {label}

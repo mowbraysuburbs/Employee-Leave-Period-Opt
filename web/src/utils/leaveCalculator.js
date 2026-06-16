@@ -35,13 +35,17 @@ function buildMultiYearHolidaySet(startDateStr, endDateStr) {
 function calcDaysOffFromDate(startDate, leaveDays, holidaySet) {
   let credits = leaveDays
   let totalDaysOff = 0
+  let publicHolidays = 0
   let current = new Date(startDate)
 
   while (credits >= 0) {
     const dateStr = toDateStr(current)
 
-    if (isWeekend(current) || holidaySet.has(dateStr)) {
+    if (isWeekend(current)) {
       totalDaysOff++
+    } else if (holidaySet.has(dateStr)) {
+      totalDaysOff++
+      publicHolidays++
     } else {
       credits--
       if (credits < 0) break
@@ -51,7 +55,7 @@ function calcDaysOffFromDate(startDate, leaveDays, holidaySet) {
     current = addDays(current, 1)
   }
 
-  return totalDaysOff
+  return { totalDaysOff, publicHolidays }
 }
 
 /**
@@ -70,7 +74,8 @@ export function computeLeaveScores(startDateStr, endDateStr, leaveDays) {
   let current = new Date(startDateStr + 'T00:00:00')
 
   while (current <= end) {
-    scores.push({ date: toDateStr(current), daysOff: calcDaysOffFromDate(current, leaveDays, holidaySet) })
+    const { totalDaysOff, publicHolidays } = calcDaysOffFromDate(current, leaveDays, holidaySet)
+    scores.push({ date: toDateStr(current), daysOff: totalDaysOff, publicHolidays })
     current = addDays(current, 1)
   }
 

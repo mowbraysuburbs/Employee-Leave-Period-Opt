@@ -16,6 +16,8 @@ export function LeaveSelector({
   viewStart,
   allMonths,
   onViewStartChange,
+  smartFilter,
+  onToggleSmartFilter,
 }) {
   function decrement() { onChange(Math.max(0, selected - 1)) }
   function increment() { onChange(Math.min(MAX_LEAVE, selected + 1)) }
@@ -101,6 +103,23 @@ export function LeaveSelector({
               showSchoolHols ? 'translate-x-5' : 'translate-x-0'
             }`}
           />
+        </button>
+      </div>
+
+      {/* Smart filter toggle */}
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-slate-700 dark:text-slate-300">Bonus days only</span>
+        <button
+          onClick={onToggleSmartFilter}
+          role="switch"
+          aria-checked={smartFilter}
+          className={`relative inline-flex w-11 h-6 rounded-full overflow-hidden transition-colors duration-200 focus:outline-none ${
+            smartFilter ? 'bg-sky-500' : 'bg-slate-300 dark:bg-slate-600'
+          }`}
+        >
+          <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${
+            smartFilter ? 'translate-x-5' : 'translate-x-0'
+          }`} />
         </button>
       </div>
 

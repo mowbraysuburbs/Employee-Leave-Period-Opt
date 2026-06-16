@@ -35,6 +35,7 @@ export default function App() {
   const [filterSet, setFilterSet] = useState(new Set())
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
+  const [smartFilter, setSmartFilter] = useState(false)
 
   useEffect(() => {
     document.documentElement.classList[darkMode ? 'add' : 'remove']('dark')
@@ -65,6 +66,15 @@ export default function App() {
 
   const legend = useMemo(() => buildLegend(scores), [scores])
 
+  // daysOff values that have at least one date where a public holiday is captured
+  const bonusDaysOffValues = useMemo(() => {
+    const set = new Set()
+    for (const { daysOff, publicHolidays } of scores) {
+      if ((publicHolidays ?? 0) > 0 && daysOff > 0) set.add(daysOff)
+    }
+    return set
+  }, [scores])
+
   // Compute best periods for every leave-day count (1–MAX_LEAVE) once per date window.
   // Slider filters results down to leaveDaysUsed <= selected value.
   const allBestPeriods = useMemo(() => {
@@ -87,6 +97,8 @@ export default function App() {
     viewStart,
     allMonths: ALL_MONTHS,
     onViewStartChange: setViewStart,
+    smartFilter,
+    onToggleSmartFilter: () => setSmartFilter((v) => !v),
   }
 
   return (
@@ -112,12 +124,19 @@ export default function App() {
             Leave Optimiser 🇿🇦
           </h1>
 
-          {/* Help button — mobile only */}
-          <button
-            onClick={() => setHelpOpen(true)}
-            className="md:hidden w-8 h-8 flex items-center justify-center rounded-full border-2 border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-bold transition-colors leading-none"
-            aria-label="Help"
-          >?</button>
+          {/* Right side buttons — mobile only */}
+          <div className="md:hidden flex items-center gap-1">
+            <button
+              onClick={() => setDarkMode((v) => !v)}
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-base"
+              aria-label="Toggle dark mode"
+            >{darkMode ? '☀️' : '🌙'}</button>
+            <button
+              onClick={() => setHelpOpen(true)}
+              className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-bold transition-colors leading-none"
+              aria-label="Help"
+            >?</button>
+          </div>
         </div>
 
         {/* Leave days slider — mobile only, always visible */}
@@ -218,6 +237,22 @@ export default function App() {
                 </div>
               )}
 
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-slate-700 dark:text-slate-300">Bonus days only</span>
+                <button
+                  onClick={() => setSmartFilter((v) => !v)}
+                  role="switch"
+                  aria-checked={smartFilter}
+                  className={`relative inline-flex w-11 h-6 rounded-full overflow-hidden transition-colors duration-200 focus:outline-none ${
+                    smartFilter ? 'bg-sky-500' : 'bg-slate-300 dark:bg-slate-600'
+                  }`}
+                >
+                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${
+                    smartFilter ? 'translate-x-5' : 'translate-x-0'
+                  }`} />
+                </button>
+              </div>
+
               <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
                 <button
                   onClick={() => setDarkMode((v) => !v)}
@@ -298,44 +333,62 @@ export default function App() {
           <main className="flex-1 overflow-y-auto">
             {/* Sticky legend / filter bar — heatmap tab only */}
             {activeTab === 'heatmap' && (
-              <div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 py-2.5">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                    Days off
-                  </span>
-                  {filterSet.size > 0 && (
-                    <button
-                      onClick={() => setFilterSet(new Set())}
-                      className="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
-                    >
-                      Clear all ×
-                    </button>
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {legend.map(({ daysOff, colour }) => {
-                    const isSelected = filterSet.has(daysOff)
-                    return (
+              <div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
+                {/* Filter chips — single scrollable row */}
+                <div className="px-4 py-2.5">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                      Days off
+                    </span>
+                    {filterSet.size > 0 && (
                       <button
-                        key={daysOff}
-                        onClick={() => setFilterSet((prev) => {
-                          const next = new Set(prev)
-                          if (next.has(daysOff)) next.delete(daysOff)
-                          else next.add(daysOff)
-                          return next
-                        })}
-                        title={`${daysOff} days off — click to filter`}
-                        className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold transition-transform hover:scale-110 focus:outline-none ${
-                          isSelected
-                            ? 'ring-2 ring-offset-2 ring-slate-900 dark:ring-white ring-offset-white dark:ring-offset-slate-900 scale-110'
-                            : 'opacity-80 hover:opacity-100'
-                        }`}
-                        style={{ backgroundColor: colour, color: '#1e293b' }}
+                        onClick={() => setFilterSet(new Set())}
+                        className="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
                       >
-                        {daysOff}
+                        Clear all ×
                       </button>
-                    )
-                  })}
+                    )}
+                  </div>
+                  <div className="flex flex-nowrap gap-1.5 overflow-x-auto py-1.5">
+                    {legend.map(({ daysOff, colour }) => {
+                      const isSelected = filterSet.has(daysOff)
+                      const isBonus = bonusDaysOffValues.has(daysOff)
+                      return (
+                        <button
+                          key={daysOff}
+                          onClick={() => setFilterSet((prev) => {
+                            const next = new Set(prev)
+                            if (next.has(daysOff)) next.delete(daysOff)
+                            else next.add(daysOff)
+                            return next
+                          })}
+                          title={`${daysOff} days off — click to filter`}
+                          className={`flex-shrink-0 w-[34px] h-[34px] rounded-full flex items-center justify-center text-xs font-bold transition-opacity focus:outline-none ${
+                            isSelected
+                              ? 'ring-2 ring-offset-2 ring-slate-900 dark:ring-white ring-offset-white dark:ring-offset-slate-900'
+                              : 'opacity-80 hover:opacity-100'
+                          } ${smartFilter && !isBonus ? 'opacity-25 hover:opacity-25' : ''}`}
+                          style={{ backgroundColor: colour, color: '#1e293b' }}
+                        >
+                          {daysOff}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+                {/* Weekday header frozen above continuous calendar — mobile only */}
+                <div className="sm:hidden grid grid-cols-[repeat(7,1fr)_32px] gap-0.5 px-4 pb-2">
+                  {['M','T','W','T','F','S','S'].map((h, i) => (
+                    <div
+                      key={i}
+                      className={`text-center text-[10px] font-semibold uppercase ${
+                        i >= 5 ? 'text-slate-600 dark:text-slate-300' : 'text-slate-700 dark:text-slate-200'
+                      }`}
+                    >
+                      {h}
+                    </div>
+                  ))}
+                  <div />
                 </div>
               </div>
             )}
@@ -349,6 +402,7 @@ export default function App() {
                   showSchoolHolidays={showSchoolHols}
                   provinceCode={provinceCode}
                   filterSet={filterSet}
+                  smartFilter={smartFilter}
                 />
               )}
               {activeTab === 'picks' && (

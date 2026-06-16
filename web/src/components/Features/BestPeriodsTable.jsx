@@ -1,4 +1,25 @@
 import { useMemo, useState } from 'react'
+import { getColourForDaysOff } from '../../utils/colorScale'
+
+// Yellow → lime → green → teal → cyan: all positive, no red connotation.
+// ratio 1.0 = yellow (low end), 5.0+ = cyan (high end).
+function getIncreaseColour(ratio) {
+  if (ratio == null) return '#e2e8f0'
+  const t = Math.max(0, Math.min(1, (ratio - 1) / 4))
+  const stops = [
+    [254, 240, 138],  // yellow-200
+    [163, 230,  53],  // lime-400
+    [ 34, 197,  94],  // green-500
+    [ 45, 212, 191],  // teal-400
+    [103, 232, 249],  // cyan-300
+  ]
+  const pos = t * (stops.length - 1)
+  const lo = Math.floor(pos)
+  const hi = Math.min(lo + 1, stops.length - 1)
+  const f = pos - lo
+  const [r, g, b] = [0, 1, 2].map(i => Math.round(stops[lo][i] + (stops[hi][i] - stops[lo][i]) * f))
+  return `rgb(${r},${g},${b})`
+}
 
 function fmt(dateStr) {
   const [y, m, d] = dateStr.split('-')
@@ -88,12 +109,18 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays }) {
                   </span>
                 </td>
                 <td className="px-3 py-2 text-center">
-                  <span className="inline-block bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 rounded-full px-2 py-0.5 font-semibold tabular-nums">
+                  <span
+                    className="inline-block rounded-full px-2 py-0.5 font-semibold tabular-nums"
+                    style={{ backgroundColor: getColourForDaysOff(daysOff) ?? '#e2e8f0', color: '#1e293b' }}
+                  >
                     {daysOff}
                   </span>
                 </td>
                 <td className="px-3 py-2 text-center">
-                  <span className="inline-block bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 rounded-full px-2 py-0.5 font-semibold tabular-nums">
+                  <span
+                    className="inline-block rounded-full px-2 py-0.5 font-semibold tabular-nums"
+                    style={{ backgroundColor: getIncreaseColour(ratio), color: '#1e293b' }}
+                  >
                     {ratio != null ? ratio.toFixed(1) : '—'}
                   </span>
                 </td>
