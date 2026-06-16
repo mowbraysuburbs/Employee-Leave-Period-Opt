@@ -1,20 +1,27 @@
 import { useMemo, useState } from 'react'
 import { MonthGrid } from './MonthGrid'
 import { LeavePeriodPanel } from './LeavePeriodPanel'
-import { buildLegend, getColourForDaysOff } from '../../utils/colorScale'
+import { buildLegend } from '../../utils/colorScale'
 
 /**
  * Props:
  *   scores            – array from computeLeaveScores
- *   months            – array of { year, month } to render (e.g. 12 or 24 entries)
- *   leaveDays         – number (passed to LeavePeriodPanel for breakdown)
+ *   months            – array of { year, month } to render
+ *   leaveDays         – number (passed to LeavePeriodPanel)
  *   showSchoolHolidays – bool
  *   provinceCode      – string
+ *   filterSet         – Set<number> (controlled from App)
+ *   onFilterChange    – (newSet: Set<number>) => void
  */
-export function CalendarHeatmap({ scores, months, leaveDays, showSchoolHolidays, provinceCode }) {
-  // Multi-select filter: Set of daysOff values to highlight (empty = show all)
-  const [filterSet, setFilterSet] = useState(new Set())
-  // The date string the user clicked — triggers the leave period panel
+export function CalendarHeatmap({
+  scores,
+  months,
+  leaveDays,
+  showSchoolHolidays,
+  provinceCode,
+  filterSet,
+  onFilterChange,
+}) {
   const [selectedDate, setSelectedDate] = useState(null)
 
   const scoreMap = useMemo(() => {
@@ -26,7 +33,7 @@ export function CalendarHeatmap({ scores, months, leaveDays, showSchoolHolidays,
   const legend = useMemo(() => buildLegend(scores), [scores])
 
   function handleLegendClick(daysOff) {
-    setFilterSet((prev) => {
+    onFilterChange((prev) => {
       const next = new Set(prev)
       if (next.has(daysOff)) next.delete(daysOff)
       else next.add(daysOff)
@@ -34,21 +41,9 @@ export function CalendarHeatmap({ scores, months, leaveDays, showSchoolHolidays,
     })
   }
 
-  function removeFilter(daysOff) {
-    setFilterSet((prev) => {
-      const next = new Set(prev)
-      next.delete(daysOff)
-      return next
-    })
-  }
-
-  function clearFilters() {
-    setFilterSet(new Set())
-  }
-
   return (
     <div className="flex flex-col gap-4">
-      {/* Legend — coloured circles, click to toggle filter */}
+      {/* Legend — coloured circles, click to toggle filter; Clear all appears inline when active */}
       <div className="flex flex-wrap items-center gap-2 px-1">
         {legend.map(({ daysOff, colour }) => {
           const isSelected = filterSet.has(daysOff)
@@ -68,34 +63,17 @@ export function CalendarHeatmap({ scores, months, leaveDays, showSchoolHolidays,
             </button>
           )
         })}
-      </div>
 
-      {/* Active filter chips */}
-      {filterSet.size > 0 && (
-        <div className="flex flex-wrap items-center gap-2 px-1 -mt-2">
-          {[...filterSet].sort((a, b) => a - b).map((n) => (
-            <span
-              key={n}
-              className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300"
-            >
-              {n} day{n === 1 ? '' : 's'} off
-              <button
-                onClick={() => removeFilter(n)}
-                className="ml-0.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-100 leading-none"
-                aria-label={`Remove ${n} days off filter`}
-              >
-                ×
-              </button>
-            </span>
-          ))}
+        {filterSet.size > 0 && (
           <button
-            onClick={clearFilters}
-            className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+            onClick={() => onFilterChange(new Set())}
+            className="ml-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
           >
             Clear all ×
           </button>
-        </div>
-      )}
+        )}
+      </div>
+
 
       {/* Dot legend */}
       <div className="flex flex-wrap gap-x-4 gap-y-1 px-1 -mt-1">
@@ -121,7 +99,7 @@ export function CalendarHeatmap({ scores, months, leaveDays, showSchoolHolidays,
       </div>
 
       {/* Month grid */}
-      <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
         {months.map(({ year, month }) => (
           <MonthGrid
             key={`${year}-${month}`}
@@ -136,7 +114,6 @@ export function CalendarHeatmap({ scores, months, leaveDays, showSchoolHolidays,
         ))}
       </div>
 
-      {/* Leave period panel — shown when user clicks a day */}
       {selectedDate && (
         <LeavePeriodPanel
           date={selectedDate}

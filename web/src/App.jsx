@@ -48,6 +48,7 @@ export default function App() {
   const [showSchoolHols, setShowSchoolHols] = useState(false)
   const [provinceCode, setProvinceCode] = useState('GP')
   const [darkMode, setDarkMode] = useState(true)
+  const [filterSet, setFilterSet] = useState(new Set())
 
   useEffect(() => {
     document.documentElement.classList[darkMode ? 'add' : 'remove']('dark')
@@ -211,6 +212,8 @@ export default function App() {
                 leaveDays={leaveDays}
                 showSchoolHolidays={showSchoolHols}
                 provinceCode={provinceCode}
+                filterSet={filterSet}
+                onFilterChange={setFilterSet}
               />
             )}
             {activeTab === 'picks' && (

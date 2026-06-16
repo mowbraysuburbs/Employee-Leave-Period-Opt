@@ -35,7 +35,7 @@ export function DayCell({
       >
         {/* Date number — same colour for all cells; public holidays get white + bold */}
         <span
-          className={`text-[9px] leading-none md:text-[10px] ${
+          className={`text-xs leading-none ${
             isPublicHoliday
               ? 'text-white font-bold'
               : hasBackground

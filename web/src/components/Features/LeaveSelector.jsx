@@ -21,7 +21,6 @@ export function LeaveSelector({
           <p className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wide">
             Annual leave days
           </p>
-          {/* Value badge */}
           <span className="text-sm font-bold text-slate-900 dark:text-slate-100 tabular-nums">
             {selected === 0 ? 'Free days' : `${selected} day${selected === 1 ? '' : 's'}`}
           </span>

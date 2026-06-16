@@ -40,18 +40,22 @@ export function MonthGrid({ year, month, scoreMap, showSchoolHolidays, provinceC
   }
 
   return (
-    <div className="flex flex-col gap-1 w-full max-w-[220px]">
+    <div className="flex flex-col gap-1 w-full">
       {/* Month label */}
       <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-0.5 uppercase tracking-wide">
         {monthName}
       </h3>
 
-      {/* Weekday header row */}
+      {/* Weekday header row — Sat (i=5) and Sun (i=6) slightly darker to distinguish weekends */}
       <div className="grid grid-cols-7 gap-0.5 mb-0.5">
         {WEEKDAY_HEADERS.map((label, i) => (
           <div
             key={i}
-            className="text-center text-[8px] font-medium text-slate-400 dark:text-slate-600 uppercase"
+            className={`text-center text-[10px] font-medium uppercase ${
+              i >= 5
+                ? 'text-slate-500 dark:text-slate-400'
+                : 'text-slate-400 dark:text-slate-600'
+            }`}
           >
             {label}
           </div>
