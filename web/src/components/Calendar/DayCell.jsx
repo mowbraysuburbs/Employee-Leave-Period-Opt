@@ -10,6 +10,7 @@ function dayCellEqual(prev, next) {
     prev.isPublicHoliday !== next.isPublicHoliday ||
     prev.isSchoolHoliday !== next.isSchoolHoliday ||
     prev.weekdayIndex    !== next.weekdayIndex    ||
+    prev.compact         !== next.compact         ||
     prev.onDayClick      !== next.onDayClick      ||
     prev.onDayHover      !== next.onDayHover
   ) return false
@@ -32,6 +33,7 @@ export const DayCell = memo(function DayCell({
   isSchoolHoliday,
   schoolBreakLabel,
   isEmpty,
+  compact,
   onDayClick,
   onDayHover,
   hoveredRange,
@@ -89,7 +91,7 @@ export const DayCell = memo(function DayCell({
   return (
     <div className="relative flex items-center justify-center">
       <div
-        className={`w-full aspect-square ${shapeClass} flex flex-col items-center justify-center select-none relative
+        className={`w-[93%] aspect-square ${shapeClass} flex flex-col items-center justify-center select-none relative
           transition-all duration-100
           ${!isInRange ? 'hover:scale-110 hover:z-10' : ''}
           ${isClickable ? 'cursor-pointer' : 'cursor-default'}
@@ -112,7 +114,7 @@ export const DayCell = memo(function DayCell({
         onClick={() => isClickable && onDayClick(date)}
       >
         <span
-          className={`text-sm sm:text-xs leading-none ${
+          className={`${compact ? 'text-[9px]' : 'text-sm sm:text-xs'} leading-none ${
             isPublicHoliday
               ? 'text-white font-bold italic'
               : hasBackground

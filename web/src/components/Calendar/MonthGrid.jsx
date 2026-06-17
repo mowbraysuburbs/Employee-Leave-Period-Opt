@@ -10,7 +10,7 @@ const MONTH_NAMES = [
 ]
 
 export function MonthGrid({
-  year, month, scoreMap, showSchoolHolidays, provinceCode, filterSet, onDayClick,
+  year, month, scoreMap, showSchoolHolidays, provinceCode, filterSet, compact, onDayClick,
   hoveredRange, onDayHover, onDayLeave,
 }) {
   const monthName = MONTH_NAMES[month - 1]
@@ -29,13 +29,15 @@ export function MonthGrid({
     cells.push({ isEmpty: false, day: d, dateStr, weekdayIndex })
   }
 
+  const colClass = compact ? 'grid-cols-[repeat(7,26px)]' : 'grid-cols-7'
+
   return (
-    <div className="flex flex-col gap-1 w-full">
+    <div className={`flex flex-col gap-1 ${compact ? 'w-fit' : 'w-full'}`}>
       <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-0.5 uppercase tracking-wide">
         {monthName}
       </h3>
 
-      <div className="grid grid-cols-7 gap-0.5 mb-0.5">
+      <div className={`grid ${colClass} gap-0.5 mb-0.5`}>
         {WEEKDAY_HEADERS.map((label, i) => (
           <div
             key={i}
@@ -49,7 +51,7 @@ export function MonthGrid({
       </div>
 
       {/* onMouseLeave clears the hover range when mouse exits the month entirely */}
-      <div className="grid grid-cols-7 gap-0.5" onMouseLeave={onDayLeave}>
+      <div className={`grid ${colClass} gap-0.5`} onMouseLeave={onDayLeave}>
         {cells.map((cell, i) => {
           if (cell.isEmpty) {
             return (
@@ -77,6 +79,7 @@ export function MonthGrid({
               holidayName={getHolidayName(dateStr, year)}
               isSchoolHoliday={schoolHol}
               schoolBreakLabel={schoolHol ? getSchoolBreakLabel(dateStr, provinceCode, year) : null}
+              compact={compact}
               onDayClick={onDayClick}
               hoveredRange={hoveredRange}
               weekdayIndex={weekdayIndex}

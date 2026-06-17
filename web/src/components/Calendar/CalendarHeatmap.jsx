@@ -15,6 +15,7 @@ export function CalendarHeatmap({
   provinceCode,
   filterSet,
   smartFilter,
+  compact,
 }) {
   const [selectedDate, setSelectedDate] = useState(null)
   const [hoveredRange, setHoveredRange] = useState(null)
@@ -40,22 +41,15 @@ export function CalendarHeatmap({
   }, [])
 
   const handleDayClick = useCallback((dateStr) => {
-    if (isTouch) {
-      if (leaveDays === 0) return
-      const range = getLeaveRange(dateStr, leaveDays)
-      setHoveredRange(prev =>
-        prev?.start === range.startDate ? null : { start: range.startDate, end: range.endDate }
-      )
-    } else {
-      setSelectedDate(dateStr)
-    }
-  }, [leaveDays])
+    setSelectedDate(dateStr)
+  }, [])
 
   const sharedProps = {
     scoreMap,
     showSchoolHolidays,
     provinceCode,
     filterSet,
+    compact,
     onDayClick: handleDayClick,
     hoveredRange,
     onDayHover: handleDayHover,
@@ -70,7 +64,7 @@ export function CalendarHeatmap({
       </div>
 
       {/* Desktop: month card grid */}
-      <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+      <div className={`${compact ? 'hidden sm:flex sm:flex-wrap' : 'hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'} gap-5`}>
         {months.map(({ year, month }) => (
           <MonthGrid
             key={`${year}-${month}`}

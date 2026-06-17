@@ -1,0 +1,329 @@
+name,event_count
+Cape Town,870
+Stellenbosch,398
+Johannesburg,299
+Sandton,177
+Pretoria,141
+Durban,100
+Gqeberha,99
+Randburg,90
+Midrand,52
+Centurion,47
+Sedgefield,47
+Roodepoort,43
+George,36
+Boksburg,31
+Alberton,28
+Benoni,27
+Knysna,27
+Bloemfontein,23
+Paarl,20
+Soweto,20
+Darling,19
+Mbombela,19
+Germiston,18
+Pietermaritzburg,18
+Plettenberg Bay,18
+Oudtshoorn,17
+Umhlanga,17
+East London,16
+Hermanus,16
+Prince Albert,16
+Rustenburg,15
+Kempton Park,13
+Muldersdrift,13
+Hartbeespoort,12
+Hillcrest,12
+Potchefstroom,12
+Ballito,11
+Berea,11
+Krugersdorp,11
+Lethabong,11
+Howick,10
+Johannesburg South,10
+Mossel Bay,10
+Port Elizabeth,10
+Saint Francis Bay,10
+Edenvale,9
+Pinetown,9
+Durban North,8
+Gillitts,8
+KuGompo City,8
+Middelburg,8
+Outer West Durban,8
+Simola Golf and Country Estate,8
+Sutherland,8
+Klerksdorp,7
+Polokwane,7
+Pringle Bay,7
+Westville,7
+Heidelberg - GP,6
+Nigel,6
+Richards Bay,6
+Simondium,6
+Vanderbijlpark,6
+Akasia,5
+Brakpan,5
+Emalahleni,5
+Kimberley,5
+Kloof,5
+Piketberg,5
+Springs,5
+Vereeniging,5
+Worcester,5
+eManzimtoti,5
+Fourways,4
+Franschhoek,4
+Grabouw,4
+Greyton,4
+Hammanskraal,4
+Hilton,4
+Hoedspruit,4
+Jeffreys Bay,4
+Langebaan,4
+Margate,4
+Olifantsfontein,4
+Roodeplaat,4
+Sandbaai,4
+Secunda,4
+Somerset West,4
+Tzaneen,4
+Welkom,4
+Wellington,4
+White River,4
+Wilderness,4
+eMdloti,4
+Bedfordview,3
+Bela-Bela,3
+Bronkhorstspruit,3
+Ceres,3
+Dolphin Coast,3
+Durbanville,3
+Hekpoort,3
+Kenton-on-Sea,3
+Kleinmond,3
+Kuruman,3
+Lephalale,3
+Mabopane,3
+Makhanda,3
+Malmesbury,3
+Parys,3
+Rivonia,3
+Sebokeng,3
+Shere,3
+Standerton,3
+Stanford,3
+Tierpoort,3
+Vosloorus,3
+Bethelsdorp,2
+Betty's Bay,2
+Camperdown,2
+Cape Saint Francis,2
+Carletonville,2
+Cathkin Park,2
+Clanwilliam,2
+Clarens,2
+Cullinan,2
+Diepkloof,2
+Empangeni,2
+Eston,2
+Ga-Rankuwa,2
+Gcuwa,2
+Great Brak River,2
+Ibhayi,2
+Katlehong,2
+Kroondal,2
+Lenasia,2
+Lower,2
+Magaliesburg,2
+Malamulele,2
+Mankweng,2
+Mashishing,2
+McGregor,2
+Nottingham Road,2
+Odendaalsrus,2
+Orania,2
+Phalaborwa,2
+Phoenix,2
+Phuthaditjhaba,2
+Pniel,2
+Port Alfred,2
+Riebeek-Kasteel,2
+Robertson,2
+Senderwood,2
+Soshanguve,2
+St Francis Bay,2
+Sun City,2
+Table Mountain,2
+Thabazimbi,2
+Vanrhynsdorp,2
+Vlottenburg,2
+eManzana,2
+Amatola Coastal,1
+Ashburton,1
+Balgowan,1
+Barrydale,1
+Bergville,1
+Bethlehem,1
+Bluff,1
+Brackenfell,1
+Brenton-on-Sea,1
+Buffalo City,1
+Caledon,1
+Calitzdorp,1
+"Cape Town, Western Cape",1
+Carnarvon,1
+Chartwell,1
+Chintsa East,1
+Citrusdal,1
+Clifton Canyon,1
+Craighall Park,1
+Dalmada AH,1
+De Aar,1
+De Doorns,1
+De Rust,1
+Deneysville,1
+Diepsloot,1
+Dullstroom,1
+Durban Natal,1
+Eikenhof,1
+Elukwatini,1
+Ennerdale,1
+Entre Nous,1
+Ephangweni,1
+Ethekwini,1
+Ezakheni C,1
+Fort Nottingham,1
+Ga-Mashashane,1
+Gansbaai,1
+Gauteng,1
+Giants Castle Game Reserve,1
+Greytown,1
+Groblersdal,1
+Haenertsburg,1
+Harold Johnson Nature Reserve,1
+Hartswater,1
+Hazyview,1
+Hendrina,1
+Hogsback,1
+Hout Bay,1
+Jacobs Bay,1
+Jacobsbaai,1
+Johannesdal,1
+Johannnesburg,1
+Kaapschehoop,1
+Kaapstad,1
+Kasouga,1
+Keurboomstrand,1
+Khumbula,1
+Kingsburgh,1
+Kliprivier,1
+Komani,1
+Komatipoort,1
+Kroonstad,1
+KwaDukuza,1
+KwaMashu,1
+KwaZulu-Natal,1
+Kwambonambi,1
+Kwazulu Natal,1
+Kyalami,1
+L'Agulhas,1
+Ladismith,1
+Lanseria,1
+Lothair,1
+Lutzville,1
+Mahikeng,1
+Maletswai,1
+Marble Hall,1
+Marulaneng,1
+Masanteng,1
+Maselspoort,1
+"Mbabane, Eswatini",1
+Mehlamasha,1
+Meyerton,1
+Milnerton,1
+Mkhazane,1
+Mmabatho,1
+Mmotong,1
+Mokopane,1
+Mooi River,1
+Morgenzon,1
+Morningside,1
+Morokweng,1
+Mthatha,1
+Mtunzini,1
+"Muldersdrift, Johannesburg",1
+Musina,1
+Mzinti,1
+NABOOMSPRUIT,1
+Napier,1
+Natures Valley,1
+Nelson Mandela Bay,1
+New Hanover,1
+Newcastle,1
+Nhlazatshe,1
+Nieu-Bethesda,1
+Nkowankowa,1
+Nomgwadla,1
+Noordhoek,1
+PIETERMARITSBURG,1
+Pennington,1
+Phokeng,1
+Pietermaritzburg /Thornville,1
+Pilgrim's Rest,1
+Pimville,1
+Pongola,1
+Port Edward,1
+Port Shepstone,1
+Pretoria East,1
+Qaza,1
+Qoloha,1
+Qonce,1
+"Qonce,Ndevana",1
+Raithby,1
+Randfontein,1
+Reefentse,1
+Rhodes,1
+Richmond - KZN,1
+Riversdale,1
+Riviersonderend,1
+"Rustenburg,Bapong",1
+Saldanha,1
+Sasolburg,1
+Sekgophokgophong,1
+Silver Lakes Golf Estate,1
+Sir Lowry's Pass,1
+St Francis Bay 6312,1
+Steelpoort,1
+Stilfontein,1
+Still Bay / Stilbaai,1
+Strand,1
+Strandfontein,1
+Stutterheim,1
+Sunningdale,1
+Sunrella AH,1
+Taung,1
+Thaba Tshwane,1
+"The Crags, Plettenberg Bay",1
+Thembisa,1
+Thohoyandou,1
+Thokoza,1
+Tlokweng,1
+UmhLOTI,1
+Umhlali,1
+Umlazi,1
+Utrecht,1
+Vaalwater,1
+Vanwyksvlei,1
+Villiersdorp,1
+Vlakfontein,1
+Volksrust,1
+Vredenburg,1
+Vredendal,1
+Warburton,1
+West Coast DC,1
+Windmeul,1
+Winnie Mandela,1
+Yzerfontein,1
+Zakariyya Park,1
+eMkhuze,1

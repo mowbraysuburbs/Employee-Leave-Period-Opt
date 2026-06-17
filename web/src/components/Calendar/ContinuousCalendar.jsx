@@ -71,6 +71,7 @@ export function ContinuousCalendar({
   showSchoolHolidays,
   provinceCode,
   filterSet,
+  compact,
   onDayClick,
   hoveredRange,
   onDayHover,
@@ -82,7 +83,7 @@ export function ContinuousCalendar({
   )
 
   return (
-    <div className="flex flex-col" onMouseLeave={onDayLeave}>
+    <div className={`flex flex-col ${compact ? 'w-fit mx-auto' : ''}`} onMouseLeave={onDayLeave}>
       {rows.map((row, rowIdx) => {
         const { isTransitionRow, transitionIdx } = row
 
@@ -104,7 +105,7 @@ export function ContinuousCalendar({
           : `border-t ${LINE}`
 
         return (
-          <div key={rowIdx} className="grid grid-cols-[repeat(7,1fr)_32px] gap-0">
+          <div key={rowIdx} className={`grid ${compact ? 'grid-cols-[repeat(7,28px)_24px]' : 'grid-cols-[repeat(7,1fr)_32px]'} gap-0`}>
             {/* Seven day cells first */}
             {row.cells.map((cell, ci) => {
               // ── Step separator borders (month boundary) ──────────────────────
@@ -143,6 +144,7 @@ export function ContinuousCalendar({
                     holidayName={getHolidayName(dateStr, year)}
                     isSchoolHoliday={schoolHol}
                     schoolBreakLabel={schoolHol ? getSchoolBreakLabel(dateStr, provinceCode, year) : null}
+                    compact={compact}
                     onDayClick={onDayClick}
                     hoveredRange={hoveredRange}
                     weekdayIndex={weekdayIndex}

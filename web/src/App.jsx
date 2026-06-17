@@ -36,6 +36,7 @@ export default function App() {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
   const [smartFilter, setSmartFilter] = useState(false)
+  const [compact, setCompact] = useState(false)
 
   useEffect(() => {
     document.documentElement.classList[darkMode ? 'add' : 'remove']('dark')
@@ -127,11 +128,6 @@ export default function App() {
           {/* Right side buttons — mobile only */}
           <div className="md:hidden flex items-center gap-1">
             <button
-              onClick={() => setDarkMode((v) => !v)}
-              className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-base"
-              aria-label="Toggle dark mode"
-            >{darkMode ? '☀️' : '🌙'}</button>
-            <button
               onClick={() => setHelpOpen(true)}
               className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-bold transition-colors leading-none"
               aria-label="Help"
@@ -139,39 +135,6 @@ export default function App() {
           </div>
         </div>
 
-        {/* Leave days slider — mobile only, always visible */}
-        <div className="md:hidden px-4 pb-3 flex flex-col gap-2">
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wide">
-              Annual leave days
-            </p>
-            <span className="text-sm font-bold text-slate-900 dark:text-slate-100 tabular-nums">
-              {leaveDays === 0 ? 'Free days' : `${leaveDays} day${leaveDays === 1 ? '' : 's'}`}
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setLeaveDays((d) => Math.max(0, d - 1))}
-              disabled={leaveDays === 0}
-              className="w-7 h-7 flex-shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-base font-bold leading-none flex items-center justify-center hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              aria-label="Decrease leave days"
-            >−</button>
-            <input
-              type="range"
-              min={0}
-              max={MAX_LEAVE}
-              value={leaveDays}
-              onChange={(e) => setLeaveDays(Number(e.target.value))}
-              className="w-0 flex-1 h-2 rounded-full accent-sky-500 cursor-pointer"
-            />
-            <button
-              onClick={() => setLeaveDays((d) => Math.min(MAX_LEAVE, d + 1))}
-              disabled={leaveDays === MAX_LEAVE}
-              className="w-7 h-7 flex-shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-base font-bold leading-none flex items-center justify-center hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              aria-label="Increase leave days"
-            >+</button>
-          </div>
-        </div>
       </header>
 
       {/* Mobile filter drawer */}
@@ -334,22 +297,12 @@ export default function App() {
             {/* Sticky legend / filter bar — heatmap tab only */}
             {activeTab === 'heatmap' && (
               <div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
-                {/* Filter chips — single scrollable row */}
-                <div className="px-4 py-2.5">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                      Days off
-                    </span>
-                    {filterSet.size > 0 && (
-                      <button
-                        onClick={() => setFilterSet(new Set())}
-                        className="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
-                      >
-                        Clear all ×
-                      </button>
-                    )}
-                  </div>
-                  <div className="flex flex-nowrap gap-1.5 overflow-x-auto py-1.5">
+                {/* Filter chips — desktop only (mobile chips live in bottom bar) */}
+                <div className="hidden md:flex px-4 py-2 items-center gap-2">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 flex-shrink-0">
+                    Days off
+                  </span>
+                  <div className="flex flex-nowrap gap-1.5 overflow-x-auto flex-1 py-1">
                     {legend.map(({ daysOff, colour }) => {
                       const isSelected = filterSet.has(daysOff)
                       const isBonus = bonusDaysOffValues.has(daysOff)
@@ -375,9 +328,15 @@ export default function App() {
                       )
                     })}
                   </div>
+                  {filterSet.size > 0 && (
+                    <button
+                      onClick={() => setFilterSet(new Set())}
+                      className="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors flex-shrink-0"
+                    >×</button>
+                  )}
                 </div>
                 {/* Weekday header frozen above continuous calendar — mobile only */}
-                <div className="sm:hidden grid grid-cols-[repeat(7,1fr)_32px] gap-0.5 px-4 pb-2">
+                <div className={`sm:hidden grid ${compact ? 'grid-cols-[repeat(7,28px)_24px] w-fit mx-auto' : 'grid-cols-[repeat(7,1fr)_32px] px-4'} gap-0 pb-2`}>
                   {['M','T','W','T','F','S','S'].map((h, i) => (
                     <div
                       key={i}
@@ -393,7 +352,7 @@ export default function App() {
               </div>
             )}
 
-            <div className="p-4 pb-24 md:pb-6">
+            <div className="p-4 pb-48 md:pb-6">
               {activeTab === 'heatmap' && (
                 <CalendarHeatmap
                   scores={scores}
@@ -403,6 +362,7 @@ export default function App() {
                   provinceCode={provinceCode}
                   filterSet={filterSet}
                   smartFilter={smartFilter}
+                  compact={compact}
                 />
               )}
               {activeTab === 'picks' && (
@@ -419,6 +379,88 @@ export default function App() {
             </div>
           </main>
         </div>
+      </div>
+
+      {/* Mobile bottom controls bar — sits above BottomTabBar */}
+      <div className="fixed bottom-[52px] left-0 right-0 z-30 md:hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700">
+        {/* Row 1: Annual leave days picker + compact toggle */}
+        <div className="px-4 py-2 flex items-center gap-3">
+          <p className="text-[9px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400 leading-tight flex-shrink-0">
+            Annual<br />Leave Days
+          </p>
+          <div className="flex-1 flex items-center justify-center gap-4">
+            <button
+              onClick={() => setLeaveDays(d => Math.max(0, d - 1))}
+              disabled={leaveDays === 0}
+              className="w-8 text-center text-base font-semibold tabular-nums text-slate-400 dark:text-slate-500 opacity-35 disabled:opacity-0 transition-opacity"
+              aria-label="Decrease"
+            >
+              {leaveDays > 0 ? leaveDays - 1 : ''}
+            </button>
+            <span className="w-8 text-center text-xl font-bold tabular-nums text-slate-900 dark:text-slate-100">
+              {leaveDays}
+            </span>
+            <button
+              onClick={() => setLeaveDays(d => Math.min(MAX_LEAVE, d + 1))}
+              disabled={leaveDays === MAX_LEAVE}
+              className="w-8 text-center text-base font-semibold tabular-nums text-slate-400 dark:text-slate-500 opacity-35 disabled:opacity-0 transition-opacity"
+              aria-label="Increase"
+            >
+              {leaveDays < MAX_LEAVE ? leaveDays + 1 : ''}
+            </button>
+          </div>
+          <button
+            onClick={() => setCompact(v => !v)}
+            className={`flex-shrink-0 text-xs font-bold px-2.5 py-1 rounded-lg transition-colors ${
+              compact
+                ? 'bg-sky-500 text-white'
+                : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+            }`}
+          >
+            {compact ? '2x' : '1x'}
+          </button>
+        </div>
+
+        {/* Row 2: Days off chips — heatmap tab only */}
+        {activeTab === 'heatmap' && (
+          <div className="px-4 pb-2 pt-2 flex items-center gap-2 border-t border-slate-200 dark:border-slate-700">
+            <span className="text-[9px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400 flex-shrink-0 leading-tight">
+              Days<br />Off
+            </span>
+            <div className="flex flex-nowrap gap-1.5 overflow-x-auto flex-1 py-0.5">
+              {legend.map(({ daysOff, colour }) => {
+                const isSelected = filterSet.has(daysOff)
+                const isBonus = bonusDaysOffValues.has(daysOff)
+                return (
+                  <button
+                    key={daysOff}
+                    onClick={() => setFilterSet((prev) => {
+                      const next = new Set(prev)
+                      if (next.has(daysOff)) next.delete(daysOff)
+                      else next.add(daysOff)
+                      return next
+                    })}
+                    title={`${daysOff} days off — click to filter`}
+                    className={`flex-shrink-0 w-[34px] h-[34px] rounded-full flex items-center justify-center text-xs font-bold transition-opacity focus:outline-none ${
+                      isSelected
+                        ? 'ring-2 ring-offset-2 ring-slate-900 dark:ring-white ring-offset-white dark:ring-offset-slate-900'
+                        : 'opacity-80 hover:opacity-100'
+                    } ${smartFilter && !isBonus ? 'opacity-25 hover:opacity-25' : ''}`}
+                    style={{ backgroundColor: colour, color: '#1e293b' }}
+                  >
+                    {daysOff}
+                  </button>
+                )
+              })}
+            </div>
+            {filterSet.size > 0 && (
+              <button
+                onClick={() => setFilterSet(new Set())}
+                className="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors flex-shrink-0"
+              >×</button>
+            )}
+          </div>
+        )}
       </div>
 
       <BottomTabBar activeTab={activeTab} onChange={setActiveTab} />

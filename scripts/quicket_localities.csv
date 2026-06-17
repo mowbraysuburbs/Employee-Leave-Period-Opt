@@ -1,0 +1,362 @@
+code,locality,province,locality_url,event_count
+cape-town,Cape Town,Western Cape,/events/south-africa/western-cape/cape-town,870
+stellenbosch,Stellenbosch,Western Cape,/events/south-africa/western-cape/stellenbosch,398
+johannesburg,Johannesburg,Gauteng,/events/south-africa/gauteng/johannesburg,299
+sandton,Sandton,Gauteng,/events/south-africa/gauteng/sandton,177
+pretoria,Pretoria,Gauteng,/events/south-africa/gauteng/pretoria,141
+durban,Durban,Kwazulu Natal,/events/south-africa/kwazulu-natal/durban,100
+gqeberha,Gqeberha,Eastern Cape,/events/south-africa/eastern-cape/gqeberha,99
+randburg,Randburg,Gauteng,/events/south-africa/gauteng/randburg,90
+midrand,Midrand,Gauteng,/events/south-africa/gauteng/midrand,52
+centurion,Centurion,Gauteng,/events/south-africa/gauteng/centurion,47
+sedgefield,Sedgefield,Western Cape,/events/south-africa/western-cape/sedgefield,47
+roodepoort,Roodepoort,Gauteng,/events/south-africa/gauteng/roodepoort,43
+george,George,Western Cape,/events/south-africa/western-cape/george,36
+boksburg,Boksburg,Gauteng,/events/south-africa/gauteng/boksburg,31
+alberton,Alberton,Gauteng,/events/south-africa/gauteng/alberton,28
+knysna,Knysna,Western Cape,/events/south-africa/western-cape/knysna,27
+benoni,Benoni,Gauteng,/events/south-africa/gauteng/benoni,27
+bloemfontein,Bloemfontein,Free State,/events/south-africa/free-state/bloemfontein,23
+soweto,Soweto,Gauteng,/events/south-africa/gauteng/soweto,20
+paarl,Paarl,Western Cape,/events/south-africa/western-cape/paarl,20
+darling,Darling,Western Cape,/events/south-africa/western-cape/darling,19
+germiston,Germiston,Gauteng,/events/south-africa/gauteng/germiston,18
+plettenberg-bay,Plettenberg Bay,Western Cape,/events/south-africa/western-cape/plettenberg-bay,18
+pietermaritzburg,Pietermaritzburg,Kwazulu Natal,/events/south-africa/kwazulu-natal/pietermaritzburg,18
+umhlanga,Umhlanga,Kwazulu Natal,/events/south-africa/kwazulu-natal/umhlanga,17
+oudtshoorn,Oudtshoorn,Western Cape,/events/south-africa/western-cape/oudtshoorn,17
+east-london,East London,Eastern Cape,/events/south-africa/eastern-cape/east-london,16
+prince-albert,Prince Albert,Western Cape,/events/south-africa/western-cape/prince-albert,16
+hermanus,Hermanus,Western Cape,/events/south-africa/western-cape/hermanus,16
+rustenburg,Rustenburg,North West,/events/south-africa/north-west/rustenburg,15
+muldersdrift,Muldersdrift,Gauteng,/events/south-africa/gauteng/muldersdrift,13
+kempton-park,Kempton Park,Gauteng,/events/south-africa/gauteng/kempton-park,13
+potchefstroom,Potchefstroom,North West,/events/south-africa/north-west/potchefstroom,12
+hillcrest,Hillcrest,Kwazulu Natal,/events/south-africa/kwazulu-natal/hillcrest,12
+hartbeespoort,Hartbeespoort,North West,/events/south-africa/north-west/hartbeespoort,12
+ballito,Ballito,Kwazulu Natal,/events/south-africa/kwazulu-natal/ballito,11
+lethabong,Lethabong,Gauteng,/events/south-africa/gauteng/lethabong,11
+krugersdorp,Krugersdorp,Gauteng,/events/south-africa/gauteng/krugersdorp,11
+berea,Berea,Kwazulu Natal,/events/south-africa/kwazulu-natal/berea,11
+saint-francis-bay,Saint Francis Bay,Eastern Cape,/events/south-africa/eastern-cape/saint-francis-bay,10
+port-elizabeth,Port Elizabeth,Eastern Cape,/events/south-africa/eastern-cape/port-elizabeth,10
+mossel-bay,Mossel Bay,Western Cape,/events/south-africa/western-cape/mossel-bay,10
+johannesburg-south,Johannesburg South,Gauteng,/events/south-africa/gauteng/johannesburg-south,10
+howick,Howick,Kwazulu Natal,/events/south-africa/kwazulu-natal/howick,10
+edenvale,Edenvale,Gauteng,/events/south-africa/gauteng/edenvale,9
+pinetown,Pinetown,Kwazulu Natal,/events/south-africa/kwazulu-natal/pinetown,9
+gillitts,Gillitts,Kwazulu Natal,/events/south-africa/kwazulu-natal/gillitts,8
+durban-north,Durban North,Kwazulu Natal,/events/south-africa/kwazulu-natal/durban-north,8
+sutherland,Sutherland,Northern Cape,/events/south-africa/northern-cape/sutherland,8
+simola-golf-and-country-estate,Simola Golf and Country Estate,Western Cape,/events/south-africa/western-cape/simola-golf-and-country-estate,8
+outer-west-durban,Outer West Durban,Kwazulu Natal,/events/south-africa/kwazulu-natal/outer-west-durban,8
+middelburg,Middelburg,Eastern Cape,/events/south-africa/eastern-cape/middelburg,8
+kugompo-city,KuGompo City,Eastern Cape,/events/south-africa/eastern-cape/kugompo-city,8
+westville,Westville,Kwazulu Natal,/events/south-africa/kwazulu-natal/westville,7
+pringle-bay,Pringle Bay,Western Cape,/events/south-africa/western-cape/pringle-bay,7
+polokwane,Polokwane,Limpopo,/events/south-africa/limpopo/polokwane,7
+klerksdorp,Klerksdorp,North West,/events/south-africa/north-west/klerksdorp,7
+vanderbijlpark,Vanderbijlpark,Gauteng,/events/south-africa/gauteng/vanderbijlpark,6
+simondium,Simondium,Western Cape,/events/south-africa/western-cape/simondium,6
+richards-bay,Richards Bay,Kwazulu Natal,/events/south-africa/kwazulu-natal/richards-bay,6
+nigel,Nigel,Gauteng,/events/south-africa/gauteng/nigel,6
+heidelberg-gp,Heidelberg - GP,Gauteng,/events/south-africa/gauteng/heidelberg-gp,6
+emanzimtoti,eManzimtoti,Kwazulu Natal,/events/south-africa/kwazulu-natal/emanzimtoti,5
+emalahleni,Emalahleni,Mpumalanga,/events/south-africa/mpumalanga/emalahleni,5
+worcester,Worcester,Western Cape,/events/south-africa/western-cape/worcester,5
+vereeniging,Vereeniging,Gauteng,/events/south-africa/gauteng/vereeniging,5
+springs,Springs,Gauteng,/events/south-africa/gauteng/springs,5
+piketberg,Piketberg,Western Cape,/events/south-africa/western-cape/piketberg,5
+brakpan,Brakpan,Gauteng,/events/south-africa/gauteng/brakpan,5
+akasia,Akasia,Gauteng,/events/south-africa/gauteng/akasia,5
+kloof,Kloof,Kwazulu Natal,/events/south-africa/kwazulu-natal/kloof,5
+kimberley,Kimberley,Northern Cape,/events/south-africa/northern-cape/kimberley,5
+greyton,Greyton,Western Cape,/events/south-africa/western-cape/greyton,4
+grabouw,Grabouw,Western Cape,/events/south-africa/western-cape/grabouw,4
+franschhoek,Franschhoek,Western Cape,/events/south-africa/western-cape/franschhoek,4
+fourways,Fourways,Gauteng,/events/south-africa/gauteng/fourways,4
+emdloti,eMdloti,Kwazulu Natal,/events/south-africa/kwazulu-natal/emdloti,4
+wilderness,Wilderness,Western Cape,/events/south-africa/western-cape/wilderness,4
+white-river,White River,Mpumalanga,/events/south-africa/mpumalanga/white-river,4
+wellington,Wellington,Western Cape,/events/south-africa/western-cape/wellington,4
+welkom,Welkom,Free State,/events/south-africa/free-state/welkom,4
+tzaneen,Tzaneen,Limpopo,/events/south-africa/limpopo/tzaneen,4
+somerset-west,Somerset West,Western Cape,/events/south-africa/western-cape/somerset-west,4
+secunda,Secunda,Mpumalanga,/events/south-africa/mpumalanga/secunda,4
+sandbaai,Sandbaai,Western Cape,/events/south-africa/western-cape/sandbaai,4
+roodeplaat,Roodeplaat,Gauteng,/events/south-africa/gauteng/roodeplaat,4
+olifantsfontein,Olifantsfontein,Gauteng,/events/south-africa/gauteng/olifantsfontein,4
+margate,Margate,Kwazulu Natal,/events/south-africa/kwazulu-natal/margate,4
+langebaan,Langebaan,Western Cape,/events/south-africa/western-cape/langebaan,4
+jeffreys-bay,Jeffreys Bay,Eastern Cape,/events/south-africa/eastern-cape/jeffreys-bay,4
+hoedspruit,Hoedspruit,Limpopo,/events/south-africa/limpopo/hoedspruit,4
+hammanskraal,Hammanskraal,Gauteng,/events/south-africa/gauteng/hammanskraal,4
+dolphin-coast,Dolphin Coast,Kwazulu Natal,/events/south-africa/kwazulu-natal/dolphin-coast,3
+ceres,Ceres,Western Cape,/events/south-africa/western-cape/ceres,3
+vosloorus,Vosloorus,Gauteng,/events/south-africa/gauteng/vosloorus,3
+tierpoort,Tierpoort,Gauteng,/events/south-africa/gauteng/tierpoort,3
+stanford,Stanford,Western Cape,/events/south-africa/western-cape/stanford,3
+standerton,Standerton,Mpumalanga,/events/south-africa/mpumalanga/standerton,3
+shere,Shere,Gauteng,/events/south-africa/gauteng/shere,3
+sebokeng,Sebokeng,Gauteng,/events/south-africa/gauteng/sebokeng,3
+bronkhorstspruit,Bronkhorstspruit,Gauteng,/events/south-africa/gauteng/bronkhorstspruit,3
+parys,Parys,North West,/events/south-africa/north-west/parys,3
+malmesbury,Malmesbury,Western Cape,/events/south-africa/western-cape/malmesbury,3
+makhanda,Makhanda,Eastern Cape,/events/south-africa/eastern-cape/makhanda,3
+mabopane,Mabopane,Gauteng,/events/south-africa/gauteng/mabopane,3
+lephalale,Lephalale,Limpopo,/events/south-africa/limpopo/lephalale,3
+kuruman,Kuruman,Northern Cape,/events/south-africa/northern-cape/kuruman,3
+kleinmond,Kleinmond,Western Cape,/events/south-africa/western-cape/kleinmond,3
+kenton-on-sea,Kenton-on-Sea,Eastern Cape,/events/south-africa/eastern-cape/kenton-on-sea,3
+bela-bela,Bela-Bela,Limpopo,/events/south-africa/limpopo/bela-bela,3
+hekpoort,Hekpoort,Gauteng,/events/south-africa/gauteng/hekpoort,3
+bedfordview,Bedfordview,Gauteng,/events/south-africa/gauteng/bedfordview,3
+great-brak-river,Great Brak River,Western Cape,/events/south-africa/western-cape/great-brak-river,2
+gcuwa,Gcuwa,Eastern Cape,/events/south-africa/eastern-cape/gcuwa,2
+ga-rankuwa,Ga-Rankuwa,Gauteng,/events/south-africa/gauteng/ga-rankuwa,2
+eston,Eston,Kwazulu Natal,/events/south-africa/kwazulu-natal/eston,2
+empangeni,Empangeni,Kwazulu Natal,/events/south-africa/kwazulu-natal/empangeni,2
+emanzana,eManzana,Mpumalanga,/events/south-africa/mpumalanga/emanzana,2
+diepkloof,Diepkloof,Gauteng,/events/south-africa/gauteng/diepkloof,2
+cullinan,Cullinan,Gauteng,/events/south-africa/gauteng/cullinan,2
+clarens,Clarens,Free State,/events/south-africa/free-state/clarens,2
+clanwilliam,Clanwilliam,Western Cape,/events/south-africa/western-cape/clanwilliam,2
+cathkin-park,Cathkin Park,Kwazulu Natal,/events/south-africa/kwazulu-natal/cathkin-park,2
+carletonville,Carletonville,Gauteng,/events/south-africa/gauteng/carletonville,2
+vlottenburg,Vlottenburg,Western Cape,/events/south-africa/western-cape/vlottenburg,2
+vanrhynsdorp,Vanrhynsdorp,Western Cape,/events/south-africa/western-cape/vanrhynsdorp,2
+thabazimbi,Thabazimbi,Limpopo,/events/south-africa/limpopo/thabazimbi,2
+table-mountain,Table Mountain,Kwazulu Natal,/events/south-africa/kwazulu-natal/table-mountain,2
+sun-city,Sun City,North West,/events/south-africa/north-west/sun-city,2
+st-francis-bay,St Francis Bay,Eastern Cape,/events/south-africa/eastern-cape/st-francis-bay,2
+cape-saint-francis,Cape Saint Francis,Eastern Cape,/events/south-africa/eastern-cape/cape-saint-francis,2
+soshanguve,Soshanguve,Gauteng,/events/south-africa/gauteng/soshanguve,2
+senderwood,Senderwood,Gauteng,/events/south-africa/gauteng/senderwood,2
+camperdown,Camperdown,Kwazulu Natal,/events/south-africa/kwazulu-natal/camperdown,2
+robertson,Robertson,Western Cape,/events/south-africa/western-cape/robertson,2
+riebeek-kasteel,Riebeek-Kasteel,Western Cape,/events/south-africa/western-cape/riebeek-kasteel,2
+port-alfred,Port Alfred,Eastern Cape,/events/south-africa/eastern-cape/port-alfred,2
+pniel,Pniel,Western Cape,/events/south-africa/western-cape/pniel,2
+phuthaditjhaba,Phuthaditjhaba,Free State,/events/south-africa/free-state/phuthaditjhaba,2
+phoenix,Phoenix,Kwazulu Natal,/events/south-africa/kwazulu-natal/phoenix,2
+phalaborwa,Phalaborwa,Limpopo,/events/south-africa/limpopo/phalaborwa,2
+orania,Orania,Northern Cape,/events/south-africa/northern-cape/orania,2
+odendaalsrus,Odendaalsrus,Free State,/events/south-africa/free-state/odendaalsrus,2
+nottingham-road,Nottingham Road,Kwazulu Natal,/events/south-africa/kwazulu-natal/nottingham-road,2
+mcgregor,McGregor,Western Cape,/events/south-africa/western-cape/mcgregor,2
+mashishing,Mashishing,Mpumalanga,/events/south-africa/mpumalanga/mashishing,2
+mankweng,Mankweng,Limpopo,/events/south-africa/limpopo/mankweng,2
+malamulele,Malamulele,Limpopo,/events/south-africa/limpopo/malamulele,2
+magaliesburg,Magaliesburg,Gauteng,/events/south-africa/gauteng/magaliesburg,2
+lower,Lower,Kwazulu Natal,/events/south-africa/kwazulu-natal/lower,2
+lenasia,Lenasia,Gauteng,/events/south-africa/gauteng/lenasia,2
+bettys-bay,Betty's Bay,Western Cape,/events/south-africa/western-cape/bettys-bay,2
+kroondal,Kroondal,North West,/events/south-africa/north-west/kroondal,2
+bethelsdorp,Bethelsdorp,Eastern Cape,/events/south-africa/eastern-cape/bethelsdorp,2
+katlehong,Katlehong,Gauteng,/events/south-africa/gauteng/katlehong,2
+ibhayi,Ibhayi,Eastern Cape,/events/south-africa/eastern-cape/ibhayi,2
+giants-castle-game-reserve,Giants Castle Game Reserve,Kwazulu Natal,/events/south-africa/kwazulu-natal/giants-castle-game-reserve,1
+gauteng,Gauteng,South Africa,/events/south-africa/gauteng,1
+barrydale,Barrydale,Western Cape,/events/south-africa/western-cape/barrydale,1
+gansbaai,Gansbaai,Western Cape,/events/south-africa/western-cape/gansbaai,1
+ga-mashashane,Ga-Mashashane,Limpopo,/events/south-africa/limpopo/ga-mashashane,1
+fort-nottingham,Fort Nottingham,Kwazulu Natal,/events/south-africa/kwazulu-natal/fort-nottingham,1
+ezakheni-c,Ezakheni C,Kwazulu Natal,/events/south-africa/kwazulu-natal/ezakheni-c,1
+ethekwini,Ethekwini,Kwazulu Natal,/events/south-africa/kwazulu-natal/ethekwini,1
+ephangweni,Ephangweni,Kwazulu Natal,/events/south-africa/kwazulu-natal/ephangweni,1
+entre-nous,Entre Nous,Mpumalanga,/events/south-africa/mpumalanga/entre-nous,1
+ennerdale,Ennerdale,Gauteng,/events/south-africa/gauteng/ennerdale,1
+emkhuze,eMkhuze,Kwazulu Natal,/events/south-africa/kwazulu-natal/emkhuze,1
+balgowan,Balgowan,Kwazulu Natal,/events/south-africa/kwazulu-natal/balgowan,1
+elukwatini,Elukwatini,Mpumalanga,/events/south-africa/mpumalanga/elukwatini,1
+eikenhof,Eikenhof,Gauteng,/events/south-africa/gauteng/eikenhof,1
+durban-natal,Durban Natal,Kwazulu Natal,/events/south-africa/kwazulu-natal/durban-natal,1
+ashburton,Ashburton,Kwazulu Natal,/events/south-africa/kwazulu-natal/ashburton,1
+dullstroom,Dullstroom,Mpumalanga,/events/south-africa/mpumalanga/dullstroom,1
+diepsloot,Diepsloot,Gauteng,/events/south-africa/gauteng/diepsloot,1
+deneysville,Deneysville,Free State,/events/south-africa/free-state/deneysville,1
+de-rust,De Rust,Western Cape,/events/south-africa/western-cape/de-rust,1
+de-doorns,De Doorns,Western Cape,/events/south-africa/western-cape/de-doorns,1
+de-aar,De Aar,Northern Cape,/events/south-africa/northern-cape/de-aar,1
+dalmada-ah,Dalmada AH,Limpopo,/events/south-africa/limpopo/dalmada-ah,1
+clifton-canyon,Clifton Canyon,Kwazulu Natal,/events/south-africa/kwazulu-natal/clifton-canyon,1
+citrusdal,Citrusdal,Western Cape,/events/south-africa/western-cape/citrusdal,1
+chintsa-east,Chintsa East,Eastern Cape,/events/south-africa/eastern-cape/chintsa-east,1
+chartwell,Chartwell,Gauteng,/events/south-africa/gauteng/chartwell,1
+amatola-coastal,Amatola Coastal,Eastern Cape,/events/south-africa/eastern-cape/amatola-coastal,1
+carnarvon,Carnarvon,Northern Cape,/events/south-africa/northern-cape/carnarvon,1
+zakariyya-park,Zakariyya Park,Gauteng,/events/south-africa/gauteng/zakariyya-park,1
+yzerfontein,Yzerfontein,Western Cape,/events/south-africa/western-cape/yzerfontein,1
+winnie-mandela,Winnie Mandela,Free State,/events/south-africa/free-state/winnie-mandela,1
+windmeul,Windmeul,Western Cape,/events/south-africa/western-cape/windmeul,1
+west-coast-dc,West Coast DC,Western Cape,/events/south-africa/western-cape/west-coast-dc,1
+warburton,Warburton,Mpumalanga,/events/south-africa/mpumalanga/warburton,1
+vredendal,Vredendal,Western Cape,/events/south-africa/western-cape/vredendal,1
+vredenburg,Vredenburg,Western Cape,/events/south-africa/western-cape/vredenburg,1
+volksrust,Volksrust,Mpumalanga,/events/south-africa/mpumalanga/volksrust,1
+cape-town-western-cape,"Cape Town, Western Cape",Wes Kaap,/events/south-africa/wes-kaap/cape-town-western-cape,1
+vlakfontein,Vlakfontein,Gauteng,/events/south-africa/gauteng/vlakfontein,1
+villiersdorp,Villiersdorp,Western Cape,/events/south-africa/western-cape/villiersdorp,1
+vanwyksvlei,Vanwyksvlei,Northern Cape,/events/south-africa/northern-cape/vanwyksvlei,1
+vaalwater,Vaalwater,Limpopo,/events/south-africa/limpopo/vaalwater,1
+utrecht,Utrecht,Kwazulu Natal,/events/south-africa/kwazulu-natal/utrecht,1
+umlazi,Umlazi,Kwazulu Natal,/events/south-africa/kwazulu-natal/umlazi,1
+umhlali,Umhlali,Kwazulu Natal,/events/south-africa/kwazulu-natal/umhlali,1
+tlokweng,Tlokweng,North West,/events/south-africa/north-west/tlokweng,1
+thokoza,Thokoza,Gauteng,/events/south-africa/gauteng/thokoza,1
+thohoyandou,Thohoyandou,Limpopo,/events/south-africa/limpopo/thohoyandou,1
+thembisa,Thembisa,Gauteng,/events/south-africa/gauteng/thembisa,1
+the-crags-plettenberg-bay,"The Crags, Plettenberg Bay",Western Cape,/events/south-africa/western-cape/the-crags-plettenberg-bay,1
+thaba-tshwane,Thaba Tshwane,Gauteng,/events/south-africa/gauteng/thaba-tshwane,1
+taung,Taung,North West,/events/south-africa/north-west/taung,1
+sunrella-ah,Sunrella AH,Gauteng,/events/south-africa/gauteng/sunrella-ah,1
+sunningdale,Sunningdale,Western Cape,/events/south-africa/western-cape/sunningdale,1
+stutterheim,Stutterheim,Eastern Cape,/events/south-africa/eastern-cape/stutterheim,1
+strandfontein,Strandfontein,Western Cape,/events/south-africa/western-cape/strandfontein,1
+strand,Strand,Western Cape,/events/south-africa/western-cape/strand,1
+still-bay-stilbaai,Still Bay / Stilbaai,Western Cape,/events/south-africa/western-cape/still-bay-stilbaai,1
+stilfontein,Stilfontein,North West,/events/south-africa/north-west/stilfontein,1
+steelpoort,Steelpoort,Limpopo,/events/south-africa/limpopo/steelpoort,1
+st-francis-bay-6312,St Francis Bay 6312,Eastern Cape,/events/south-africa/eastern-cape/st-francis-bay-6312,1
+sir-lowrys-pass,Sir Lowry's Pass,Western Cape,/events/south-africa/western-cape/sir-lowrys-pass,1
+silver-lakes-golf-estate,Silver Lakes Golf Estate,Gauteng,/events/south-africa/gauteng/silver-lakes-golf-estate,1
+sekgophokgophong,Sekgophokgophong,Limpopo,/events/south-africa/limpopo/sekgophokgophong,1
+sasolburg,Sasolburg,Free State,/events/south-africa/free-state/sasolburg,1
+saldanha,Saldanha,Western Cape,/events/south-africa/western-cape/saldanha,1
+rustenburgbapong,"Rustenburg,Bapong",North West,/events/south-africa/north-west/rustenburgbapong,1
+riviersonderend,Riviersonderend,Western Cape,/events/south-africa/western-cape/riviersonderend,1
+riversdale,Riversdale,Western Cape,/events/south-africa/western-cape/riversdale,1
+calitzdorp,Calitzdorp,Western Cape,/events/south-africa/western-cape/calitzdorp,1
+richmond-kzn,Richmond - KZN,Kwazulu Natal,/events/south-africa/kwazulu-natal/richmond-kzn,1
+rhodes,Rhodes,Eastern Cape,/events/south-africa/eastern-cape/rhodes,1
+reefentse,Reefentse,Gauteng,/events/south-africa/gauteng/reefentse,1
+randfontein,Randfontein,Gauteng,/events/south-africa/gauteng/randfontein,1
+raithby,Raithby,Western Cape,/events/south-africa/western-cape/raithby,1
+qoncendevana,"Qonce,Ndevana",Eastern Cape,/events/south-africa/eastern-cape/qoncendevana,1
+qonce,Qonce,Eastern Cape,/events/south-africa/eastern-cape/qonce,1
+qoloha,Qoloha,Eastern Cape,/events/south-africa/eastern-cape/qoloha,1
+caledon,Caledon,Western Cape,/events/south-africa/western-cape/caledon,1
+qaza,Qaza,Limpopo,/events/south-africa/limpopo/qaza,1
+pretoria-east,Pretoria East,Gauteng,/events/south-africa/gauteng/pretoria-east,1
+port-shepstone,Port Shepstone,Kwazulu Natal,/events/south-africa/kwazulu-natal/port-shepstone,1
+port-edward,Port Edward,Eastern Cape,/events/south-africa/eastern-cape/port-edward,1
+buffalo-city,Buffalo City,Eastern Cape,/events/south-africa/eastern-cape/buffalo-city,1
+pongola,Pongola,Kwazulu Natal,/events/south-africa/kwazulu-natal/pongola,1
+pimville,Pimville,Gauteng,/events/south-africa/gauteng/pimville,1
+pilgrims-rest,Pilgrim's Rest,Mpumalanga,/events/south-africa/mpumalanga/pilgrims-rest,1
+pietermaritzburg-thornville,Pietermaritzburg /Thornville,Kwazulu Natal,/events/south-africa/kwazulu-natal/pietermaritzburg-thornville,1
+pietermaritsburg,PIETERMARITSBURG,Kwazulu Natal,/events/south-africa/kwazulu-natal/pietermaritsburg,1
+phokeng,Phokeng,North West,/events/south-africa/north-west/phokeng,1
+pennington,Pennington,Kwazulu Natal,/events/south-africa/kwazulu-natal/pennington,1
+noordhoek,Noordhoek,Western Cape,/events/south-africa/western-cape/noordhoek,1
+brenton-on-sea,Brenton-on-Sea,Western Cape,/events/south-africa/western-cape/brenton-on-sea,1
+nomgwadla,Nomgwadla,Eastern Cape,/events/south-africa/eastern-cape/nomgwadla,1
+nkowankowa,Nkowankowa,Limpopo,/events/south-africa/limpopo/nkowankowa,1
+nieu-bethesda,Nieu-Bethesda,Eastern Cape,/events/south-africa/eastern-cape/nieu-bethesda,1
+nhlazatshe,Nhlazatshe,Mpumalanga,/events/south-africa/mpumalanga/nhlazatshe,1
+newcastle,Newcastle,Kwazulu Natal,/events/south-africa/kwazulu-natal/newcastle,1
+new-hanover,New Hanover,Kwazulu Natal,/events/south-africa/kwazulu-natal/new-hanover,1
+natures-valley,Natures Valley,Western Cape,/events/south-africa/western-cape/natures-valley,1
+napier,Napier,Western Cape,/events/south-africa/western-cape/napier,1
+naboomspruit,NABOOMSPRUIT,Limpopo,/events/south-africa/limpopo/naboomspruit,1
+mzinti,Mzinti,Mpumalanga,/events/south-africa/mpumalanga/mzinti,1
+musina,Musina,Limpopo,/events/south-africa/limpopo/musina,1
+muldersdrift-johannesburg,"Muldersdrift, Johannesburg",Gauteng,/events/south-africa/gauteng/muldersdrift-johannesburg,1
+mtunzini,Mtunzini,Kwazulu Natal,/events/south-africa/kwazulu-natal/mtunzini,1
+mthatha,Mthatha,Eastern Cape,/events/south-africa/eastern-cape/mthatha,1
+brackenfell,Brackenfell,Western Cape,/events/south-africa/western-cape/brackenfell,1
+morokweng,Morokweng,North West,/events/south-africa/north-west/morokweng,1
+morningside,Morningside,Kwazulu Natal,/events/south-africa/kwazulu-natal/morningside,1
+morgenzon,Morgenzon,Mpumalanga,/events/south-africa/mpumalanga/morgenzon,1
+mooi-river,Mooi River,Kwazulu Natal,/events/south-africa/kwazulu-natal/mooi-river,1
+mokopane,Mokopane,Limpopo,/events/south-africa/limpopo/mokopane,1
+mmotong,Mmotong,Limpopo,/events/south-africa/limpopo/mmotong,1
+mmabatho,Mmabatho,North West,/events/south-africa/north-west/mmabatho,1
+mkhazane,Mkhazane,Kwazulu Natal,/events/south-africa/kwazulu-natal/mkhazane,1
+milnerton,Milnerton,Western Cape,/events/south-africa/western-cape/milnerton,1
+meyerton,Meyerton,Gauteng,/events/south-africa/gauteng/meyerton,1
+mehlamasha,Mehlamasha,Kwazulu Natal,/events/south-africa/kwazulu-natal/mehlamasha,1
+mbabane-eswatini,"Mbabane, Eswatini",Kwazulu Natal,/events/south-africa/kwazulu-natal/mbabane-eswatini,1
+maselspoort,Maselspoort,Free State,/events/south-africa/free-state/maselspoort,1
+masanteng,Masanteng,Limpopo,/events/south-africa/limpopo/masanteng,1
+marulaneng,Marulaneng,Limpopo,/events/south-africa/limpopo/marulaneng,1
+marble-hall,Marble Hall,Limpopo,/events/south-africa/limpopo/marble-hall,1
+bluff,Bluff,Kwazulu Natal,/events/south-africa/kwazulu-natal/bluff,1
+maletswai,Maletswai,Eastern Cape,/events/south-africa/eastern-cape/maletswai,1
+mahikeng,Mahikeng,North West,/events/south-africa/north-west/mahikeng,1
+lutzville,Lutzville,Western Cape,/events/south-africa/western-cape/lutzville,1
+lothair,Lothair,Mpumalanga,/events/south-africa/mpumalanga/lothair,1
+lanseria,Lanseria,Gauteng,/events/south-africa/gauteng/lanseria,1
+ladismith,Ladismith,Western Cape,/events/south-africa/western-cape/ladismith,1
+lagulhas,L'Agulhas,Western Cape,/events/south-africa/western-cape/lagulhas,1
+kyalami,Kyalami,Gauteng,/events/south-africa/gauteng/kyalami,1
+kwazulu-natal,KwaZulu-Natal,Kwazulu Natal,/events/south-africa/kwazulu-natal/kwazulu-natal,1
+kwazulu-natal,Kwazulu Natal,Kwazulu Natal,/events/south-africa/kwazulu-natal/kwazulu-natal,1
+kwambonambi,Kwambonambi,Kwazulu Natal,/events/south-africa/kwazulu-natal/kwambonambi,1
+kwamashu,KwaMashu,Kwazulu Natal,/events/south-africa/kwazulu-natal/kwamashu,1
+kwadukuza,KwaDukuza,Kwazulu Natal,/events/south-africa/kwazulu-natal/kwadukuza,1
+bethlehem,Bethlehem,Free State,/events/south-africa/free-state/bethlehem,1
+kroonstad,Kroonstad,Free State,/events/south-africa/free-state/kroonstad,1
+komatipoort,Komatipoort,Mpumalanga,/events/south-africa/mpumalanga/komatipoort,1
+komani,Komani,Eastern Cape,/events/south-africa/eastern-cape/komani,1
+kliprivier,Kliprivier,Gauteng,/events/south-africa/gauteng/kliprivier,1
+kingsburgh,Kingsburgh,Kwazulu Natal,/events/south-africa/kwazulu-natal/kingsburgh,1
+khumbula,Khumbula,Mpumalanga,/events/south-africa/mpumalanga/khumbula,1
+keurboomstrand,Keurboomstrand,Western Cape,/events/south-africa/western-cape/keurboomstrand,1
+kasouga,Kasouga,Eastern Cape,/events/south-africa/eastern-cape/kasouga,1
+kaapstad,Kaapstad,Wes Kaap,/events/south-africa/wes-kaap/kaapstad,1
+kaapschehoop,Kaapschehoop,Mpumalanga,/events/south-africa/mpumalanga/kaapschehoop,1
+johannnesburg,Johannnesburg,Gauteng,/events/south-africa/gauteng/johannnesburg,1
+johannesdal,Johannesdal,Western Cape,/events/south-africa/western-cape/johannesdal,1
+jacobsbaai,Jacobsbaai,Western Cape,/events/south-africa/western-cape/jacobsbaai,1
+jacobs-bay,Jacobs Bay,Western Cape,/events/south-africa/western-cape/jacobs-bay,1
+hout-bay,Hout Bay,Western Cape,/events/south-africa/western-cape/hout-bay,1
+hogsback,Hogsback,Eastern Cape,/events/south-africa/eastern-cape/hogsback,1
+hendrina,Hendrina,Mpumalanga,/events/south-africa/mpumalanga/hendrina,1
+hazyview,Hazyview,Mpumalanga,/events/south-africa/mpumalanga/hazyview,1
+hartswater,Hartswater,Northern Cape,/events/south-africa/northern-cape/hartswater,1
+harold-johnson-nature-reserve,Harold Johnson Nature Reserve,Kwazulu Natal,/events/south-africa/kwazulu-natal/harold-johnson-nature-reserve,1
+haenertsburg,Haenertsburg,Limpopo,/events/south-africa/limpopo/haenertsburg,1
+groblersdal,Groblersdal,Limpopo,/events/south-africa/limpopo/groblersdal,1
+greytown,Greytown,Kwazulu Natal,/events/south-africa/kwazulu-natal/greytown,1
+free-state,Free State,South Africa,/events/south-africa/free-state,0
+fochville,Fochville,Gauteng,/events/south-africa/gauteng/fochville,0
+eastern-region,Eastern Region,Uganda,/events/uganda/eastern-region,0
+eastern-cape,Eastern Cape,South Africa,/events/south-africa/eastern-cape,0
+durbanville,Durbanville  ,Western Cape,/events/south-africa/western-cape/durbanville,0
+arua,ARUA,Northern Region,/events/uganda/northern-region/arua,0
+craighall-park,Craighall Park ,Gauteng,/events/south-africa/gauteng/craighall-park,0
+central-region,Central Region,Uganda,/events/uganda/central-region,0
+western-region,Western Region,Uganda,/events/uganda/western-region,0
+western-cape,Western Cape,South Africa,/events/south-africa/western-cape,0
+west-kaap,West-Kaap,South Africa,/events/south-africa/west-kaap,0
+wes-kaap,Wes-Kaap,South Africa,/events/south-africa/wes-kaap,0
+uganda,Uganda,Events,/events/uganda,0
+south-africa,South Africa,Events,/events/south-africa,0
+soroti,Soroti,Eastern Region,/events/uganda/eastern-region/soroti,0
+canada,Canada,Events,/events/canada,0
+rivonia,Rivonia ,Gauteng,/events/south-africa/gauteng/rivonia,0
+british-columbia,British Columbia,Canada,/events/canada/british-columbia,0
+northern-region,Northern Region,Uganda,/events/uganda/northern-region,0
+northern-cape,Northern Cape,South Africa,/events/south-africa/northern-cape,0
+north-west-district,North-West District,Botswana,/events/botswana/north-west-district,0
+north-west,North West,South Africa,/events/south-africa/north-west,0
+njeru,Njeru,Mkoa Wa Kati,/events/uganda/mkoa-wa-kati/njeru,0
+nelson-mandela-bay,Nelson Mandela Bay ,Eastern Cape,/events/south-africa/eastern-cape/nelson-mandela-bay,0
+nairobi-county,Nairobi County,Kenya,/events/kenya/nairobi-county,0
+nairobi,Nairobi,Nairobi County,/events/kenya/nairobi-county/nairobi,0
+mpumalanga,Mpumalanga,South Africa,/events/south-africa/mpumalanga,0
+mkoa-wa-kati,Mkoa wa Kati,Uganda,/events/uganda/mkoa-wa-kati,0
+botswana,Botswana,Events,/events/botswana,0
+merritt,Merritt,British Columbia,/events/canada/british-columbia/merritt,0
+mbombela,Mbombela ,Mpumalanga,/events/south-africa/mpumalanga/mbombela,0
+mbarara,Mbarara,Western Region,/events/uganda/western-region/mbarara,0
+mbale,Mbale,Eastern Region,/events/uganda/eastern-region/mbale,0
+maun,Maun,North West District,/events/botswana/north-west-district/maun,0
+limpopo,Limpopo,South Africa,/events/south-africa/limpopo,0
+kyambogo,Kyambogo,Mkoa Wa Kati,/events/uganda/mkoa-wa-kati/kyambogo,0
+kenya,Kenya,Events,/events/kenya,0
+kampala,Kampala,Central Region,/events/uganda/central-region/kampala,0
+jinja,Jinja,Eastern Region,/events/uganda/eastern-region/jinja,0
+hilton,Hilton ,Kwazulu Natal,/events/south-africa/kwazulu-natal/hilton,0
+johannesburg, Johannesburg,Gauteng,/events/south-africa/gauteng/johannesburg,0
