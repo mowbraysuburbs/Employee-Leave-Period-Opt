@@ -35,6 +35,18 @@ function formatPrice(minPrice, maxPrice) {
 function toCellDate(year, month, dayNum) {
   return `${year}-${String(month).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`
 }
+function addDays(dateStr, n) {
+  const d = new Date(dateStr + 'T00:00:00')
+  d.setDate(d.getDate() + n)
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+}
+function gCalUrl(startDate, endDate, daysOff, leaveDays) {
+  const start  = startDate.replace(/-/g, '')
+  const excEnd = addDays(endDate, 1).replace(/-/g, '')
+  const text    = encodeURIComponent(`Leave – ${daysOff} days off`)
+  const details = encodeURIComponent(`${leaveDays} leave day${leaveDays !== 1 ? 's' : ''} used · ${daysOff} total days off`)
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${start}/${excEnd}&details=${details}`
+}
 function toggleSet(setter, value) {
   setter(prev => {
     const next = new Set(prev)
@@ -157,8 +169,15 @@ function EventExpandedDetail({ ev }) {
 }
 
 export function LeavePeriodPanel({ date, leaveDays, onClose }) {
+  const [currentDate, setCurrentDate] = useState(date)
+
+  // Sync if the parent changes which date was clicked
+  useEffect(() => { setCurrentDate(date) }, [date])
+
+  function shiftDay(delta) { setCurrentDate(prev => addDays(prev, delta)) }
+
   const { startDate, endDate, daysOff, breakdown } = useMemo(
-    () => getLeaveRange(date, leaveDays), [date, leaveDays]
+    () => getLeaveRange(currentDate, leaveDays), [currentDate, leaveDays]
   )
   const rows       = useMemo(() => buildRows(breakdown), [breakdown])
   const leaveCount = breakdown.filter(d => d.type === 'leave').length
@@ -268,11 +287,11 @@ export function LeavePeriodPanel({ date, leaveDays, onClose }) {
   }, [])
 
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-40 flex items-end" onClick={onClose}>
       <div className="absolute inset-0 bg-black/40" />
 
       <div
-        className="relative z-50 w-full max-w-sm mx-4 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col max-h-[85vh]"
+        className="relative z-50 w-full bg-white dark:bg-slate-800 rounded-t-2xl shadow-2xl border-t border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col max-h-[85vh]"
         onClick={e => e.stopPropagation()}
       >
         {/* ── Header ── */}
@@ -281,8 +300,37 @@ export function LeavePeriodPanel({ date, leaveDays, onClose }) {
             onClick={onClose}
             className="absolute right-4 top-4 w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors text-lg leading-none"
           >×</button>
-          <p className="text-xs font-bold uppercase tracking-widest text-slate-900 dark:text-slate-100">Leave Period: {daysOff} Days</p>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{formatNice(startDate)} → {formatNice(endDate)}</p>
+
+          <p className="text-xs font-bold uppercase tracking-widest text-slate-900 dark:text-slate-100">
+            Leave Period: {daysOff} Days
+          </p>
+
+          {/* Date range with adjacent-day arrows */}
+          <div className="flex items-center justify-center gap-1 mt-1">
+            <button
+              onClick={() => shiftDay(-1)}
+              className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200 transition-colors text-lg font-bold"
+              aria-label="Previous day"
+            >‹</button>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              {formatNice(startDate)} → {formatNice(endDate)}
+            </p>
+            <button
+              onClick={() => shiftDay(1)}
+              className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200 transition-colors text-lg font-bold"
+              aria-label="Next day"
+            >›</button>
+          </div>
+
+          {/* Google Calendar button */}
+          <a
+            href={gCalUrl(startDate, endDate, daysOff, leaveDays)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 mt-2.5 px-4 py-1.5 rounded-full bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white text-xs font-semibold transition-colors"
+          >
+            📅 Add to Google Calendar
+          </a>
         </div>
 
         {/* ── Spotlight bar (click to expand/collapse) ── */}

@@ -30,3 +30,14 @@ body {
 #root {
   min-height: 100svh;
 }
+
+@keyframes roll-in-right {
+  from { transform: translateX(130%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes roll-in-left {
+  from { transform: translateX(-130%); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+.roll-in-right { animation: roll-in-right 0.18s cubic-bezier(.22,1,.36,1) forwards; }
+.roll-in-left  { animation: roll-in-left  0.18s cubic-bezier(.22,1,.36,1) forwards; }

@@ -68,6 +68,7 @@ const LINE = 'border-slate-500 dark:border-slate-400'
 export function ContinuousCalendar({
   months,
   scoreMap,
+  colourRange,
   showSchoolHolidays,
   provinceCode,
   filterSet,
@@ -140,6 +141,7 @@ export function ContinuousCalendar({
                     date={dateStr}
                     dayNumber={dayNumber}
                     daysOff={daysOff}
+                    colourRange={colourRange}
                     isPublicHoliday={pubHoliday}
                     holidayName={getHolidayName(dateStr, year)}
                     isSchoolHoliday={schoolHol}

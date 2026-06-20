@@ -7,6 +7,7 @@ function dayCellEqual(prev, next) {
   if (
     prev.date            !== next.date            ||
     prev.daysOff         !== next.daysOff         ||
+    prev.colourRange     !== next.colourRange     ||
     prev.isPublicHoliday !== next.isPublicHoliday ||
     prev.isSchoolHoliday !== next.isSchoolHoliday ||
     prev.weekdayIndex    !== next.weekdayIndex    ||
@@ -28,6 +29,7 @@ export const DayCell = memo(function DayCell({
   date,
   dayNumber,
   daysOff,
+  colourRange,
   isPublicHoliday,
   holidayName,
   isSchoolHoliday,
@@ -46,7 +48,7 @@ export const DayCell = memo(function DayCell({
   const today = new Date().toISOString().split('T')[0]
   const isToday = date === today
 
-  const colour = getColourForDaysOff(daysOff)
+  const colour = getColourForDaysOff(daysOff, colourRange?.min, colourRange?.max)
   const hasBackground = colour !== null
 
   // Range highlight flags

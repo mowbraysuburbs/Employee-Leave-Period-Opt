@@ -10,7 +10,7 @@ const MONTH_NAMES = [
 ]
 
 export function MonthGrid({
-  year, month, scoreMap, showSchoolHolidays, provinceCode, filterSet, compact, onDayClick,
+  year, month, scoreMap, colourRange, showSchoolHolidays, provinceCode, filterSet, compact, onDayClick,
   hoveredRange, onDayHover, onDayLeave,
 }) {
   const monthName = MONTH_NAMES[month - 1]
@@ -75,6 +75,7 @@ export function MonthGrid({
               date={dateStr}
               dayNumber={day}
               daysOff={daysOff}
+              colourRange={colourRange}
               isPublicHoliday={pubHoliday}
               holidayName={getHolidayName(dateStr, year)}
               isSchoolHoliday={schoolHol}

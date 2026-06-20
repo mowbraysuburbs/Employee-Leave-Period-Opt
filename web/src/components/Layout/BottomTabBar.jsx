@@ -1,8 +1,7 @@
 const TABS = [
   { id: 'heatmap', label: 'Heatmap', icon: '📅' },
-  { id: 'picks', label: 'Best Periods', icon: '🏆' },
+  { id: 'planner', label: 'Planner', icon: '📋' },
   { id: 'holidays', label: 'Holidays', icon: '🗓' },
-  { id: 'plan', label: 'Plan', icon: '✏️' },
 ]
 
 /**

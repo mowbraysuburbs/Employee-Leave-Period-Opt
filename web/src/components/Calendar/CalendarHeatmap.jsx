@@ -28,6 +28,14 @@ export function CalendarHeatmap({
     return map
   }, [scores, smartFilter])
 
+  const colourRange = useMemo(() => {
+    let min = Infinity, max = 0
+    for (const v of scoreMap.values()) {
+      if (v > 0) { if (v < min) min = v; if (v > max) max = v }
+    }
+    return { min: min === Infinity ? 1 : min, max: max === 0 ? 14 : max }
+  }, [scoreMap])
+
   const handleDayHover = useCallback((dateStr) => {
     if (leaveDays === 0) return
     const range = getLeaveRange(dateStr, leaveDays)
@@ -46,6 +54,7 @@ export function CalendarHeatmap({
 
   const sharedProps = {
     scoreMap,
+    colourRange,
     showSchoolHolidays,
     provinceCode,
     filterSet,

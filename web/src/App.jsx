@@ -1,11 +1,11 @@
 import { useState, useMemo, useEffect } from 'react'
 import { CalendarHeatmap } from './components/Calendar/CalendarHeatmap'
 import { LeaveSelector } from './components/Features/LeaveSelector'
-import { BestPeriodsTable } from './components/Features/BestPeriodsTable'
 import { HolidaysList } from './components/Features/HolidaysList'
-import { PlanTab } from './components/Features/PlanTab'
+import { LeavePlannerTab } from './components/Features/LeavePlannerTab'
 import { BottomTabBar } from './components/Layout/BottomTabBar'
-import { computeLeaveScores, getBestPeriods } from './utils/leaveCalculator'
+import { LeaveDayRoller } from './components/Layout/LeaveDayRoller'
+import { computeLeaveScores } from './utils/leaveCalculator'
 import { buildLegend } from './utils/colorScale'
 import { PROVINCES } from './data/schoolHolidays'
 
@@ -22,8 +22,15 @@ function monthLabel(ym) {
 }
 
 const today = new Date()
+const TODAY_STR = today.toISOString().slice(0, 10)
+const DATASET_END = '2028-01-01'
 const WINDOW_START = { year: today.getFullYear(), month: today.getMonth() + 1 }
 const ALL_MONTHS = Array.from({ length: 13 }, (_, i) => addMonths(WINDOW_START, i))
+
+function fmtPill(dateStr) {
+  const [y, m, d] = dateStr.split('-')
+  return `${d} ${MONTH_SHORT[+m - 1]} ${y.slice(2)}`
+}
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('heatmap')
@@ -37,6 +44,9 @@ export default function App() {
   const [helpOpen, setHelpOpen] = useState(false)
   const [smartFilter, setSmartFilter] = useState(false)
   const [compact, setCompact] = useState(false)
+  const [plannerStart, setPlannerStart] = useState(TODAY_STR)
+  const [plannerEnd, setPlannerEnd] = useState(DATASET_END)
+  const [dateSheetOpen, setDateSheetOpen] = useState(false)
 
   useEffect(() => {
     document.documentElement.classList[darkMode ? 'add' : 'remove']('dark')
@@ -67,7 +77,7 @@ export default function App() {
 
   const legend = useMemo(() => buildLegend(scores), [scores])
 
-  // daysOff values that have at least one date where a public holiday is captured
+// daysOff values that have at least one date where a public holiday is captured
   const bonusDaysOffValues = useMemo(() => {
     const set = new Set()
     for (const { daysOff, publicHolidays } of scores) {
@@ -75,17 +85,6 @@ export default function App() {
     }
     return set
   }, [scores])
-
-  // Compute best periods for every leave-day count (1–MAX_LEAVE) once per date window.
-  // Slider filters results down to leaveDaysUsed <= selected value.
-  const allBestPeriods = useMemo(() => {
-    const all = []
-    for (let n = 1; n <= MAX_LEAVE; n++) {
-      const s = computeLeaveScores(startDateStr, endDateStr, n)
-      all.push(...getBestPeriods(s, n, null, 30))
-    }
-    return all.sort((a, b) => (b.ratio ?? 0) - (a.ratio ?? 0) || b.daysOff - a.daysOff)
-  }, [startDateStr, endDateStr])
 
   const leaveSelectorProps = {
     selected: leaveDays,
@@ -261,9 +260,8 @@ export default function App() {
           <nav className="flex flex-col gap-1">
             {[
               { id: 'heatmap', label: '📅  Heatmap' },
-              { id: 'picks', label: '🏆  Best Periods' },
+              { id: 'planner', label: '📋  Leave Planner' },
               { id: 'holidays', label: '🗓  Holidays' },
-              { id: 'plan', label: '✏️  Plan my leave' },
             ].map(({ id, label }) => (
               <button
                 key={id}
@@ -294,11 +292,10 @@ export default function App() {
         {/* Main content area */}
         <div className="flex flex-col flex-1 overflow-hidden">
           <main className="flex-1 overflow-y-auto">
-            {/* Sticky legend / filter bar — heatmap tab only */}
-            {activeTab === 'heatmap' && (
-              <div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
-                {/* Filter chips — desktop only (mobile chips live in bottom bar) */}
-                <div className="hidden md:flex px-4 py-2 items-center gap-2">
+            {/* Sticky filter chips — desktop, heatmap + planner */}
+            {(activeTab === 'heatmap' || activeTab === 'planner') && (
+              <div className="hidden md:block sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
+                <div className="flex px-4 py-2 items-center gap-2">
                   <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 flex-shrink-0">
                     Days off
                   </span>
@@ -320,7 +317,7 @@ export default function App() {
                             isSelected
                               ? 'ring-2 ring-offset-2 ring-slate-900 dark:ring-white ring-offset-white dark:ring-offset-slate-900'
                               : 'opacity-80 hover:opacity-100'
-                          } ${smartFilter && !isBonus ? 'opacity-25 hover:opacity-25' : ''}`}
+                          } ${activeTab === 'heatmap' && smartFilter && !isBonus ? 'opacity-25 hover:opacity-25' : ''}`}
                           style={{ backgroundColor: colour, color: '#1e293b' }}
                         >
                           {daysOff}
@@ -335,8 +332,21 @@ export default function App() {
                     >×</button>
                   )}
                 </div>
-                {/* Weekday header frozen above continuous calendar — mobile only */}
-                <div className={`sm:hidden grid ${compact ? 'grid-cols-[repeat(7,28px)_24px] w-fit mx-auto' : 'grid-cols-[repeat(7,1fr)_32px] px-4'} gap-0 pb-2`}>
+                {/* Gradient bar — heatmap desktop, sits below chips */}
+                {activeTab === 'heatmap' && (
+                  <div className="flex items-center gap-2 px-4 pb-2">
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 whitespace-nowrap">low</span>
+                    <div className="flex-1 h-2 rounded-full" style={{ background: 'linear-gradient(to right, rgb(248,113,113), rgb(250,204,21), rgb(34,197,94), rgb(56,189,248), rgb(99,102,241))' }} />
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 whitespace-nowrap">high</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Mobile weekday header + gradient bar — heatmap only */}
+            {activeTab === 'heatmap' && (
+              <div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 sm:hidden">
+                <div className={`grid ${compact ? 'grid-cols-[repeat(7,28px)_24px] w-fit mx-auto' : 'grid-cols-[repeat(7,1fr)_32px] px-4'} gap-0 pb-1`}>
                   {['M','T','W','T','F','S','S'].map((h, i) => (
                     <div
                       key={i}
@@ -349,10 +359,16 @@ export default function App() {
                   ))}
                   <div />
                 </div>
+                {/* Gradient bar — mobile, sits below weekday letters */}
+                <div className="flex items-center gap-2 px-4 pb-1.5">
+                  <span className="text-[9px] text-slate-400 dark:text-slate-500 whitespace-nowrap">low</span>
+                  <div className="flex-1 h-1.5 rounded-full" style={{ background: 'linear-gradient(to right, rgb(248,113,113), rgb(250,204,21), rgb(34,197,94), rgb(56,189,248), rgb(99,102,241))' }} />
+                  <span className="text-[9px] text-slate-400 dark:text-slate-500 whitespace-nowrap">high</span>
+                </div>
               </div>
             )}
 
-            <div className="p-4 pb-48 md:pb-6">
+            <div className={activeTab === 'planner' ? 'pb-48 md:p-4 md:pb-6' : 'p-4 pb-48 md:pb-6'}>
               {activeTab === 'heatmap' && (
                 <CalendarHeatmap
                   scores={scores}
@@ -365,8 +381,15 @@ export default function App() {
                   compact={compact}
                 />
               )}
-              {activeTab === 'picks' && (
-                <BestPeriodsTable allBestPeriods={allBestPeriods} leaveDays={leaveDays} />
+              {activeTab === 'planner' && (
+                <LeavePlannerTab
+                  leaveDays={leaveDays}
+                  startDate={plannerStart}
+                  endDate={plannerEnd}
+                  onStartChange={setPlannerStart}
+                  onEndChange={setPlannerEnd}
+                  filterSet={filterSet}
+                />
               )}
               {activeTab === 'holidays' && (
                 <HolidaysList
@@ -375,7 +398,6 @@ export default function App() {
                   provinceCode={provinceCode}
                 />
               )}
-              {activeTab === 'plan' && <PlanTab />}
             </div>
           </main>
         </div>
@@ -383,32 +405,30 @@ export default function App() {
 
       {/* Mobile bottom controls bar — sits above BottomTabBar */}
       <div className="fixed bottom-[52px] left-0 right-0 z-30 md:hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700">
-        {/* Row 1: Annual leave days picker + compact toggle */}
-        <div className="px-4 py-2 flex items-center gap-3">
+        {/* Row 1: Date range pill — always visible */}
+        <div className="px-4 py-1 flex items-center justify-center border-b border-slate-200 dark:border-slate-700">
+          <button
+            onClick={() => setDateSheetOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-600 dark:text-slate-300 active:bg-slate-200 dark:active:bg-slate-700 transition-colors"
+          >
+            <span className="text-slate-400 dark:text-slate-500 text-[10px]">📅</span>
+            <span>{fmtPill(plannerStart)}</span>
+            <span className="text-slate-400 dark:text-slate-500">–</span>
+            <span>{fmtPill(plannerEnd)}</span>
+          </button>
+        </div>
+
+        {/* Row 2: Leave days roller + compact toggle */}
+        <div className="px-4 py-1 flex items-center gap-3">
           <p className="text-[9px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400 leading-tight flex-shrink-0">
-            Annual<br />Leave Days
+            Leave<br />Days
           </p>
-          <div className="flex-1 flex items-center justify-center gap-4">
-            <button
-              onClick={() => setLeaveDays(d => Math.max(0, d - 1))}
-              disabled={leaveDays === 0}
-              className="w-8 text-center text-base font-semibold tabular-nums text-slate-400 dark:text-slate-500 opacity-35 disabled:opacity-0 transition-opacity"
-              aria-label="Decrease"
-            >
-              {leaveDays > 0 ? leaveDays - 1 : ''}
-            </button>
-            <span className="w-8 text-center text-xl font-bold tabular-nums text-slate-900 dark:text-slate-100">
-              {leaveDays}
-            </span>
-            <button
-              onClick={() => setLeaveDays(d => Math.min(MAX_LEAVE, d + 1))}
-              disabled={leaveDays === MAX_LEAVE}
-              className="w-8 text-center text-base font-semibold tabular-nums text-slate-400 dark:text-slate-500 opacity-35 disabled:opacity-0 transition-opacity"
-              aria-label="Increase"
-            >
-              {leaveDays < MAX_LEAVE ? leaveDays + 1 : ''}
-            </button>
-          </div>
+          <LeaveDayRoller
+            value={leaveDays}
+            min={0}
+            max={MAX_LEAVE}
+            onChange={setLeaveDays}
+          />
           <button
             onClick={() => setCompact(v => !v)}
             className={`flex-shrink-0 text-xs font-bold px-2.5 py-1 rounded-lg transition-colors ${
@@ -421,9 +441,9 @@ export default function App() {
           </button>
         </div>
 
-        {/* Row 2: Days off chips — heatmap tab only */}
-        {activeTab === 'heatmap' && (
-          <div className="px-4 pb-2 pt-2 flex items-center gap-2 border-t border-slate-200 dark:border-slate-700">
+        {/* Row 3: Days off chips — heatmap and planner tabs */}
+        {(activeTab === 'heatmap' || activeTab === 'planner') && (
+          <div className="px-4 pb-1.5 pt-1 flex items-center gap-2 border-t border-slate-200 dark:border-slate-700">
             <span className="text-[9px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400 flex-shrink-0 leading-tight">
               Days<br />Off
             </span>
@@ -441,11 +461,11 @@ export default function App() {
                       return next
                     })}
                     title={`${daysOff} days off — click to filter`}
-                    className={`flex-shrink-0 w-[34px] h-[34px] rounded-full flex items-center justify-center text-xs font-bold transition-opacity focus:outline-none ${
+                    className={`flex-shrink-0 w-[28px] h-[28px] rounded-full flex items-center justify-center text-xs font-bold transition-opacity focus:outline-none ${
                       isSelected
-                        ? 'ring-2 ring-offset-2 ring-slate-900 dark:ring-white ring-offset-white dark:ring-offset-slate-900'
+                        ? 'ring-2 ring-offset-1 ring-slate-900 dark:ring-white ring-offset-white dark:ring-offset-slate-900'
                         : 'opacity-80 hover:opacity-100'
-                    } ${smartFilter && !isBonus ? 'opacity-25 hover:opacity-25' : ''}`}
+                    } ${activeTab === 'heatmap' && smartFilter && !isBonus ? 'opacity-25 hover:opacity-25' : ''}`}
                     style={{ backgroundColor: colour, color: '#1e293b' }}
                   >
                     {daysOff}
@@ -462,6 +482,46 @@ export default function App() {
           </div>
         )}
       </div>
+
+      {/* Date range bottom sheet — mobile only */}
+      {dateSheetOpen && (
+        <div className="fixed inset-0 z-50 flex items-end md:hidden">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setDateSheetOpen(false)} />
+          <div className="relative z-10 w-full bg-white dark:bg-slate-900 rounded-t-2xl shadow-2xl border-t border-slate-200 dark:border-slate-700 px-5 pt-5 pb-8 flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide">Date Range</h2>
+              <button
+                onClick={() => setDateSheetOpen(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
+              >✕</button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1.5 font-medium uppercase tracking-wide">From</label>
+                <input
+                  type="date"
+                  value={plannerStart}
+                  onChange={(e) => setPlannerStart(e.target.value)}
+                  min={TODAY_STR}
+                  max={plannerEnd}
+                  className="w-full bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm rounded-lg px-3 py-2.5 border border-slate-200 dark:border-slate-600 focus:outline-none focus:border-sky-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1.5 font-medium uppercase tracking-wide">To</label>
+                <input
+                  type="date"
+                  value={plannerEnd}
+                  onChange={(e) => setPlannerEnd(e.target.value)}
+                  min={plannerStart}
+                  max={DATASET_END}
+                  className="w-full bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm rounded-lg px-3 py-2.5 border border-slate-200 dark:border-slate-600 focus:outline-none focus:border-sky-500"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <BottomTabBar activeTab={activeTab} onChange={setActiveTab} />
     </div>

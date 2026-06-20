@@ -1,82 +1,54 @@
-// Categorical colour palette — each index maps to a visually distinct colour.
-// Based on the Okabe-Ito colourblind-safe palette, extended with additional hues.
-// These are used to colour heatmap cells by total days off.
-const PALETTE = [
-  null,       // 0  — no background (blank cell)
-  '#38bdf8', // 1  — sky blue
-  '#34d399', // 2  — emerald
-  '#a3e635', // 3  — lime
-  '#facc15', // 4  — yellow
-  '#fb923c', // 5  — orange
-  '#f87171', // 6  — red
-  '#e879f9', // 7  — fuchsia
-  '#c084fc', // 8  — violet
-  '#818cf8', // 9  — indigo
-  '#22d3ee', // 10 — cyan
-  '#2dd4bf', // 11 — teal
-  '#4ade80', // 12 — green
-  '#fbbf24', // 13 — amber
-  '#f472b6', // 14 — pink
+// Gradient stops: red/orange (low) → yellow → lime → cyan → blue (high)
+// Wide hue range ensures visually distinct colours even in dark mode
+const STOPS = [
+  [248,  113, 113],  // red-400   (low)
+  [251,  146,  60],  // orange-400
+  [250,  204,  21],  // yellow-400
+  [163,  230,  53],  // lime-400
+  [ 34,  197,  94],  // green-500
+  [ 45,  212, 191],  // teal-400
+  [ 56,  189, 248],  // sky-400
+  [ 99,  102, 241],  // indigo-500 (high)
 ]
 
-// Text colours that contrast well against each palette colour
-// "dark" = use dark text on this background, "light" = use white text
-const CONTRAST = [
-  'light', // slate
-  'dark',  // sky blue
-  'dark',  // emerald
-  'dark',  // lime
-  'dark',  // yellow
-  'dark',  // orange
-  'dark',  // red
-  'dark',  // fuchsia
-  'dark',  // violet
-  'light', // indigo
-  'dark',  // cyan
-  'dark',  // teal
-  'dark',  // green
-  'dark',  // amber
-  'dark',  // pink
-]
-
-/**
- * Returns the hex colour for a given number of days off.
- * Values above the palette length wrap around with reduced opacity.
- */
-// Returns a hex colour string, or null for 0 days off (blank cell)
-export function getColourForDaysOff(daysOff) {
-  if (daysOff <= 0) return null
-  if (daysOff < PALETTE.length) return PALETTE[daysOff]
-  return PALETTE[(daysOff % (PALETTE.length - 1)) + 1]
+function interpolate(t) {
+  const pos = Math.max(0, Math.min(1, t)) * (STOPS.length - 1)
+  const lo = Math.floor(pos)
+  const hi = Math.min(lo + 1, STOPS.length - 1)
+  const f  = pos - lo
+  const [r, g, b] = [0, 1, 2].map(i => Math.round(STOPS[lo][i] + (STOPS[hi][i] - STOPS[lo][i]) * f))
+  return `rgb(${r},${g},${b})`
 }
 
 /**
- * Returns "dark" or "light" to indicate which text colour contrasts best
- * against the background returned by getColourForDaysOff.
+ * Maps a daysOff count to a gradient colour, stretched across the actual visible range.
+ * min → yellow (low end), max → cyan (high end).
+ * Pass the actual min/max from the current score set for maximum colour separation.
  */
-export function getTextContrast(daysOff) {
-  if (daysOff <= 0) return CONTRAST[0]
-  if (daysOff < CONTRAST.length) return CONTRAST[daysOff]
-  return CONTRAST[(daysOff % (CONTRAST.length - 1)) + 1]
+export function getColourForDaysOff(daysOff, min = 1, max = 14) {
+  if (daysOff <= 0) return null
+  if (min === max) return interpolate(0.5)
+  return interpolate((daysOff - min) / (max - min))
+}
+
+export function getTextContrast() {
+  return 'dark' // all gradient colours are light enough for dark text
 }
 
 /**
  * Returns a legend array — one entry per distinct days-off value found in scores.
- * Used to render the colour key below the heatmap.
- *
- * Example output:
- *   [{ daysOff: 3, colour: "#34d399", label: "3 days off" }, ...]
+ * Colours are spread across the full gradient from the actual min to max values.
  */
 export function buildLegend(scores) {
   const seen = new Set()
-  for (const { daysOff } of scores) seen.add(daysOff)
-
-  return [...seen]
-    .sort((a, b) => a - b)
-    .filter((daysOff) => daysOff > 0)
-    .map((daysOff) => ({
-      daysOff,
-      colour: getColourForDaysOff(daysOff),
-      label: `${daysOff} day${daysOff === 1 ? '' : 's'} off`,
-    }))
+  for (const { daysOff } of scores) if (daysOff > 0) seen.add(daysOff)
+  const values = [...seen].sort((a, b) => a - b)
+  if (!values.length) return []
+  const min = values[0]
+  const max = values[values.length - 1]
+  return values.map((daysOff) => ({
+    daysOff,
+    colour: getColourForDaysOff(daysOff, min, max),
+    label: `${daysOff} day${daysOff === 1 ? '' : 's'} off`,
+  }))
 }
