@@ -15,18 +15,18 @@ export function CalendarHeatmap({
   provinceCode,
   filterSet,
   smartFilter,
-  compact,
+  viewMode = '1x',
 }) {
   const [selectedDate, setSelectedDate] = useState(null)
   const [hoveredRange, setHoveredRange] = useState(null)
 
   const scoreMap = useMemo(() => {
     const map = new Map()
-    for (const { date, daysOff, publicHolidays } of scores) {
-      map.set(date, smartFilter && (publicHolidays ?? 0) === 0 ? 0 : daysOff)
+    for (const { date, daysOff } of scores) {
+      map.set(date, smartFilter && daysOff <= leaveDays ? 0 : daysOff)
     }
     return map
-  }, [scores, smartFilter])
+  }, [scores, smartFilter, leaveDays])
 
   const colourRange = useMemo(() => {
     let min = Infinity, max = 0
@@ -52,6 +52,8 @@ export function CalendarHeatmap({
     setSelectedDate(dateStr)
   }, [])
 
+  const compact = viewMode === '2x'
+
   const sharedProps = {
     scoreMap,
     colourRange,
@@ -67,10 +69,18 @@ export function CalendarHeatmap({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Mobile: continuous single-column calendar */}
-      <div className="sm:hidden">
-        <ContinuousCalendar months={months} {...sharedProps} />
-      </div>
+      {/* Mobile: 2col shows month cards side-by-side; others use continuous scroll */}
+      {viewMode === '2col' ? (
+        <div className="sm:hidden grid grid-cols-2 gap-2 px-2">
+          {months.map(({ year, month }) => (
+            <MonthGrid key={`${year}-${month}`} year={year} month={month} {...sharedProps} />
+          ))}
+        </div>
+      ) : (
+        <div className="sm:hidden">
+          <ContinuousCalendar months={months} {...sharedProps} />
+        </div>
+      )}
 
       {/* Desktop: month card grid */}
       <div className={`${compact ? 'hidden sm:flex sm:flex-wrap' : 'hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'} gap-5`}>

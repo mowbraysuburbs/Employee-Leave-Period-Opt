@@ -6,7 +6,8 @@ import { LeavePlannerTab } from './components/Features/LeavePlannerTab'
 import { BottomTabBar } from './components/Layout/BottomTabBar'
 import { LeaveDayRoller } from './components/Layout/LeaveDayRoller'
 import { computeLeaveScores } from './utils/leaveCalculator'
-import { buildLegend } from './utils/colorScale'
+import { getColourForDaysOff } from './utils/colorScale'
+import { allBestPeriodsCache } from './components/Features/LeavePlannerTab'
 import { PROVINCES } from './data/schoolHolidays'
 
 const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
@@ -42,11 +43,11 @@ export default function App() {
   const [filterSet, setFilterSet] = useState(new Set())
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
-  const [smartFilter, setSmartFilter] = useState(false)
-  const [compact, setCompact] = useState(false)
+  const [smartFilter, setSmartFilter] = useState(true)
+  const [viewMode, setViewMode] = useState('1x')
+  const [dateSheetOpen, setDateSheetOpen] = useState(false)
   const [plannerStart, setPlannerStart] = useState(TODAY_STR)
   const [plannerEnd, setPlannerEnd] = useState(DATASET_END)
-  const [dateSheetOpen, setDateSheetOpen] = useState(false)
 
   useEffect(() => {
     document.documentElement.classList[darkMode ? 'add' : 'remove']('dark')
@@ -75,16 +76,38 @@ export default function App() {
     [startDateStr, endDateStr, leaveDays]
   )
 
-  const legend = useMemo(() => buildLegend(scores), [scores])
+  // Legend and bonus values derived from the planner cache so every daysOff value
+  // that appears in the table (including those from shorter leave periods) gets a chip and colour.
+  const legend = useMemo(() => {
+    const values = [...new Set(
+      allBestPeriodsCache.filter(p => p.leaveDaysUsed <= leaveDays).map(p => p.daysOff)
+    )].sort((a, b) => a - b)
+    if (!values.length) return []
+    const min = values[0]
+    const max = values[values.length - 1]
+    return values.map(daysOff => ({
+      daysOff,
+      colour: getColourForDaysOff(daysOff, min, max),
+      label: `${daysOff} day${daysOff === 1 ? '' : 's'} off`,
+    }))
+  }, [leaveDays])
 
-// daysOff values that have at least one date where a public holiday is captured
   const bonusDaysOffValues = useMemo(() => {
     const set = new Set()
-    for (const { daysOff, publicHolidays } of scores) {
-      if ((publicHolidays ?? 0) > 0 && daysOff > 0) set.add(daysOff)
+    for (const p of allBestPeriodsCache) {
+      if (p.leaveDaysUsed <= leaveDays && p.daysOff > leaveDays) set.add(p.daysOff)
     }
     return set
-  }, [scores])
+  }, [leaveDays])
+
+  // Remove from filterSet any chips that are now hidden by the bonus filter
+  useEffect(() => {
+    if (!smartFilter) return
+    setFilterSet(prev => {
+      const next = new Set([...prev].filter(d => bonusDaysOffValues.has(d)))
+      return next.size === prev.size ? prev : next
+    })
+  }, [smartFilter, bonusDaysOffValues])
 
   const leaveSelectorProps = {
     selected: leaveDays,
@@ -150,24 +173,6 @@ export default function App() {
               >✕</button>
             </div>
             <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-5">
-              <div className="flex flex-col gap-1.5">
-                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wide">From</p>
-                <select
-                  value={`${viewStart.year}-${viewStart.month}`}
-                  onChange={(e) => {
-                    const [y, m] = e.target.value.split('-')
-                    setViewStart({ year: parseInt(y, 10), month: parseInt(m, 10) })
-                  }}
-                  className="w-full bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm rounded-lg px-3 py-2 border border-slate-200 dark:border-slate-600 focus:outline-none focus:border-sky-500"
-                >
-                  {ALL_MONTHS.map((ym) => (
-                    <option key={`${ym.year}-${ym.month}`} value={`${ym.year}-${ym.month}`}>
-                      {monthLabel(ym)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               <div className="flex items-center justify-between">
                 <span className="text-sm text-slate-700 dark:text-slate-300">School holidays</span>
                 <button
@@ -299,10 +304,9 @@ export default function App() {
                   <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 flex-shrink-0">
                     Days off
                   </span>
-                  <div className="flex flex-nowrap gap-1.5 overflow-x-auto flex-1 py-1">
-                    {legend.map(({ daysOff, colour }) => {
+                  <div className="flex flex-nowrap gap-2 overflow-x-auto flex-1 py-2 px-1">
+                    {legend.filter(({ daysOff }) => !smartFilter || bonusDaysOffValues.has(daysOff)).map(({ daysOff, colour }) => {
                       const isSelected = filterSet.has(daysOff)
-                      const isBonus = bonusDaysOffValues.has(daysOff)
                       return (
                         <button
                           key={daysOff}
@@ -317,7 +321,7 @@ export default function App() {
                             isSelected
                               ? 'ring-2 ring-offset-2 ring-slate-900 dark:ring-white ring-offset-white dark:ring-offset-slate-900'
                               : 'opacity-80 hover:opacity-100'
-                          } ${activeTab === 'heatmap' && smartFilter && !isBonus ? 'opacity-25 hover:opacity-25' : ''}`}
+                          }`}
                           style={{ backgroundColor: colour, color: '#1e293b' }}
                         >
                           {daysOff}
@@ -331,22 +335,48 @@ export default function App() {
                       className="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors flex-shrink-0"
                     >×</button>
                   )}
+                  {activeTab === 'heatmap' && (
+                    <button
+                      onClick={() => setViewMode(v => v === '1x' ? '2x' : '1x')}
+                      className={`flex-shrink-0 text-xs font-bold px-2.5 py-1 rounded-lg transition-colors ${
+                        viewMode === '2x'
+                          ? 'bg-sky-500 text-white'
+                          : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                      }`}
+                    >
+                      {viewMode === '2x' ? '2x' : '1x'}
+                    </button>
+                  )}
                 </div>
-                {/* Gradient bar — heatmap desktop, sits below chips */}
+                {/* Segmented colour bar — heatmap desktop, sits below chips */}
                 {activeTab === 'heatmap' && (
                   <div className="flex items-center gap-2 px-4 pb-2">
                     <span className="text-[10px] text-slate-400 dark:text-slate-500 whitespace-nowrap">low</span>
-                    <div className="flex-1 h-2 rounded-full" style={{ background: 'linear-gradient(to right, rgb(248,113,113), rgb(250,204,21), rgb(34,197,94), rgb(56,189,248), rgb(99,102,241))' }} />
+                    <div className="flex-1 h-2 rounded-full overflow-hidden flex">
+                      {legend.map(({ daysOff, colour }) => (
+                        <div key={daysOff} className="flex-1" style={{ backgroundColor: colour }} />
+                      ))}
+                    </div>
                     <span className="text-[10px] text-slate-400 dark:text-slate-500 whitespace-nowrap">high</span>
                   </div>
                 )}
               </div>
             )}
 
-            {/* Mobile weekday header + gradient bar — heatmap only */}
-            {activeTab === 'heatmap' && (
+            {/* Mobile weekday header + gradient bar — heatmap only, not in 2col (cards have own headers) */}
+            {activeTab === 'heatmap' && viewMode !== '2col' && (
               <div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 sm:hidden">
-                <div className={`grid ${compact ? 'grid-cols-[repeat(7,28px)_24px] w-fit mx-auto' : 'grid-cols-[repeat(7,1fr)_32px] px-4'} gap-0 pb-1`}>
+                {/* Segmented colour bar — mobile, sits above weekday letters */}
+                <div className="flex items-center gap-2 px-4 py-2">
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 whitespace-nowrap">low</span>
+                  <div className="flex-1 h-2 rounded-full overflow-hidden flex">
+                    {legend.map(({ daysOff, colour }) => (
+                      <div key={daysOff} className="flex-1" style={{ backgroundColor: colour }} />
+                    ))}
+                  </div>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 whitespace-nowrap">high</span>
+                </div>
+                <div className={`grid ${viewMode === '2x' ? 'grid-cols-[repeat(7,28px)_24px] w-fit mx-auto' : 'grid-cols-[repeat(7,1fr)_32px] px-4'} gap-0 pb-1`}>
                   {['M','T','W','T','F','S','S'].map((h, i) => (
                     <div
                       key={i}
@@ -358,12 +388,6 @@ export default function App() {
                     </div>
                   ))}
                   <div />
-                </div>
-                {/* Gradient bar — mobile, sits below weekday letters */}
-                <div className="flex items-center gap-2 px-4 pb-1.5">
-                  <span className="text-[9px] text-slate-400 dark:text-slate-500 whitespace-nowrap">low</span>
-                  <div className="flex-1 h-1.5 rounded-full" style={{ background: 'linear-gradient(to right, rgb(248,113,113), rgb(250,204,21), rgb(34,197,94), rgb(56,189,248), rgb(99,102,241))' }} />
-                  <span className="text-[9px] text-slate-400 dark:text-slate-500 whitespace-nowrap">high</span>
                 </div>
               </div>
             )}
@@ -378,7 +402,7 @@ export default function App() {
                   provinceCode={provinceCode}
                   filterSet={filterSet}
                   smartFilter={smartFilter}
-                  compact={compact}
+                  viewMode={viewMode}
                 />
               )}
               {activeTab === 'planner' && (
@@ -389,6 +413,8 @@ export default function App() {
                   onStartChange={setPlannerStart}
                   onEndChange={setPlannerEnd}
                   filterSet={filterSet}
+                  smartFilter={smartFilter}
+                  legend={legend}
                 />
               )}
               {activeTab === 'holidays' && (
@@ -405,7 +431,7 @@ export default function App() {
 
       {/* Mobile bottom controls bar — sits above BottomTabBar */}
       <div className="fixed bottom-[52px] left-0 right-0 z-30 md:hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700">
-        {/* Row 1: Date range pill — always visible */}
+        {/* Row 1: Date range pill */}
         <div className="px-4 py-1 flex items-center justify-center border-b border-slate-200 dark:border-slate-700">
           <button
             onClick={() => setDateSheetOpen(true)}
@@ -418,39 +444,15 @@ export default function App() {
           </button>
         </div>
 
-        {/* Row 2: Leave days roller + compact toggle */}
-        <div className="px-4 py-1 flex items-center gap-3">
-          <p className="text-[9px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400 leading-tight flex-shrink-0">
-            Leave<br />Days
-          </p>
-          <LeaveDayRoller
-            value={leaveDays}
-            min={0}
-            max={MAX_LEAVE}
-            onChange={setLeaveDays}
-          />
-          <button
-            onClick={() => setCompact(v => !v)}
-            className={`flex-shrink-0 text-xs font-bold px-2.5 py-1 rounded-lg transition-colors ${
-              compact
-                ? 'bg-sky-500 text-white'
-                : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
-            }`}
-          >
-            {compact ? '2x' : '1x'}
-          </button>
-        </div>
-
-        {/* Row 3: Days off chips — heatmap and planner tabs */}
+        {/* Row 2: Days off chips — heatmap and planner tabs */}
         {(activeTab === 'heatmap' || activeTab === 'planner') && (
-          <div className="px-4 pb-1.5 pt-1 flex items-center gap-2 border-t border-slate-200 dark:border-slate-700">
+          <div className="px-4 pb-2 pt-1.5 flex items-center gap-2 border-b border-slate-200 dark:border-slate-700">
             <span className="text-[9px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400 flex-shrink-0 leading-tight">
               Days<br />Off
             </span>
-            <div className="flex flex-nowrap gap-1.5 overflow-x-auto flex-1 py-0.5">
-              {legend.map(({ daysOff, colour }) => {
+            <div className="flex flex-nowrap gap-2 overflow-x-auto flex-1 py-2 px-1">
+              {legend.filter(({ daysOff }) => !smartFilter || bonusDaysOffValues.has(daysOff)).map(({ daysOff, colour }) => {
                 const isSelected = filterSet.has(daysOff)
-                const isBonus = bonusDaysOffValues.has(daysOff)
                 return (
                   <button
                     key={daysOff}
@@ -465,7 +467,7 @@ export default function App() {
                       isSelected
                         ? 'ring-2 ring-offset-1 ring-slate-900 dark:ring-white ring-offset-white dark:ring-offset-slate-900'
                         : 'opacity-80 hover:opacity-100'
-                    } ${activeTab === 'heatmap' && smartFilter && !isBonus ? 'opacity-25 hover:opacity-25' : ''}`}
+                    }`}
                     style={{ backgroundColor: colour, color: '#1e293b' }}
                   >
                     {daysOff}
@@ -481,12 +483,35 @@ export default function App() {
             )}
           </div>
         )}
+
+        {/* Row 3: Leave days roller + compact toggle */}
+        <div className="px-4 py-2 flex items-center gap-3">
+          <p className="text-[9px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400 leading-tight flex-shrink-0">
+            Leave<br />Days
+          </p>
+          <LeaveDayRoller
+            value={leaveDays}
+            min={0}
+            max={MAX_LEAVE}
+            onChange={setLeaveDays}
+          />
+          <button
+            onClick={() => setViewMode(v => v === '1x' ? '2col' : v === '2col' ? '2x' : '1x')}
+            className={`flex-shrink-0 text-xs font-bold px-2.5 py-1 rounded-lg transition-colors ${
+              viewMode !== '1x'
+                ? 'bg-sky-500 text-white'
+                : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+            }`}
+          >
+            {viewMode}
+          </button>
+        </div>
       </div>
 
       {/* Date range bottom sheet — mobile only */}
       {dateSheetOpen && (
         <div className="fixed inset-0 z-50 flex items-end md:hidden">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setDateSheetOpen(false)} />
+          <div className="absolute inset-0 bg-black/40" />
           <div className="relative z-10 w-full bg-white dark:bg-slate-900 rounded-t-2xl shadow-2xl border-t border-slate-200 dark:border-slate-700 px-5 pt-5 pb-8 flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide">Date Range</h2>

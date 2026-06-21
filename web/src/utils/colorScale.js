@@ -1,14 +1,14 @@
-// Gradient stops: red/orange (low) → yellow → lime → cyan → blue (high)
-// Wide hue range ensures visually distinct colours even in dark mode
+// Gradient stops: indigo/blue (low) → cyan → lime → yellow → red (high)
+// Red = high value (more days off), indigo = low
 const STOPS = [
-  [248,  113, 113],  // red-400   (low)
-  [251,  146,  60],  // orange-400
-  [250,  204,  21],  // yellow-400
-  [163,  230,  53],  // lime-400
-  [ 34,  197,  94],  // green-500
-  [ 45,  212, 191],  // teal-400
+  [ 99,  102, 241],  // indigo-500 (low)
   [ 56,  189, 248],  // sky-400
-  [ 99,  102, 241],  // indigo-500 (high)
+  [ 45,  212, 191],  // teal-400
+  [ 34,  197,  94],  // green-500
+  [163,  230,  53],  // lime-400
+  [250,  204,  21],  // yellow-400
+  [251,  146,  60],  // orange-400
+  [248,  113, 113],  // red-400   (high)
 ]
 
 function interpolate(t) {

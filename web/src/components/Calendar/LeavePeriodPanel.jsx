@@ -1,6 +1,10 @@
-import { useMemo, useRef, useEffect, useState, useCallback } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import { getLeaveRange } from '../../utils/leaveCalculator'
-import ALL_EVENTS from '../../data/quicketEvents.json'
+import { PUBLIC_HOLIDAYS } from '../../data/publicHolidays'
+
+const HOLIDAY_MAP = new Map(
+  Object.values(PUBLIC_HOLIDAYS).flat().map(({ date, name }) => [date, name])
+)
 
 const SHORT_DAY   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
 const SHORT_MONTH = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
@@ -11,48 +15,39 @@ function formatNice(dateStr) {
   const d = new Date(y, mo - 1, day)
   return `${SHORT_DAY[d.getDay()]} ${d.getDate()} ${SHORT_MONTH[d.getMonth()]} '${String(y).slice(2)}`
 }
-function formatEventDate(isoStr) {
-  const d = new Date(isoStr)
-  return `${d.getDate()} ${SHORT_MONTH[d.getMonth()]} '${String(d.getFullYear()).slice(2)}`
-}
-function formatTime(isoStr) {
-  if (!isoStr) return null
-  const d = new Date(isoStr)
-  const h = d.getHours(), m = d.getMinutes()
-  if (h === 0 && m === 0) return null
-  const ampm = h >= 12 ? 'PM' : 'AM'
-  const hour = h % 12 || 12
-  return `${hour}${m > 0 ? ':' + String(m).padStart(2, '0') : ''} ${ampm}`
-}
-function formatPrice(minPrice, maxPrice) {
-  const min = parseFloat(minPrice)
-  if (isNaN(min)) return null
-  if (min === 0) return 'Free'
-  const max = parseFloat(maxPrice)
-  if (isNaN(max) || min === max) return `R${min.toLocaleString('en-ZA')}`
-  return `R${min.toLocaleString('en-ZA')} – R${max.toLocaleString('en-ZA')}`
-}
-function toCellDate(year, month, dayNum) {
-  return `${year}-${String(month).padStart(2,'0')}-${String(dayNum).padStart(2,'0')}`
-}
 function addDays(dateStr, n) {
   const d = new Date(dateStr + 'T00:00:00')
   d.setDate(d.getDate() + n)
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
 }
-function gCalUrl(startDate, endDate, daysOff, leaveDays) {
+function buildIcs(startDate, endDate, daysOff, leaveDays) {
   const start  = startDate.replace(/-/g, '')
   const excEnd = addDays(endDate, 1).replace(/-/g, '')
-  const text    = encodeURIComponent(`Leave – ${daysOff} days off`)
-  const details = encodeURIComponent(`${leaveDays} leave day${leaveDays !== 1 ? 's' : ''} used · ${daysOff} total days off`)
-  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${start}/${excEnd}&details=${details}`
+  const summary = `Leave – ${daysOff} days off`
+  const desc    = `${leaveDays} leave day${leaveDays !== 1 ? 's' : ''} used · ${daysOff} total days off`
+  return [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Leave Planner//EN',
+    'BEGIN:VEVENT',
+    `UID:leave-${start}@leaveplanner`,
+    `DTSTART;VALUE=DATE:${start}`,
+    `DTEND;VALUE=DATE:${excEnd}`,
+    `SUMMARY:${summary}`,
+    `DESCRIPTION:${desc}`,
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n')
 }
-function toggleSet(setter, value) {
-  setter(prev => {
-    const next = new Set(prev)
-    next.has(value) ? next.delete(value) : next.add(value)
-    return next
-  })
+function downloadIcs(startDate, endDate, daysOff, leaveDays) {
+  const ics  = buildIcs(startDate, endDate, daysOff, leaveDays)
+  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' })
+  const url  = URL.createObjectURL(blob)
+  const a    = document.createElement('a')
+  a.href     = url
+  a.download = 'leave.ics'
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 const LEGEND = [
@@ -98,83 +93,47 @@ function buildRows(breakdown) {
   return rows
 }
 
-function EventExpandedDetail({ ev }) {
-  const cats     = ev.categories.split(', ').filter(Boolean)
-  const price    = formatPrice(ev.minPrice, ev.maxPrice)
-  const startTime = formatTime(ev.startDate)
-  const endTime   = formatTime(ev.endDate)
-  const sameDay   = ev.endDate && ev.endDate.slice(0,10) === ev.startDate.slice(0,10)
-
-  return (
-    <div className="flex flex-col gap-2 px-4 pb-3 pt-2">
-      {/* Venue */}
-      {ev.venue && (
-        <div className="flex items-start gap-1.5">
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 flex-shrink-0 mt-0.5">📍</span>
-          <p className="text-[11px] text-slate-600 dark:text-slate-300">
-            {ev.venue}{ev.city && ev.venue !== ev.city ? `, ${ev.city}` : ''}
-          </p>
-        </div>
-      )}
-
-      {/* Date + time */}
-      <div className="flex items-center gap-1.5">
-        <span className="text-[10px] text-slate-400 dark:text-slate-500 flex-shrink-0">🕐</span>
-        <p className="text-[11px] text-slate-600 dark:text-slate-300">
-          {sameDay
-            ? <>{formatEventDate(ev.startDate)}{startTime ? ` · ${startTime}` : ''}{endTime && endTime !== startTime ? ` – ${endTime}` : ''}</>
-            : <>{formatEventDate(ev.startDate)}{startTime ? ` ${startTime}` : ''} → {formatEventDate(ev.endDate)}{endTime ? ` ${endTime}` : ''}</>
-          }
-        </p>
-      </div>
-
-      {/* Price */}
-      {price && (
-        <div className="flex items-center gap-1.5">
-          <span className="text-[10px] text-slate-400 dark:text-slate-500 flex-shrink-0">🎟</span>
-          <p className="text-[11px] font-semibold text-slate-700 dark:text-slate-200">{price}</p>
-        </div>
-      )}
-
-      {/* Category chips */}
-      {cats.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {cats.map(c => (
-            <span key={c} className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400">{c}</span>
-          ))}
-        </div>
-      )}
-
-      {/* Description (HTML from API) */}
-      {ev.description && (
-        <div
-          className="max-h-36 overflow-y-auto text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed
-            [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4
-            [&_li]:mt-0.5 [&_strong]:font-semibold [&_em]:italic [&_a]:text-sky-500
-            [&_br]:block border-t border-slate-100 dark:border-slate-700 pt-2 mt-1"
-          dangerouslySetInnerHTML={{ __html: ev.description }}
-        />
-      )}
-
-      {/* Book link */}
-      <a
-        href={ev.url}
-        target="_blank"
-        rel="noreferrer"
-        className="text-[11px] font-bold text-sky-500 hover:text-sky-600 transition-colors self-start mt-0.5"
-        onClick={e => e.stopPropagation()}
-      >Book tickets →</a>
-    </div>
-  )
-}
-
 export function LeavePeriodPanel({ date, leaveDays, onClose }) {
   const [currentDate, setCurrentDate] = useState(date)
+  const openedAt = useRef(Date.now())
 
-  // Sync if the parent changes which date was clicked
   useEffect(() => { setCurrentDate(date) }, [date])
 
   function shiftDay(delta) { setCurrentDate(prev => addDays(prev, delta)) }
+
+  const [offset, setOffset]       = useState(0)
+  const [animating, setAnimating] = useState(false)
+  const touchStartX = useRef(0)
+
+  function handleTouchStart(e) {
+    touchStartX.current = e.touches[0].clientX
+    setAnimating(false)
+  }
+  function handleTouchMove(e) {
+    setOffset(e.touches[0].clientX - touchStartX.current)
+  }
+  function handleTouchEnd(e) {
+    const dx = e.changedTouches[0].clientX - touchStartX.current
+    if (Math.abs(dx) < 50) {
+      setAnimating(true)
+      setOffset(0)
+      return
+    }
+    const goNext  = dx < 0
+    const exitTo  = goNext ? -380 : 380
+    const enterFrom = goNext ? 380 : -380
+    setAnimating(true)
+    setOffset(exitTo)
+    setTimeout(() => {
+      shiftDay(goNext ? 1 : -1)
+      setAnimating(false)
+      setOffset(enterFrom)
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        setAnimating(true)
+        setOffset(0)
+      }))
+    }, 126)
+  }
 
   const { startDate, endDate, daysOff, breakdown } = useMemo(
     () => getLeaveRange(currentDate, leaveDays), [currentDate, leaveDays]
@@ -184,114 +143,12 @@ export function LeavePeriodPanel({ date, leaveDays, onClose }) {
   const phCount    = breakdown.filter(d => d.type === 'public_holiday').length
   const wkndCount  = breakdown.filter(d => d.type === 'weekend').length
 
-  const events = useMemo(() => {
-    const s = startDate.slice(0, 10), e = endDate.slice(0, 10)
-    return ALL_EVENTS.filter(ev => { const d = ev.startDate.slice(0,10); return d >= s && d <= e })
-  }, [startDate, endDate])
-
-  const availableLocations  = useMemo(() => [...new Set(events.map(e => e.city).filter(Boolean))].sort(), [events])
-  const availableCategories = useMemo(() => {
-    const cats = new Set()
-    events.forEach(e => e.categories.split(', ').filter(Boolean).forEach(c => cats.add(c)))
-    return [...cats].sort()
-  }, [events])
-
-  // Filter state
-  const [selectedDates,  setSelectedDates]  = useState(new Set())
-  const [locationFilter, setLocationFilter] = useState(new Set())
-  const [categoryFilter, setCategoryFilter] = useState(new Set())
-  const [locationOpen,   setLocationOpen]   = useState(false)
-  const [categoryOpen,   setCategoryOpen]   = useState(false)
-  const [categorySearch, setCategorySearch] = useState('')
-
-  // Expanded card
-  const [expandedId, setExpandedId] = useState(null)
-
-  useEffect(() => {
-    setSelectedDates(new Set())
-    setLocationFilter(new Set())
-    setCategoryFilter(new Set())
-    setLocationOpen(false)
-    setCategoryOpen(false)
-    setCategorySearch('')
-    setExpandedId(null)
-  }, [events]) // eslint-disable-line
-
-  const filteredEvents = useMemo(() => events.filter(ev => {
-    const d = ev.startDate.slice(0, 10)
-    if (selectedDates.size  > 0 && !selectedDates.has(d))                                        return false
-    if (locationFilter.size > 0 && !locationFilter.has(ev.city))                                  return false
-    if (categoryFilter.size > 0 && !ev.categories.split(', ').some(c => categoryFilter.has(c))) return false
-    return true
-  }), [events, selectedDates, locationFilter, categoryFilter])
-
-  const filteredCategories = useMemo(() =>
-    categorySearch.trim()
-      ? availableCategories.filter(c => c.toLowerCase().includes(categorySearch.toLowerCase()))
-      : availableCategories,
-    [availableCategories, categorySearch]
-  )
-
-  // Scroll + spotlight
-  const [activeIdx,         setActiveIdx]         = useState(0)
-  const [spotlightExpanded, setSpotlightExpanded] = useState(false)
-  const scrollRef  = useRef(null)
-  const cardRefs   = useRef([])
-  const visibleSet = useRef(new Set())
-
-  // Reset scroll + spotlight whenever the filtered list changes
-  useEffect(() => {
-    setActiveIdx(0)
-    setExpandedId(null)
-    setSpotlightExpanded(false)
-    visibleSet.current = new Set()
-    if (scrollRef.current) scrollRef.current.scrollTop = 0
-  }, [filteredEvents])
-
-  // IntersectionObserver — always tracks the topmost visible card
-  useEffect(() => {
-    if (!filteredEvents.length || !scrollRef.current) return
-    cardRefs.current = cardRefs.current.slice(0, filteredEvents.length)
-    visibleSet.current = new Set()
-
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(e => {
-        const idx = Number(e.target.dataset.index)
-        if (e.isIntersecting) visibleSet.current.add(idx)
-        else visibleSet.current.delete(idx)
-      })
-      if (visibleSet.current.size > 0) {
-        setActiveIdx(Math.min(...visibleSet.current))
-      }
-    }, { root: scrollRef.current, threshold: 0.4 })
-
-    cardRefs.current.forEach(el => el && observer.observe(el))
-    return () => observer.disconnect()
-  }, [filteredEvents])
-
-  // Collapse spotlight when the active event changes
-  useEffect(() => { setSpotlightExpanded(false) }, [activeIdx])
-
-  const active     = filteredEvents[activeIdx]
-  const activeDate = active?.startDate.slice(0, 10) ?? null
-
-  const chipCls = isOn =>
-    `text-[10px] font-semibold px-2 py-0.5 rounded-full transition-colors flex items-center gap-1 ${
-      isOn
-        ? 'bg-sky-500 text-white'
-        : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
-    }`
-
-  const handleCardClick = useCallback((ev, i) => {
-    setExpandedId(id => id === ev.id ? null : ev.id)
-  }, [])
-
   return (
-    <div className="fixed inset-0 z-40 flex items-end" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/40" />
+    <div className="fixed inset-0 z-40 flex items-center justify-center p-4" onClick={() => { if (Date.now() - openedAt.current > 800) onClose() }}>
+      <div className="absolute inset-0 bg-black/40 pointer-events-none" />
 
       <div
-        className="relative z-50 w-full bg-white dark:bg-slate-800 rounded-t-2xl shadow-2xl border-t border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col max-h-[85vh]"
+        className="relative z-50 w-full max-w-sm bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col max-h-[90vh]"
         onClick={e => e.stopPropagation()}
       >
         {/* ── Header ── */}
@@ -305,66 +162,41 @@ export function LeavePeriodPanel({ date, leaveDays, onClose }) {
             Leave Period: {daysOff} Days
           </p>
 
-          {/* Date range with adjacent-day arrows */}
-          <div className="flex items-center justify-center gap-1 mt-1">
-            <button
-              onClick={() => shiftDay(-1)}
-              className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200 transition-colors text-lg font-bold"
-              aria-label="Previous day"
-            >‹</button>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              {formatNice(startDate)} → {formatNice(endDate)}
-            </p>
-            <button
-              onClick={() => shiftDay(1)}
-              className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200 transition-colors text-lg font-bold"
-              aria-label="Next day"
-            >›</button>
-          </div>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            {formatNice(startDate)} → {formatNice(endDate)}
+          </p>
+          <p className="text-[10px] text-slate-400 dark:text-slate-600 mt-1">swipe calendar to change day</p>
 
-          {/* Google Calendar button */}
-          <a
-            href={gCalUrl(startDate, endDate, daysOff, leaveDays)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 mt-2.5 px-4 py-1.5 rounded-full bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white text-xs font-semibold transition-colors"
-          >
-            📅 Add to Google Calendar
-          </a>
         </div>
 
-        {/* ── Spotlight bar (click to expand/collapse) ── */}
-        {active && (
-          <div className="flex-shrink-0 border-t border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900">
-            <button
-              className="w-full px-4 py-3 flex gap-3 items-center text-left"
-              onClick={() => setSpotlightExpanded(v => !v)}
-            >
-              <img
-                src={`https:${active.imageUrl}`}
-                alt=""
-                className="w-14 h-14 rounded-xl object-cover flex-shrink-0 bg-slate-200 dark:bg-slate-700"
-              />
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-slate-900 dark:text-slate-100 leading-tight line-clamp-2">{active.name}</p>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
-                  {formatEventDate(active.startDate)} · {active.city || active.venue}
-                </p>
-              </div>
-              <span className={`flex-shrink-0 text-slate-400 dark:text-slate-500 text-sm transition-transform duration-200 ${spotlightExpanded ? 'rotate-180' : ''}`}>▾</span>
-            </button>
+        {/* ── Sync button ── */}
+        <div className="flex-shrink-0 px-5 pb-3 pt-1">
+          <button
+            onClick={() => downloadIcs(startDate, endDate, daysOff, leaveDays)}
+            className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white text-sm font-semibold transition-colors"
+          >
+            <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" aria-hidden="true">
+              <path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.89 2 3 2.9 3 4v16c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H5V8h14v14z"/>
+            </svg>
+            Sync to Calendar
+          </button>
+        </div>
 
-            {/* Expanded spotlight details */}
-            {spotlightExpanded && (
-              <div className="border-t border-slate-100 dark:border-slate-800">
-                <EventExpandedDetail ev={active} />
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── Calendar (static — dates clickable to filter) ── */}
-        <div className="flex-shrink-0 px-4 pt-3">
+        {/* ── Calendar — swipe left/right to change day ── */}
+        <div
+          className="flex-shrink-0 px-4 pt-3 pb-4 flex flex-col items-center select-none overflow-hidden"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          <div
+            className="w-full max-w-xs"
+            style={{
+              transform: `translateX(${offset}px)`,
+              transition: animating ? 'transform 0.15s cubic-bezier(0.25,0.46,0.45,0.94)' : 'none',
+              opacity: Math.max(0.3, 1 - Math.abs(offset) / 300),
+            }}
+          >
           <div className="grid grid-cols-[repeat(7,1fr)_32px] mb-1">
             {WEEKDAY_LABELS.map((h, i) => (
               <div key={i} className={`text-center text-[10px] font-semibold uppercase ${i >= 5 ? 'text-slate-400 dark:text-slate-500' : 'text-slate-500 dark:text-slate-400'}`}>{h}</div>
@@ -375,41 +207,23 @@ export function LeavePeriodPanel({ date, leaveDays, onClose }) {
           <div className="flex flex-col">
             {rows.map((row, rowIdx) => (
               <div key={rowIdx} className="grid grid-cols-[repeat(7,1fr)_32px]">
-                {row.cells.map((cell, ci) => {
-                  const cellDate   = !cell.outside ? toCellDate(cell.year, cell.month, cell.dayNum) : null
-                  const isSelected = !!cellDate && selectedDates.has(cellDate)
-                  const isDimmed   = !!cellDate && selectedDates.size > 0 && !isSelected
-                  const isActive   = cellDate === activeDate
-
-                  return (
+                {row.cells.map((cell, ci) => (
+                  <div
+                    key={`${rowIdx}-${ci}`}
+                    className="flex items-center justify-center py-0.5"
+                  >
                     <div
-                      key={`${rowIdx}-${ci}`}
-                      className={`flex items-center justify-center py-0.5 ${!cell.outside ? 'cursor-pointer' : ''}`}
-                      onClick={() => { if (!cell.outside && cellDate) toggleSet(setSelectedDates, cellDate) }}
+                      className="w-full aspect-square rounded-full flex items-center justify-center text-xs font-semibold"
+                      style={
+                        cell.outside
+                          ? { backgroundColor: 'transparent', color: '#64748b', opacity: 0.35 }
+                          : { backgroundColor: TYPE_COLOUR[cell.type], color: '#fff' }
+                      }
                     >
-                      <div
-                        className="w-full aspect-square rounded-full flex items-center justify-center text-xs font-semibold transition-all duration-200"
-                        style={
-                          cell.outside
-                            ? { backgroundColor: 'transparent', color: '#64748b', opacity: 0.35 }
-                            : {
-                                backgroundColor: TYPE_COLOUR[cell.type],
-                                color: '#fff',
-                                opacity: isDimmed ? 0.3 : 1,
-                                transform: isActive ? 'scale(1.15)' : isSelected ? 'scale(1.08)' : undefined,
-                                boxShadow: isActive
-                                  ? '0 0 0 2.5px #fff, 0 0 0 4.5px #38bdf8'
-                                  : isSelected
-                                  ? '0 0 0 2px #fff, 0 0 0 4px #94a3b8'
-                                  : undefined,
-                              }
-                        }
-                      >
-                        {cell.dayNum}
-                      </div>
+                      {cell.dayNum}
                     </div>
-                  )
-                })}
+                  </div>
+                ))}
                 <div className="flex flex-col items-start justify-center pl-2">
                   {row.monthLabel && (
                     <>
@@ -423,7 +237,7 @@ export function LeavePeriodPanel({ date, leaveDays, onClose }) {
           </div>
 
           {/* Legend */}
-          <div className="flex justify-center flex-wrap gap-x-4 gap-y-1 py-3">
+          <div className="flex justify-center flex-wrap gap-x-4 gap-y-1 pt-3">
             {LEGEND.map(({ type, colour, label }) => {
               const count = type === 'leave' ? leaveCount : type === 'public_holiday' ? phCount : wkndCount
               if (!count) return null
@@ -435,113 +249,27 @@ export function LeavePeriodPanel({ date, leaveDays, onClose }) {
               )
             })}
           </div>
+
+          {/* Public holidays list */}
+          {phCount > 0 && (
+            <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-700 flex flex-col gap-1.5">
+              {breakdown
+                .filter(d => d.type === 'public_holiday')
+                .map(({ date }) => (
+                  <div key={date} className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-medium text-slate-700 dark:text-slate-200">
+                      {HOLIDAY_MAP.get(date) ?? 'Public Holiday'}
+                    </span>
+                    <span className="text-xs text-slate-400 dark:text-slate-500 tabular-nums whitespace-nowrap">
+                      {formatNice(date)}
+                    </span>
+                  </div>
+                ))}
+            </div>
+          )}
+          </div>
         </div>
 
-        {/* ── Events header + filter dropdowns (static, inline-expanding) ── */}
-        {events.length > 0 && (
-          <div className="flex-shrink-0 border-t border-slate-200 dark:border-slate-700">
-            {/* Count + chip buttons */}
-            <div className="px-4 py-2 flex items-center gap-2">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 flex-shrink-0">
-                Events · {filteredEvents.length}
-                {filteredEvents.length !== events.length && (
-                  <span className="text-slate-300 dark:text-slate-600"> / {events.length}</span>
-                )}
-              </p>
-              <div className="flex gap-1.5 ml-auto">
-                <button className={chipCls(locationFilter.size > 0 || locationOpen)} onClick={() => { setLocationOpen(v => !v); setCategoryOpen(false) }}>
-                  Location{locationFilter.size > 0 ? ` (${locationFilter.size})` : ''} ▾
-                </button>
-                <button className={chipCls(categoryFilter.size > 0 || categoryOpen)} onClick={() => { setCategoryOpen(v => !v); setLocationOpen(false) }}>
-                  Category{categoryFilter.size > 0 ? ` (${categoryFilter.size})` : ''} ▾
-                </button>
-              </div>
-            </div>
-
-            {/* Location dropdown */}
-            {locationOpen && (
-              <div className="max-h-36 overflow-y-auto border-t border-slate-100 dark:border-slate-700 px-4 py-1">
-                {availableLocations.map(loc => (
-                  <label key={loc} className="flex items-center gap-2.5 py-1.5 cursor-pointer select-none">
-                    <input type="checkbox" checked={locationFilter.has(loc)} onChange={() => toggleSet(setLocationFilter, loc)} className="rounded accent-sky-500" />
-                    <span className="text-xs text-slate-700 dark:text-slate-300">{loc}</span>
-                  </label>
-                ))}
-              </div>
-            )}
-
-            {/* Category dropdown with search */}
-            {categoryOpen && (
-              <div className="border-t border-slate-100 dark:border-slate-700 flex flex-col">
-                <div className="px-3 pt-2 pb-1">
-                  <input
-                    type="text"
-                    value={categorySearch}
-                    onChange={e => setCategorySearch(e.target.value)}
-                    placeholder="Search categories…"
-                    className="w-full text-xs px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:border-sky-400 dark:focus:border-sky-500 transition-colors"
-                    autoFocus
-                  />
-                </div>
-                <div className="max-h-32 overflow-y-auto px-4 py-1">
-                  {filteredCategories.length === 0 && (
-                    <p className="text-xs text-slate-400 dark:text-slate-500 py-2 text-center">No matches</p>
-                  )}
-                  {filteredCategories.map(cat => (
-                    <label key={cat} className="flex items-center gap-2.5 py-1.5 cursor-pointer select-none">
-                      <input type="checkbox" checked={categoryFilter.has(cat)} onChange={() => toggleSet(setCategoryFilter, cat)} className="rounded accent-sky-500" />
-                      <span className="text-xs text-slate-700 dark:text-slate-300">{cat}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── Scrollable event list ── */}
-        {events.length > 0 && (
-          <div ref={scrollRef} className="flex-1 overflow-y-auto min-h-0">
-            {filteredEvents.length === 0 && (
-              <p className="px-4 py-6 text-xs text-center text-slate-400 dark:text-slate-500">No events match your filters.</p>
-            )}
-            {filteredEvents.map((ev, i) => {
-              const isExpanded = expandedId === ev.id
-
-              return (
-                <div
-                  key={ev.id}
-                  data-index={i}
-                  ref={el => { cardRefs.current[i] = el }}
-                  className={`border-t border-slate-100 dark:border-slate-700 transition-colors ${
-                    i === activeIdx ? 'bg-sky-50 dark:bg-sky-900/20' : ''
-                  }`}
-                >
-                  {/* Card row — click to expand */}
-                  <button
-                    className="w-full px-4 py-2.5 flex gap-3 items-center text-left"
-                    onClick={() => handleCardClick(ev, i)}
-                  >
-                    <img
-                      src={`https:${ev.imageUrl}`}
-                      alt=""
-                      className="w-10 h-10 rounded-lg object-cover flex-shrink-0 bg-slate-200 dark:bg-slate-700"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">{ev.name}</p>
-                      <p className="text-[10px] text-slate-400 dark:text-slate-500">{formatEventDate(ev.startDate)} · {ev.city || ev.venue}</p>
-                    </div>
-                    <span className={`flex-shrink-0 text-slate-300 dark:text-slate-600 text-xs transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}>▾</span>
-                  </button>
-
-                  {/* Expanded detail */}
-                  {isExpanded && <EventExpandedDetail ev={ev} />}
-                </div>
-              )
-            })}
-            <div className="h-4" />
-          </div>
-        )}
       </div>
     </div>
   )

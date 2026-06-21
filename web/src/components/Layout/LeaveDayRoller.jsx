@@ -39,7 +39,7 @@ export function LeaveDayRoller({ value, min, max, onChange }) {
 
   return (
     <div
-      className="flex-1 flex items-center justify-center gap-4 h-9 overflow-hidden select-none"
+      className="flex-1 flex items-center justify-center gap-4 h-14 overflow-hidden select-none"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -47,7 +47,7 @@ export function LeaveDayRoller({ value, min, max, onChange }) {
       <button
         onClick={() => go(-1)}
         disabled={value <= min}
-        className="w-8 text-center text-base font-semibold tabular-nums text-slate-400 dark:text-slate-500 opacity-35 disabled:opacity-0 transition-opacity"
+        className="w-10 text-center text-xl font-semibold tabular-nums text-slate-400 dark:text-slate-500 opacity-35 disabled:opacity-0 transition-opacity"
         aria-label="Decrease"
       >
         {value > min ? value - 1 : ''}
@@ -55,7 +55,7 @@ export function LeaveDayRoller({ value, min, max, onChange }) {
 
       <span
         key={value}
-        className={`w-8 text-center text-xl font-bold tabular-nums text-slate-900 dark:text-slate-100 ${animClass}`}
+        className={`w-10 text-center text-4xl font-bold tabular-nums text-slate-900 dark:text-slate-100 ${animClass}`}
         onAnimationEnd={() => setDirection(null)}
       >
         {value}
@@ -64,7 +64,7 @@ export function LeaveDayRoller({ value, min, max, onChange }) {
       <button
         onClick={() => go(1)}
         disabled={value >= max}
-        className="w-8 text-center text-base font-semibold tabular-nums text-slate-400 dark:text-slate-500 opacity-35 disabled:opacity-0 transition-opacity"
+        className="w-10 text-center text-xl font-semibold tabular-nums text-slate-400 dark:text-slate-500 opacity-35 disabled:opacity-0 transition-opacity"
         aria-label="Increase"
       >
         {value < max ? value + 1 : ''}
