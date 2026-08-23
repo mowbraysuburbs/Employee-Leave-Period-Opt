@@ -1,6 +1,8 @@
 import { useMemo, useState, useEffect, useRef } from 'react'
 import { getLeaveRange } from '../../utils/leaveCalculator'
 import { PUBLIC_HOLIDAYS } from '../../data/publicHolidays'
+import { addDays } from '../../utils/dateFormat'
+import { buildIcs } from '../../utils/ics'
 
 const HOLIDAY_MAP = new Map(
   Object.values(PUBLIC_HOLIDAYS).flat().map(({ date, name }) => [date, name])
@@ -14,30 +16,6 @@ function formatNice(dateStr) {
   const [y, mo, day] = dateStr.split('-').map(Number)
   const d = new Date(y, mo - 1, day)
   return `${SHORT_DAY[d.getDay()]} ${d.getDate()} ${SHORT_MONTH[d.getMonth()]} '${String(y).slice(2)}`
-}
-function addDays(dateStr, n) {
-  const d = new Date(dateStr + 'T00:00:00')
-  d.setDate(d.getDate() + n)
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
-}
-function buildIcs(startDate, endDate, daysOff, leaveDays) {
-  const start  = startDate.replace(/-/g, '')
-  const excEnd = addDays(endDate, 1).replace(/-/g, '')
-  const summary = `Leave – ${daysOff} days off`
-  const desc    = `${leaveDays} leave day${leaveDays !== 1 ? 's' : ''} used · ${daysOff} total days off`
-  return [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//Leave Planner//EN',
-    'BEGIN:VEVENT',
-    `UID:leave-${start}@leaveplanner`,
-    `DTSTART;VALUE=DATE:${start}`,
-    `DTEND;VALUE=DATE:${excEnd}`,
-    `SUMMARY:${summary}`,
-    `DESCRIPTION:${desc}`,
-    'END:VEVENT',
-    'END:VCALENDAR',
-  ].join('\r\n')
 }
 function downloadIcs(startDate, endDate, daysOff, leaveDays) {
   const ics  = buildIcs(startDate, endDate, daysOff, leaveDays)
