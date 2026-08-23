@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Leave Summary</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:      #0f172a;
+  --surface: #1e293b;
+  --border:  #334155;
+  --muted:   #475569;
+  --dim:     #64748b;
+  --text:    #e2e8f0;
+  --head:    #f1f5f9;
+  --leave:   #38bdf8;
+  --ph:      #fb923c;
+  --wknd:    #475569;
+  --accent:  #38bdf8;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 32px 24px 64px;
+}
+
+.page { max-width: 1100px; margin: 0 auto; }
+
+h1 {
+  font-size: 20px; font-weight: 800; color: var(--head);
+  letter-spacing: -0.02em; margin-bottom: 20px;
+}
+
+/* ── Input card ───────────────────────────────────── */
+.input-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: flex-end;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.09em; color: var(--dim);
+}
+.field input[type=date] {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+  color: var(--text); font-size: 14px; padding: 9px 12px;
+  outline: none; transition: border-color 0.15s; width: 160px;
+  color-scheme: dark;
+}
+.field input[type=date]:focus { border-color: var(--accent); }
+
+/* Slider */
+.slider-field { flex: 1; min-width: 200px; }
+.slider-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+.slider-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em; color: var(--dim); }
+.slider-val { font-size: 22px; font-weight: 800; color: var(--accent); line-height: 1; }
+.slider-val span { font-size: 11px; font-weight: 500; color: var(--dim); margin-left: 2px; }
+
+input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%; height: 5px;
+  background: linear-gradient(to right, var(--accent) 0%, var(--accent) var(--pct,33%), var(--border) var(--pct,33%), var(--border) 100%);
+  border-radius: 3px; outline: none; cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--accent); cursor: pointer;
+  box-shadow: 0 0 0 4px rgba(56,189,248,.18);
+  transition: box-shadow 0.15s;
+}
+input[type=range]::-webkit-slider-thumb:hover { box-shadow: 0 0 0 6px rgba(56,189,248,.28); }
+input[type=range]::-moz-range-thumb {
+  width: 20px; height: 20px; border-radius: 50%; border: none;
+  background: var(--accent); cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--accent); color: #0f172a;
+  border: none; border-radius: 10px;
+  font-size: 14px; font-weight: 800; padding: 10px 22px;
+  cursor: pointer; transition: background 0.15s; white-space: nowrap;
+  align-self: flex-end;
+}
+.btn-primary:hover { background: #7dd3fc; }
+
+/* ── Summary panel ─────────────────────────────────── */
+.summary { display: none; gap: 20px; }
+.summary.visible { display: grid; grid-template-columns: 320px 1fr; }
+
+/* LEFT COLUMN */
+.left-col {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.stats-row {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  border-bottom: 1px solid var(--border);
+}
+.stat {
+  padding: 14px 8px; text-align: center;
+  border-right: 1px solid var(--border);
+}
+.stat:last-child { border-right: none; }
+.stat-num { font-size: 24px; font-weight: 800; line-height: 1; }
+.stat-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dim); margin-top: 3px; }
+.n-off  { color: #34d399; }
+.n-used { color: var(--accent); }
+.n-ph   { color: var(--ph); }
+.n-wk   { color: #94a3b8; }
+
+/* Sections */
+.sections-area { flex: 1; overflow-y: auto; padding: 16px; }
+
+.sections-heading {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+}
+.sections-heading .divider { flex: 1; height: 1px; background: var(--border); }
+.sections-heading .label {
+  font-size: 10px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--dim); white-space: nowrap;
+}
+.section-count {
+  background: var(--accent); color: #0f172a;
+  border-radius: 20px; font-size: 11px; font-weight: 800;
+  padding: 1px 8px; white-space: nowrap;
+}
+
+.section-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+.section-card:last-child { margin-bottom: 0; }
+.section-num {
+  font-size: 9px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--dim); margin-bottom: 4px;
+}
+.section-dates { font-size: 13px; font-weight: 700; color: var(--head); margin-bottom: 6px; }
+.section-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.pill {
+  font-size: 11px; font-weight: 600; padding: 2px 8px;
+  border-radius: 20px; color: #0f172a;
+}
+.pill-off   { background: #34d399; }
+.pill-leave { background: var(--accent); }
+.pill-ph    { background: var(--ph); }
+
+/* Bottom controls */
+.left-footer {
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.btn-customise {
+  background: var(--border); color: #94a3b8;
+  border: none; border-radius: 8px;
+  font-size: 13px; font-weight: 700; padding: 9px;
+  cursor: pointer; transition: background 0.15s, color 0.15s;
+  width: 100%; text-align: center;
+}
+.btn-customise:hover { background: var(--muted); color: var(--head); }
+.btn-customise.active { background: var(--accent); color: #0f172a; }
+
+.view-toggle {
+  display: none;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.view-toggle.visible { display: grid; grid-template-columns: 1fr 1fr; }
+.toggle-btn {
+  background: transparent; border: none; padding: 7px;
+  font-size: 12px; font-weight: 700; color: var(--dim);
+  cursor: pointer; transition: background 0.15s, color 0.15s;
+}
+.toggle-btn.active { background: var(--accent); color: #0f172a; }
+
+/* ICS button */
+.btn-ics {
+  background: #0369a1; color: #fff;
+  border: none; border-radius: 8px;
+  font-size: 12px; font-weight: 700; padding: 8px;
+  cursor: pointer; display: flex; align-items: center;
+  justify-content: center; gap: 6px; transition: background 0.15s; width: 100%;
+}
+.btn-ics:hover { background: #0284c7; }
+
+/* RIGHT COLUMN */
+.right-col {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+/* ── Calendar ──────────────────────────────────────── */
+.calendars {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 24px 16px;
+}
+
+.month-block {}
+.month-title {
+  font-size: 11px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--head); margin-bottom: 8px;
+}
+
+.cal-weekdays {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 2px;
+}
+.cal-weekdays span {
+  text-align: center; font-size: 8px; font-weight: 700;
+  text-transform: uppercase; color: var(--muted); padding: 1px 0;
+}
+.cal-weekdays span:nth-child(6),
+.cal-weekdays span:nth-child(7) { color: #334155; }
+
+.cal-month-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
+}
+
+.cal-day {
+  height: 22px;
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 600;
+  position: relative;
+  transition: transform 0.1s;
+}
+.cal-day.empty         { background: transparent; }
+.cal-day.out-of-range  { background: transparent; color: #283548; font-weight: 400; }
+.cal-day.type-leave    { background: var(--leave); color: #0f172a; }
+.cal-day.type-ph       { background: var(--ph); color: #0f172a; }
+.cal-day.type-weekend  { background: #263348; color: #4a6080; }
+.cal-day.type-workday  { background: transparent; color: var(--muted); border: 1px dashed #283548; border-radius: 4px; }
+.cal-day.over-budget   { background: #f43f5e; color: #fff; }
+.cal-day.today-ring    { box-shadow: 0 0 0 2px #fff; }
+
+/* Customise hover */
+.customise-cal .cal-day.type-leave:hover,
+.customise-cal .cal-day.type-workday:hover {
+  cursor: pointer; transform: scale(1.1); z-index: 1;
+}
+.customise-cal .cal-day.type-workday:hover {
+  background: #0e3a5e; border-color: var(--accent); color: var(--accent);
+}
+.customise-cal .cal-day.type-leave:hover { opacity: 0.75; }
+
+/* Legend */
+.legend-row {
+  display: flex; flex-wrap: wrap; gap: 16px; margin-top: 20px;
+  padding-top: 16px; border-top: 1px solid var(--border);
+}
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--dim); }
+.legend-dot  { width: 12px; height: 12px; border-radius: 4px; flex-shrink: 0; }
+
+/* Hint bar */
+.hint-bar {
+  background: #0e3a5e; border: 1px solid #1e5a8e; border-radius: 8px;
+  font-size: 12px; color: #7dd3fc; padding: 8px 12px;
+  margin-bottom: 16px; display: none;
+}
+.hint-bar.visible { display: block; }
+
+/* Budget warning */
+.budget-warn {
+  background: #450a0a; border: 1px solid #7f1d1d; border-radius: 8px;
+  font-size: 12px; color: #fca5a5; padding: 8px 12px;
+  margin-bottom: 16px; display: none;
+}
+.budget-warn.visible { display: block; }
+
+/* ── Periods table ─────────────────────────────────── */
+.periods-table-wrap { display: none; }
+.periods-table-wrap.visible { display: block; }
+
+.periods-table {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+}
+.periods-table thead th {
+  text-align: left; padding: 8px 12px;
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--dim);
+  border-bottom: 1px solid var(--border);
+}
+.periods-table thead th:not(:first-child) { text-align: center; }
+.periods-table tbody tr {
+  border-bottom: 1px solid var(--border);
+}
+.periods-table tbody tr:last-child { border-bottom: none; }
+.periods-table tbody td {
+  padding: 12px; color: var(--text);
+}
+.periods-table tbody td:not(:first-child) { text-align: center; }
+.pt-num { color: var(--dim); font-size: 11px; font-weight: 700; }
+.chip {
+  display: inline-block; border-radius: 20px; padding: 2px 10px;
+  font-size: 12px; font-weight: 700; color: #0f172a;
+}
+.chip-off   { background: #34d399; }
+.chip-leave { background: var(--accent); }
+.chip-ph    { background: var(--ph); }
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>Leave Summary</h1>
+
+<!-- ── Input card ── -->
+<div class="input-card">
+  <div class="field">
+    <label>From</label>
+    <input type="date" id="inp-start" />
+  </div>
+  <div class="field">
+    <label>To</label>
+    <input type="date" id="inp-end" />
+  </div>
+  <div class="field slider-field">
+    <div class="slider-header">
+      <span class="slider-label">Leave days</span>
+      <div class="slider-val"><span id="slider-num">5</span> <span>days</span></div>
+    </div>
+    <input type="range" id="inp-leave" min="1" max="30" value="5" oninput="onSlider()" />
+  </div>
+  <button class="btn-primary" onclick="generate()">Show Summary</button>
+</div>
+
+<!-- ── Summary panel ── -->
+<div class="summary" id="summary">
+
+  <!-- LEFT: stats + sections + controls -->
+  <div class="left-col">
+    <div class="stats-row">
+      <div class="stat"><div class="stat-num n-off"  id="s-off">—</div><div class="stat-lbl">Days off</div></div>
+      <div class="stat"><div class="stat-num n-used" id="s-used">—</div><div class="stat-lbl">Leave used</div></div>
+      <div class="stat"><div class="stat-num n-ph"   id="s-ph">—</div><div class="stat-lbl">PH</div></div>
+      <div class="stat"><div class="stat-num n-wk"   id="s-wk">—</div><div class="stat-lbl">Weekends</div></div>
+    </div>
+
+    <div class="sections-area" id="sections-area">
+      <!-- dynamically filled -->
+    </div>
+
+    <div class="left-footer">
+      <button class="btn-customise" id="btn-cust" onclick="toggleCustomise()">Customise</button>
+      <div class="view-toggle" id="view-toggle">
+        <button class="toggle-btn active" id="tb-cal" onclick="setView('calendar')">Calendar</button>
+        <button class="toggle-btn"        id="tb-tbl" onclick="setView('table')">Table</button>
+      </div>
+      <button class="btn-ics" onclick="downloadIcs()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 4h-1V2h-2v2H8V2H6v2H5C3.89 2 3 2.9 3 4v16c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H5V8h14v14z"/></svg>
+        Sync to Calendar
+      </button>
+    </div>
+  </div>
+
+  <!-- RIGHT: calendar or table -->
+  <div class="right-col" id="right-col">
+    <div class="hint-bar"    id="hint-bar">Click a blue leave day to remove it &nbsp;·&nbsp; click a grey workday to add leave</div>
+    <div class="budget-warn" id="budget-warn"></div>
+    <div class="calendars"   id="calendars"></div>
+    <div class="periods-table-wrap" id="periods-table-wrap"></div>
+    <div class="legend-row">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--leave)"></div>Leave day</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--ph)"></div>Public holiday</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#263348"></div>Weekend</div>
+      <div class="legend-item"><div class="legend-dot" style="background:transparent;border:1px dashed #334155"></div>Workday</div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<script>
+// ── Public holidays ────────────────────────────────
+const HOLIDAY_MAP = new Map([
+  ['2025-01-01',"New Year's Day"],['2025-03-21',"Human Rights Day"],
+  ['2025-04-18',"Good Friday"],['2025-04-21',"Family Day"],
+  ['2025-04-28',"Freedom Day"],['2025-05-01',"Workers' Day"],
+  ['2025-06-16',"Youth Day"],['2025-08-09',"National Women's Day"],
+  ['2025-09-24',"Heritage Day"],['2025-12-16',"Day of Reconciliation"],
+  ['2025-12-25',"Christmas Day"],['2025-12-26',"St. Stephen's Day"],
+  ['2026-01-01',"New Year's Day"],['2026-03-21',"Human Rights Day"],
+  ['2026-04-03',"Good Friday"],['2026-04-06',"Family Day"],
+  ['2026-04-27',"Freedom Day"],['2026-05-01',"Workers' Day"],
+  ['2026-06-16',"Youth Day"],['2026-08-10',"National Women's Day"],
+  ['2026-09-24',"Heritage Day"],['2026-12-16',"Day of Reconciliation"],
+  ['2026-12-25',"Christmas Day"],['2026-12-26',"St. Stephen's Day"],
+  ['2027-01-01',"New Year's Day"],['2027-03-22',"Human Rights Day"],
+  ['2027-03-26',"Good Friday"],['2027-03-29',"Family Day"],
+  ['2027-04-27',"Freedom Day"],['2027-05-01',"Workers' Day"],
+  ['2027-06-16',"Youth Day"],['2027-08-09',"National Women's Day"],
+  ['2027-09-24',"Heritage Day"],['2027-12-16',"Day of Reconciliation"],
+  ['2027-12-25',"Christmas Day"],['2027-12-27',"St. Stephen's Day"],
+  ['2028-01-01',"New Year's Day"],['2028-03-21',"Human Rights Day"],
+  ['2028-04-14',"Good Friday"],['2028-04-17',"Family Day"],
+  ['2028-04-27',"Freedom Day"],['2028-05-01',"Workers' Day"],
+  ['2028-06-16',"Youth Day"],['2028-08-09',"National Women's Day"],
+  ['2028-09-25',"Heritage Day"],['2028-12-16',"Day of Reconciliation"],
+  ['2028-12-25',"Christmas Day"],['2028-12-26',"St. Stephen's Day"],
+])
+
+// ── Helpers ───────────────────────────────────────
+const SHORT_MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+const LONG_MON  = ['January','February','March','April','May','June','July','August','September','October','November','December']
+const SHORT_DAY = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+
+function iso(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
+}
+function addDays(dateStr, n) {
+  const d = new Date(dateStr + 'T00:00:00'); d.setDate(d.getDate() + n); return iso(d)
+}
+function parseDate(dateStr) { const [y,m,d] = dateStr.split('-').map(Number); return new Date(y,m-1,d) }
+function isWeekend(dateStr) { const dw = parseDate(dateStr).getDay(); return dw === 0 || dw === 6 }
+function isPH(dateStr)      { return HOLIDAY_MAP.has(dateStr) }
+function fmtNice(dateStr) {
+  const d = parseDate(dateStr)
+  return `${SHORT_DAY[d.getDay()]} ${d.getDate()} ${SHORT_MON[d.getMonth()]}`
+}
+function fmtShort(dateStr) {
+  const [y,m,d] = dateStr.split('-')
+  return `${d}/${m}/${String(y).slice(2)}`
+}
+
+// ── Build day list ────────────────────────────────
+function buildDays(startStr, endStr, budget, customLeave) {
+  const days = []; let leaveUsed = 0; let cur = startStr
+  while (cur <= endStr) {
+    let type
+    if (isWeekend(cur))         type = 'weekend'
+    else if (isPH(cur))         type = 'ph'
+    else if (customLeave && customLeave.has(cur)) { type = 'leave'; leaveUsed++ }
+    else if (leaveUsed < budget) { type = 'leave'; leaveUsed++ }
+    else                        type = 'workday'
+    days.push({ date: cur, type })
+    cur = addDays(cur, 1)
+  }
+  return days
+}
+
+function buildDaysCustom(startStr, endStr, customLeave) {
+  const days = []; let cur = startStr
+  while (cur <= endStr) {
+    let type
+    if (isWeekend(cur))              type = 'weekend'
+    else if (isPH(cur))              type = 'ph'
+    else if (customLeave.has(cur))   type = 'leave'
+    else                             type = 'workday'
+    days.push({ date: cur, type })
+    cur = addDays(cur, 1)
+  }
+  return days
+}
+
+// ── Detect leave sections ────────────────────────
+function detectSections(days) {
+  const sections = []; let cur = null
+  for (const day of days) {
+    if (day.type === 'workday') {
+      if (cur) { sections.push(cur); cur = null }
+    } else {
+      if (!cur) cur = { start: day.date, end: day.date, days: [] }
+      cur.end = day.date
+      cur.days.push(day)
+    }
+  }
+  if (cur) sections.push(cur)
+  return sections
+    .filter(b => b.days.some(d => d.type === 'leave'))
+    .map(b => ({
+      start:     b.start,
+      end:       b.end,
+      daysOff:   b.days.length,
+      leaveUsed: b.days.filter(d => d.type === 'leave').length,
+      phCount:   b.days.filter(d => d.type === 'ph').length,
+      weekends:  b.days.filter(d => d.type === 'weekend').length,
+    }))
+}
+
+// ── Compute one leave block starting at startStr using k leave credits ───
+function singleLeaveRange(startStr, k) {
+  let credits = k, cur = startStr
+  const leaveDays = [], allDays = []
+  while (credits >= 0) {
+    if (isWeekend(cur))  allDays.push(cur)
+    else if (isPH(cur))  allDays.push(cur)
+    else { credits--; if (credits < 0) break; leaveDays.push(cur); allDays.push(cur) }
+    cur = addDays(cur, 1)
+  }
+  const endDate = allDays[allDays.length - 1] ?? startStr
+  return { endDate, daysOff: allDays.length, leaveDays }
+}
+
+// ── Total days captured in leave sections for a given leave set ──────────
+function sectionScore(leaveSet, startStr, endStr) {
+  let score = 0, inSection = false, hasLeave = false, sLen = 0
+  let cur = startStr
+  while (cur <= endStr) {
+    const isLeave = leaveSet.has(cur)
+    const isOff   = isLeave || isWeekend(cur) || isPH(cur)
+    if (!isOff) {
+      if (inSection && hasLeave) score += sLen
+      inSection = false; hasLeave = false; sLen = 0
+    } else {
+      if (!inSection) inSection = true
+      sLen++
+      if (isLeave) hasLeave = true
+    }
+    cur = addDays(cur, 1)
+  }
+  if (inSection && hasLeave) score += sLen
+  return score
+}
+
+// ── Optimiser: picks leave days to maximise ratio (days off / leave used) ─
+// Phase 1: greedy-by-ratio — picks best non-overlapping blocks
+// Phase 2: fills remaining budget via marginal-gain on single days
+function optimizeLeave(startStr, endStr, budget) {
+  // Build candidate periods: (start, k) for every workday × every k
+  const candidates = []
+  let cur = startStr
+  while (cur <= endStr) {
+    if (!isWeekend(cur) && !isPH(cur)) {
+      for (let k = 1; k <= budget; k++) {
+        const r = singleLeaveRange(cur, k)
+        if (r.endDate > endStr) break
+        candidates.push({ startDate: cur, endDate: r.endDate, k, daysOff: r.daysOff,
+          ratio: r.daysOff / k, leaveDays: r.leaveDays })
+      }
+    }
+    cur = addDays(cur, 1)
+  }
+
+  // Sort: best ratio first; break ties by most days off, then fewest leave used
+  candidates.sort((a, b) => b.ratio - a.ratio || b.daysOff - a.daysOff || a.k - b.k)
+
+  // Phase 1 — greedy non-overlapping selection
+  const selected = []
+  const usedDays = new Set()
+  let remaining = budget
+
+  for (const c of candidates) {
+    if (c.k > remaining) continue
+    // Skip if any leave day already claimed, or date range overlaps existing period
+    if (c.leaveDays.some(d => usedDays.has(d))) continue
+    if (selected.some(s => !(c.endDate < s.startDate || c.startDate > s.endDate))) continue
+    selected.push(c)
+    c.leaveDays.forEach(d => usedDays.add(d))
+    remaining -= c.k
+    if (remaining === 0) break
+  }
+
+  // Phase 2 — fill leftover budget 1 day at a time by marginal gain
+  for (let i = 0; i < remaining; i++) {
+    let bestDate = null, bestScore = -1
+    let c2 = startStr
+    while (c2 <= endStr) {
+      if (!isWeekend(c2) && !isPH(c2) && !usedDays.has(c2)) {
+        usedDays.add(c2)
+        const s = sectionScore(usedDays, startStr, endStr)
+        if (s > bestScore) { bestScore = s; bestDate = c2 }
+        usedDays.delete(c2)
+      }
+      c2 = addDays(c2, 1)
+    }
+    if (bestDate) usedDays.add(bestDate)
+  }
+
+  return { customLeave: usedDays, optPeriods: selected }
+}
+
+// ── State ─────────────────────────────────────────
+const TODAY = iso(new Date())
+
+let state = {
+  startStr: '', endStr: '', budget: 5,
+  customiseMode: false,
+  viewMode: 'calendar',
+  customLeave: new Set(),
+  optPeriods: [],          // periods chosen by optimizer
+  days: [], dayMap: new Map(), sections: [],
+}
+
+// ── Slider ────────────────────────────────────────
+function onSlider() {
+  const v = document.getElementById('inp-leave').value
+  document.getElementById('slider-num').textContent = v
+  const pct = ((v - 1) / 29 * 100).toFixed(1)
+  document.getElementById('inp-leave').style.setProperty('--pct', pct + '%')
+}
+onSlider()  // init
+
+// ── Init defaults ─────────────────────────────────
+;(function() {
+  document.getElementById('inp-start').value = TODAY
+  document.getElementById('inp-end').value   = addDays(TODAY, 13)
+})()
+
+// ── Generate ──────────────────────────────────────
+function generate() {
+  const s = document.getElementById('inp-start').value
+  const e = document.getElementById('inp-end').value
+  const b = parseInt(document.getElementById('inp-leave').value, 10) || 5
+  if (!s || !e || s > e) { alert('Pick a valid date range.'); return }
+
+  state.startStr      = s
+  state.endStr        = e
+  state.budget        = b
+  state.customiseMode = false
+  state.viewMode      = 'calendar'
+
+  // Run optimiser — picks the best non-overlapping leave periods by ratio
+  const { customLeave, optPeriods } = optimizeLeave(s, e, b)
+  state.customLeave = customLeave
+  state.optPeriods  = optPeriods
+
+  recompute()
+  document.getElementById('summary').classList.add('visible')
+}
+
+function recompute() {
+  const { startStr, endStr, customLeave } = state
+  // Always use the customLeave set (either from optimizer or user edits)
+  const days = buildDaysCustom(startStr, endStr, customLeave)
+  state.days    = days
+  state.dayMap  = new Map(days.map(d => [d.date, d.type]))
+  state.sections = detectSections(days)
+  render()
+}
+
+// ── Customise / view ─────────────────────────────
+function toggleCustomise() {
+  state.customiseMode = !state.customiseMode
+  if (!state.customiseMode) state.viewMode = 'calendar'
+  recompute()
+}
+function setView(v) {
+  state.viewMode = v
+  document.getElementById('tb-cal').classList.toggle('active', v === 'calendar')
+  document.getElementById('tb-tbl').classList.toggle('active', v === 'table')
+  document.getElementById('calendars').style.display         = v === 'calendar' ? '' : 'none'
+  document.getElementById('periods-table-wrap').classList.toggle('visible', v === 'table')
+}
+
+function cellClick(dateStr) {
+  if (!state.customiseMode) return
+  if (isWeekend(dateStr) || isPH(dateStr)) return
+  if (state.customLeave.has(dateStr)) state.customLeave.delete(dateStr)
+  else state.customLeave.add(dateStr)
+  recompute()
+}
+
+// ── Render ────────────────────────────────────────
+function render() {
+  const { days, dayMap, sections, budget, customiseMode, viewMode } = state
+
+  const leaveUsed = days.filter(d => d.type === 'leave').length
+  const phCount   = days.filter(d => d.type === 'ph').length
+  const wkCount   = days.filter(d => d.type === 'weekend').length
+  const daysOff   = days.filter(d => d.type !== 'workday').length
+
+  // Stats
+  document.getElementById('s-off').textContent  = daysOff
+  document.getElementById('s-used').textContent = leaveUsed
+  document.getElementById('s-ph').textContent   = phCount
+  document.getElementById('s-wk').textContent   = wkCount
+
+  // Customise button
+  const btnCust = document.getElementById('btn-cust')
+  btnCust.textContent = customiseMode ? 'Done' : 'Customise'
+  btnCust.classList.toggle('active', customiseMode)
+
+  // View toggle
+  document.getElementById('view-toggle').classList.toggle('visible', customiseMode)
+
+  // Sections list
+  const secArea = document.getElementById('sections-area')
+  const isManual = customiseMode
+  const secHTML = sections.length === 0
+    ? `<p style="color:var(--dim);font-size:12px">No leave sections detected.</p>`
+    : sections.map((s, i) => {
+        const ratio = s.leaveUsed > 0 ? (s.daysOff / s.leaveUsed).toFixed(1) : '—'
+        return `
+        <div class="section-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+            <div class="section-num">Period ${i + 1}</div>
+            <div style="font-size:13px;font-weight:800;color:#34d399">${ratio}×</div>
+          </div>
+          <div class="section-dates">${fmtNice(s.start)} → ${fmtNice(s.end)}</div>
+          <div class="section-pills">
+            <span class="pill pill-off">${s.daysOff} days off</span>
+            <span class="pill pill-leave">${s.leaveUsed} leave</span>
+            ${s.phCount ? `<span class="pill pill-ph">${s.phCount} PH</span>` : ''}
+          </div>
+        </div>`
+      }).join('')
+
+  const badge = isManual
+    ? `<span style="font-size:9px;font-weight:700;background:#334155;color:#94a3b8;border-radius:20px;padding:1px 7px">Manual</span>`
+    : `<span style="font-size:9px;font-weight:700;background:#065f46;color:#34d399;border-radius:20px;padding:1px 7px">Optimised</span>`
+
+  secArea.innerHTML = `
+    <div class="sections-heading">
+      <div class="divider"></div>
+      <div class="label">Leave sections</div>
+      <div class="section-count">${sections.length}</div>
+      ${badge}
+      <div class="divider"></div>
+    </div>
+    ${secHTML}`
+
+  // Hint / warning
+  document.getElementById('hint-bar').classList.toggle('visible', customiseMode && viewMode === 'calendar')
+  const budgetWarn = document.getElementById('budget-warn')
+  if (customiseMode && leaveUsed > budget) {
+    budgetWarn.textContent = `⚠ ${leaveUsed - budget} day${leaveUsed - budget > 1 ? 's' : ''} over your ${budget}-day budget. Red cells exceed your allowance.`
+    budgetWarn.classList.add('visible')
+  } else {
+    budgetWarn.classList.remove('visible')
+  }
+
+  // Calendar or table view
+  if (viewMode === 'calendar') {
+    document.getElementById('calendars').style.display = ''
+    document.getElementById('periods-table-wrap').classList.remove('visible')
+    renderCalendars(dayMap, leaveUsed, budget)
+  } else {
+    document.getElementById('calendars').style.display = 'none'
+    document.getElementById('periods-table-wrap').classList.add('visible')
+    renderTable(sections)
+  }
+
+  // Sync toggle buttons
+  document.getElementById('tb-cal').classList.toggle('active', viewMode === 'calendar')
+  document.getElementById('tb-tbl').classList.toggle('active', viewMode === 'table')
+}
+
+// ── Render month-by-month calendars ──────────────
+function renderCalendars(dayMap, leaveUsed, budget) {
+  const { startStr, endStr, customiseMode } = state
+  const container = document.getElementById('calendars')
+  container.classList.toggle('customise-cal', customiseMode)
+
+  // Build list of months to render
+  const [sy, sm] = startStr.split('-').map(Number)
+  const [ey, em] = endStr.split('-').map(Number)
+
+  container.innerHTML = ''
+
+  let y = sy, m = sm
+  while (y < ey || (y === ey && m <= em)) {
+    container.appendChild(renderMonth(y, m, dayMap, leaveUsed, budget))
+    m++; if (m > 12) { m = 1; y++ }
+  }
+}
+
+function renderMonth(year, month, dayMap, leaveUsed, budget) {
+  const block = document.createElement('div')
+  block.className = 'month-block'
+
+  const title = document.createElement('div')
+  title.className = 'month-title'
+  title.textContent = `${LONG_MON[month - 1]} ${year}`
+  block.appendChild(title)
+
+  const wdRow = document.createElement('div')
+  wdRow.className = 'cal-weekdays'
+  for (const d of ['Mo','Tu','We','Th','Fr','Sa','Su']) {
+    const s = document.createElement('span'); s.textContent = d; wdRow.appendChild(s)
+  }
+  block.appendChild(wdRow)
+
+  const grid = document.createElement('div')
+  grid.className = 'cal-month-grid'
+
+  const firstOfMonth = new Date(year, month - 1, 1)
+  const lastOfMonth  = new Date(year, month, 0)
+  const startOffset  = (firstOfMonth.getDay() + 6) % 7  // Mon=0
+
+  // Leading empty cells
+  for (let i = 0; i < startOffset; i++) {
+    const cell = document.createElement('div'); cell.className = 'cal-day empty'; grid.appendChild(cell)
+  }
+
+  // Day cells
+  for (let day = 1; day <= lastOfMonth.getDate(); day++) {
+    const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`
+    const type    = dayMap.get(dateStr)
+    const cell    = document.createElement('div')
+
+    if (!type) {
+      cell.className = 'cal-day out-of-range'
+      cell.textContent = day
+    } else {
+      const overBudget = type === 'leave' && state.customiseMode && leaveUsed > budget
+      cell.className = `cal-day type-${type}${overBudget ? ' over-budget' : ''}`
+      if (dateStr === TODAY) cell.classList.add('today-ring')
+      cell.textContent = day
+      cell.title = type === 'ph' ? (HOLIDAY_MAP.get(dateStr) ?? 'Public Holiday') : ''
+
+      if (state.customiseMode && type !== 'weekend' && type !== 'ph') {
+        cell.addEventListener('click', () => cellClick(dateStr))
+      }
+    }
+
+    grid.appendChild(cell)
+  }
+
+  // Trailing empty
+  const trailing = (7 - ((startOffset + lastOfMonth.getDate()) % 7)) % 7
+  for (let i = 0; i < trailing; i++) {
+    const cell = document.createElement('div'); cell.className = 'cal-day empty'; grid.appendChild(cell)
+  }
+
+  block.appendChild(grid)
+  return block
+}
+
+// ── Render periods table ──────────────────────────
+function renderTable(sections) {
+  const wrap = document.getElementById('periods-table-wrap')
+  if (!sections.length) {
+    wrap.innerHTML = '<p style="color:var(--dim);font-size:13px;padding:8px 0">No leave sections to display.</p>'
+    return
+  }
+  const rows = sections.map((s, i) => {
+    const ratio = s.leaveUsed > 0 ? (s.daysOff / s.leaveUsed).toFixed(1) : '—'
+    return `
+    <tr>
+      <td><span class="pt-num">${i + 1}</span></td>
+      <td>${fmtNice(s.start)}</td>
+      <td>${fmtNice(s.end)}</td>
+      <td><span class="chip chip-off">${s.daysOff}</span></td>
+      <td><span class="chip chip-leave">${s.leaveUsed}</span></td>
+      <td>${s.phCount ? `<span class="chip chip-ph">${s.phCount}</span>` : '<span style="color:#475569">—</span>'}</td>
+      <td style="font-weight:800;color:#34d399">${ratio}×</td>
+    </tr>`
+  }).join('')
+
+  wrap.innerHTML = `
+    <table class="periods-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th style="text-align:left">Start</th>
+          <th style="text-align:left">End</th>
+          <th>Days Off</th>
+          <th>Leave Used</th>
+          <th>PH</th>
+          <th>Ratio</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`
+}
+
+// ── ICS ───────────────────────────────────────────
+function downloadIcs() {
+  const { startStr, endStr, days } = state
+  const leaveUsed = days.filter(d => d.type === 'leave').length
+  const daysOff   = days.filter(d => d.type !== 'workday').length
+  const ics = [
+    'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Leave Planner//EN',
+    'BEGIN:VEVENT',
+    `UID:leave-${startStr.replace(/-/g,'')}@leaveplanner`,
+    `DTSTART;VALUE=DATE:${startStr.replace(/-/g,'')}`,
+    `DTEND;VALUE=DATE:${addDays(endStr, 1).replace(/-/g,'')}`,
+    `SUMMARY:Leave – ${daysOff} days off`,
+    `DESCRIPTION:${leaveUsed} leave days used · ${daysOff} total days off`,
+    'END:VEVENT','END:VCALENDAR',
+  ].join('\r\n')
+  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' })
+  const url  = URL.createObjectURL(blob)
+  const a    = document.createElement('a')
+  a.href = url; a.download = 'leave.ics'; a.click()
+  URL.revokeObjectURL(url)
+}
+</script>
+</body>
+</html>
