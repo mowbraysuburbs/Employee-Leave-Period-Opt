@@ -106,10 +106,11 @@ export default function App() {
   const [plannerEndYear, plannerEndMonth] = plannerEnd.split('-')
   const viewEnd = { year: parseInt(plannerEndYear, 10), month: parseInt(plannerEndMonth, 10) }
 
-  const startDateStr = `${viewStart.year}-${String(viewStart.month).padStart(2, '0')}-01`
-  // Scores stop exactly at the chosen end date — the calendar still renders
-  // the whole final month (it can't show a partial month card), but days
-  // past plannerEnd get no score, so they show blank instead of colored.
+  // Scores start and stop exactly at the chosen dates — the calendar still
+  // renders the whole first/last month (it can't show a partial month card),
+  // but days outside [plannerStart, plannerEnd] get no score, so they show
+  // blank instead of colored.
+  const startDateStr = plannerStart
   const endDateStr = plannerEnd
 
   const months = useMemo(() => {
@@ -260,7 +261,7 @@ export default function App() {
       {/* Header */}
       <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30 flex-shrink-0">
         {/* Title row */}
-        <div className="relative px-4 py-3 flex items-center justify-between">
+        <div className="relative px-4 py-6 flex items-center justify-between border-b border-slate-200 dark:border-slate-700">
           {/* Hamburger — mobile only */}
           <button
             onClick={() => setMobileDrawerOpen(true)}
@@ -312,9 +313,9 @@ export default function App() {
           </div>
 
           {/* Date range — desktop only, absolutely centered so it never shifts as the Share button grows/shrinks */}
-          <div className="hidden md:flex items-end gap-2 absolute left-1/2 -translate-x-1/2">
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+          <div className="hidden md:flex items-center gap-2 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            <div className="relative">
+              <label className="absolute -top-4 left-0 text-[10px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400 whitespace-nowrap">
                 Start date
               </label>
               <input
@@ -326,9 +327,9 @@ export default function App() {
                 className="bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm rounded-lg px-2.5 py-1.5 border border-slate-200 dark:border-slate-600 focus:outline-none focus:border-sky-500"
               />
             </div>
-            <span className="text-slate-400 dark:text-slate-500 pb-2">–</span>
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+            <span className="text-slate-400 dark:text-slate-500">–</span>
+            <div className="relative">
+              <label className="absolute -top-4 left-0 text-[10px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400 whitespace-nowrap">
                 End date
               </label>
               <input
@@ -449,7 +450,7 @@ export default function App() {
         </div>
 
         {/* Filters panel — desktop only, always shown */}
-        <div className="hidden md:flex flex-col gap-3 px-4 pb-3 pt-1">
+        <div className="hidden md:flex flex-col gap-3 px-4 pb-3 pt-4">
             <div className="flex flex-wrap items-center gap-6">
             <div className="flex items-center gap-2">
               <span className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wide flex-shrink-0">

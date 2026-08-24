@@ -323,7 +323,7 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
     <>
       <div className="flex flex-col">
         {/* Table — thead is the topmost sticky element now that the summary bar is gone */}
-        <div className="border border-slate-200 dark:border-slate-700 md:rounded-xl [overflow:clip]">
+        <div className="border border-slate-200 dark:border-slate-700 [overflow:clip]">
           <table className="w-full text-xs table-fixed">
             <colgroup>
               <col style={{ width: '8%' }} />
