@@ -8,6 +8,8 @@ import { computeLeaveScores } from './utils/leaveCalculator'
 import { getColourForDaysOff } from './utils/colorScale'
 import { allBestPeriodsCache } from './components/Features/LeavePlannerTab'
 import { PROVINCES } from './data/schoolHolidays'
+import { PUBLIC_HOLIDAYS } from './data/publicHolidays'
+import { fmt } from './utils/dateFormat'
 
 const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 const MAX_LEAVE = 10
@@ -17,15 +19,9 @@ function addMonths(ym, n) {
   return { year: Math.floor(total / 12), month: (total % 12) + 1 }
 }
 
-function monthLabel(ym) {
-  return `${MONTH_SHORT[ym.month - 1]} ${ym.year}`
-}
-
 const today = new Date()
 const TODAY_STR = today.toISOString().slice(0, 10)
 const DATASET_END = '2028-01-01'
-const WINDOW_START = { year: today.getFullYear(), month: today.getMonth() + 1 }
-const ALL_MONTHS = Array.from({ length: 13 }, (_, i) => addMonths(WINDOW_START, i))
 
 function fmtPill(dateStr) {
   const [y, m, d] = dateStr.split('-')
@@ -46,32 +42,6 @@ function useIsDesktop() {
   return isDesktop
 }
 
-// Calendar-specific "From month" control — desktop only, lives beside the
-// Calendar pane rather than in a global settings popup.
-function MonthPicker({ viewStart, onChange }) {
-  return (
-    <div className="hidden md:flex items-center gap-2 mb-3">
-      <label className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wide flex-shrink-0">
-        From
-      </label>
-      <select
-        value={`${viewStart.year}-${viewStart.month}`}
-        onChange={(e) => {
-          const [y, m] = e.target.value.split('-')
-          onChange({ year: parseInt(y, 10), month: parseInt(m, 10) })
-        }}
-        className="bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm rounded-lg px-3 py-1.5 border border-slate-200 dark:border-slate-600 focus:outline-none focus:border-sky-500"
-      >
-        {ALL_MONTHS.map((ym) => (
-          <option key={`${ym.year}-${ym.month}`} value={`${ym.year}-${ym.month}`}>
-            {monthLabel(ym)}
-          </option>
-        ))}
-      </select>
-    </div>
-  )
-}
-
 function SwapIcon({ className }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -86,11 +56,12 @@ function SwapIcon({ className }) {
 export default function App() {
   const [activeTab, setActiveTab] = useState('heatmap')
   const [leaveDays, setLeaveDays] = useState(3)
-  const [viewStart, setViewStart] = useState(WINDOW_START)
   const [showSchoolHols, setShowSchoolHols] = useState(false)
   const [provinceCode, setProvinceCode] = useState('GP')
-  const [darkMode, setDarkMode] = useState(true)
+  const [darkMode, setDarkMode] = useState(false)
   const [filterSet, setFilterSet] = useState(new Set())
+  const [holidayFilter, setHolidayFilter] = useState(new Set())
+  const [holidayDropdownOpen, setHolidayDropdownOpen] = useState(false)
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -108,13 +79,22 @@ export default function App() {
   const [dragging, setDragging] = useState(false)
   const [swapped, setSwapped] = useState(false)
 
+  // Hovering a table row in the split view highlights that same date range
+  // on the calendar, reusing the calendar's own day-hover range highlight.
+  const [hoveredPeriodRange, setHoveredPeriodRange] = useState(null)
+
   const isDesktop = useIsDesktop()
 
   useEffect(() => {
     document.documentElement.classList[darkMode ? 'add' : 'remove']('dark')
   }, [darkMode])
 
-  const viewEnd = addMonths(viewStart, 11)
+  // The calendar's visible months span exactly the From/To range — the same
+  // range that filters the planner table, so both panes read one filter.
+  const [plannerStartYear, plannerStartMonth] = plannerStart.split('-')
+  const viewStart = { year: parseInt(plannerStartYear, 10), month: parseInt(plannerStartMonth, 10) }
+  const [plannerEndYear, plannerEndMonth] = plannerEnd.split('-')
+  const viewEnd = { year: parseInt(plannerEndYear, 10), month: parseInt(plannerEndMonth, 10) }
 
   const startDateStr = `${viewStart.year}-${String(viewStart.month).padStart(2, '0')}-01`
   const endDateStr = (() => {
@@ -130,7 +110,7 @@ export default function App() {
       cur = addMonths(cur, 1)
     }
     return result
-  }, [viewStart])
+  }, [plannerStart, plannerEnd])
 
   const scores = useMemo(
     () => computeLeaveScores(startDateStr, endDateStr, leaveDays),
@@ -169,6 +149,23 @@ export default function App() {
       return next.size === prev.size ? prev : next
     })
   }, [smartFilter, bonusDaysOffValues])
+
+  // Public holidays that fall inside the chosen From/To range — the holiday
+  // filter's options are only ever drawn from this, never the full dataset.
+  const holidaysInRange = useMemo(() => {
+    return Object.values(PUBLIC_HOLIDAYS).flat()
+      .filter(h => h.date >= plannerStart && h.date <= plannerEnd)
+      .sort((a, b) => a.date.localeCompare(b.date))
+  }, [plannerStart, plannerEnd])
+
+  // Drop any selected holiday that fell out of range when the dates changed
+  useEffect(() => {
+    setHolidayFilter(prev => {
+      const validDates = new Set(holidaysInRange.map(h => h.date))
+      const next = new Set([...prev].filter(d => validDates.has(d)))
+      return next.size === prev.size ? prev : next
+    })
+  }, [holidaysInRange])
 
   // Which panes are visible, unified across breakpoints: desktop reads the new
   // calendarOn/plannerOn toggles, mobile keeps reading activeTab exactly as before.
@@ -249,8 +246,8 @@ export default function App() {
             </svg>
           </button>
 
-          <h1 className="text-base font-bold text-slate-900 dark:text-slate-100 leading-none">
-            Leave Optimiser 🇿🇦
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 leading-none">
+            StretchMyLeave
           </h1>
 
           {/* Right side buttons — mobile only */}
@@ -419,7 +416,7 @@ export default function App() {
               <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 flex-shrink-0">
                 Days off
               </span>
-              <div className="flex flex-nowrap gap-2 overflow-x-auto flex-1 py-2 px-1">
+              <div className="flex flex-nowrap justify-center gap-2 overflow-x-auto flex-1 py-2 px-1">
                 {legend.filter(({ daysOff }) => !smartFilter || bonusDaysOffValues.has(daysOff)).map(({ daysOff, colour }) => {
                   const isSelected = filterSet.has(daysOff)
                   return (
@@ -450,29 +447,81 @@ export default function App() {
                   className="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors flex-shrink-0"
                 >×</button>
               )}
-              {showCalendarPane && (
-                <button
-                  onClick={() => setViewMode(v => v === '1x' ? '2x' : '1x')}
-                  className={`flex-shrink-0 text-xs font-bold px-2.5 py-1 rounded-lg transition-colors ${
-                    viewMode === '2x'
-                      ? 'bg-sky-500 text-white'
-                      : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
-                  }`}
-                >
-                  {viewMode === '2x' ? '2x' : '1x'}
-                </button>
-              )}
             </div>
-            {/* Segmented colour bar — heatmap desktop, sits below chips */}
-            {showCalendarPane && (
-              <div className="flex items-center gap-2 px-4 pb-2">
-                <span className="text-[10px] text-slate-400 dark:text-slate-500 whitespace-nowrap">low</span>
-                <div className="flex-1 h-2 rounded-full overflow-hidden flex">
-                  {legend.map(({ daysOff, colour }) => (
-                    <div key={daysOff} className="flex-1" style={{ backgroundColor: colour }} />
+
+            {holidaysInRange.length > 0 && (
+              <div className="flex px-4 pb-2 items-center gap-2 relative">
+                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 flex-shrink-0">
+                  Holidays
+                </span>
+
+                <div className="flex flex-wrap gap-2 flex-1 py-1 px-1">
+                  {holidaysInRange.filter(h => holidayFilter.has(h.date)).map(({ date, name }) => (
+                    <button
+                      key={date}
+                      onClick={() => setHolidayFilter((prev) => {
+                        const next = new Set(prev)
+                        next.delete(date)
+                        return next
+                      })}
+                      title={`${name} — click to remove`}
+                      className="flex-shrink-0 flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-sky-500 text-white transition-colors hover:bg-sky-600"
+                    >
+                      {name} <span className="opacity-70">{fmt(date)}</span>
+                      <span className="ml-0.5">×</span>
+                    </button>
                   ))}
                 </div>
-                <span className="text-[10px] text-slate-400 dark:text-slate-500 whitespace-nowrap">high</span>
+
+                <div className="relative flex-shrink-0">
+                  <button
+                    onClick={() => setHolidayDropdownOpen((v) => !v)}
+                    className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                      holidayDropdownOpen
+                        ? 'bg-slate-200 dark:bg-slate-600 text-slate-800 dark:text-slate-100'
+                        : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+                    }`}
+                  >
+                    {holidayFilter.size > 0 ? '+ Add' : 'Select holidays'} <span className="text-[10px]">▾</span>
+                  </button>
+
+                  {holidayDropdownOpen && (
+                    <>
+                      <div className="fixed inset-0 z-20" onClick={() => setHolidayDropdownOpen(false)} />
+                      <div className="absolute top-full right-0 mt-1 z-30 w-64 max-h-72 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl py-1">
+                        {holidaysInRange.map(({ date, name }) => {
+                          const isSelected = holidayFilter.has(date)
+                          return (
+                            <button
+                              key={date}
+                              onClick={() => setHolidayFilter((prev) => {
+                                const next = new Set(prev)
+                                if (next.has(date)) next.delete(date)
+                                else next.add(date)
+                                return next
+                              })}
+                              className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-xs text-left transition-colors ${
+                                isSelected
+                                  ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400'
+                                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                              }`}
+                            >
+                              <span>{name} <span className="opacity-60">{fmt(date)}</span></span>
+                              {isSelected && <span className="flex-shrink-0">✓</span>}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {holidayFilter.size > 0 && (
+                  <button
+                    onClick={() => setHolidayFilter(new Set())}
+                    className="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors flex-shrink-0"
+                  >×</button>
+                )}
               </div>
             )}
           </div>
@@ -492,11 +541,11 @@ export default function App() {
               <span className="text-[10px] text-slate-400 dark:text-slate-500 whitespace-nowrap">high</span>
             </div>
             <div className={`grid ${viewMode === '2x' ? 'grid-cols-[repeat(7,28px)_24px] w-fit mx-auto' : 'grid-cols-[repeat(7,1fr)_32px] px-4'} gap-0 pb-1`}>
-              {['M','T','W','T','F','S','S'].map((h, i) => (
+              {['S','M','T','W','T','F','S'].map((h, i) => (
                 <div
                   key={i}
                   className={`text-center text-[10px] font-semibold uppercase ${
-                    i >= 5 ? 'text-slate-600 dark:text-slate-300' : 'text-slate-700 dark:text-slate-200'
+                    i === 0 || i === 6 ? 'text-slate-600 dark:text-slate-300' : 'text-slate-700 dark:text-slate-200'
                   }`}
                 >
                   {h}
@@ -511,8 +560,7 @@ export default function App() {
         {showSplit && (
           <div className="flex-1 min-h-0 flex flex-row px-4 pb-2">
             <div className="min-w-0 h-full" style={{ flexBasis: calendarBasis, order: calendarOrder }}>
-              <div className="h-full min-h-0 overflow-y-auto pb-24">
-                <MonthPicker viewStart={viewStart} onChange={setViewStart} />
+              <div className="h-full min-h-0 overflow-y-auto pt-4 pl-4 pr-4 pb-24">
                 <CalendarHeatmap
                   scores={scores}
                   months={months}
@@ -522,6 +570,7 @@ export default function App() {
                   filterSet={filterSet}
                   smartFilter={smartFilter}
                   viewMode={viewMode}
+                  externalHoveredRange={hoveredPeriodRange}
                 />
               </div>
             </div>
@@ -553,11 +602,12 @@ export default function App() {
                   leaveDays={leaveDays}
                   startDate={plannerStart}
                   endDate={plannerEnd}
-                  onStartChange={setPlannerStart}
-                  onEndChange={setPlannerEnd}
                   filterSet={filterSet}
                   smartFilter={smartFilter}
+                  holidayFilter={holidayFilter}
                   legend={legend}
+                  nested
+                  onHoverPeriod={setHoveredPeriodRange}
                 />
               </div>
             </div>
@@ -568,29 +618,25 @@ export default function App() {
         {!showSplit && (
           <div className={(showPlannerPane && !showCalendarPane) ? 'pb-48 md:p-4 md:pb-24' : 'p-4 pb-48 md:pb-24'}>
             {showCalendarPane && (
-              <>
-                <MonthPicker viewStart={viewStart} onChange={setViewStart} />
-                <CalendarHeatmap
-                  scores={scores}
-                  months={months}
-                  leaveDays={leaveDays}
-                  showSchoolHolidays={showSchoolHols}
-                  provinceCode={provinceCode}
-                  filterSet={filterSet}
-                  smartFilter={smartFilter}
-                  viewMode={viewMode}
-                />
-              </>
+              <CalendarHeatmap
+                scores={scores}
+                months={months}
+                leaveDays={leaveDays}
+                showSchoolHolidays={showSchoolHols}
+                provinceCode={provinceCode}
+                filterSet={filterSet}
+                smartFilter={smartFilter}
+                viewMode={viewMode}
+              />
             )}
             {showPlannerPane && (
               <LeavePlannerTab
                 leaveDays={leaveDays}
                 startDate={plannerStart}
                 endDate={plannerEnd}
-                onStartChange={setPlannerStart}
-                onEndChange={setPlannerEnd}
                 filterSet={filterSet}
                 smartFilter={smartFilter}
+                holidayFilter={holidayFilter}
                 legend={legend}
               />
             )}
@@ -708,13 +754,78 @@ export default function App() {
           </button>
         </div>
 
-        <div className="w-56">
-          <LeaveDayRoller
-            value={leaveDays}
+        {/* Single date range — drives both the calendar's visible window and the planner's search range */}
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wide flex-shrink-0">
+            From
+          </label>
+          <input
+            type="date"
+            value={plannerStart}
+            onChange={(e) => setPlannerStart(e.target.value)}
+            min={TODAY_STR}
+            max={plannerEnd}
+            className="bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm rounded-lg px-2.5 py-1.5 border border-slate-200 dark:border-slate-600 focus:outline-none focus:border-sky-500"
+          />
+          <span className="text-slate-400 dark:text-slate-500">–</span>
+          <label className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wide flex-shrink-0">
+            To
+          </label>
+          <input
+            type="date"
+            value={plannerEnd}
+            onChange={(e) => setPlannerEnd(e.target.value)}
+            min={plannerStart}
+            max={DATASET_END}
+            className="bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm rounded-lg px-2.5 py-1.5 border border-slate-200 dark:border-slate-600 focus:outline-none focus:border-sky-500"
+          />
+        </div>
+
+        {calendarOn && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wide flex-shrink-0">
+              Calendar size
+            </span>
+            <button
+              onClick={() => setViewMode(v => v === '1x' ? '2x' : '1x')}
+              className={`flex-shrink-0 text-xs font-bold px-2.5 py-1 rounded-lg transition-colors ${
+                viewMode === '2x'
+                  ? 'bg-sky-500 text-white'
+                  : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+              }`}
+            >
+              {viewMode === '2x' ? '2x' : '1x'}
+            </button>
+          </div>
+        )}
+
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wide flex-shrink-0">
+            Leave days
+          </span>
+          <button
+            onClick={() => setLeaveDays((v) => Math.max(0, v - 1))}
+            disabled={leaveDays === 0}
+            className="w-6 h-6 flex-shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-sm font-bold leading-none flex items-center justify-center hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            aria-label="Decrease leave days"
+          >−</button>
+          <input
+            type="range"
             min={0}
             max={MAX_LEAVE}
-            onChange={setLeaveDays}
+            value={leaveDays}
+            onChange={(e) => setLeaveDays(Number(e.target.value))}
+            className="w-[173px] h-2 rounded-full accent-sky-500 cursor-pointer"
           />
+          <button
+            onClick={() => setLeaveDays((v) => Math.min(MAX_LEAVE, v + 1))}
+            disabled={leaveDays === MAX_LEAVE}
+            className="w-6 h-6 flex-shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-sm font-bold leading-none flex items-center justify-center hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+            aria-label="Increase leave days"
+          >+</button>
+          <span className="text-sm font-bold text-slate-900 dark:text-slate-100 tabular-nums w-5 text-center flex-shrink-0">
+            {leaveDays}
+          </span>
         </div>
       </div>
 

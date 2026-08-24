@@ -9,10 +9,10 @@ function buildRows(months, scoreMap, filterSet) {
   if (months.length === 0) return []
 
   const { year: y0, month: m0 } = months[0]
-  const firstDayMon = (new Date(y0, m0 - 1, 1).getDay() + 6) % 7
+  const firstDayOffset = new Date(y0, m0 - 1, 1).getDay()
 
   const flat = []
-  for (let i = 0; i < firstDayMon; i++) flat.push({ type: 'empty', key: `init-${i}` })
+  for (let i = 0; i < firstDayOffset; i++) flat.push({ type: 'empty', key: `init-${i}` })
 
   for (const { year, month } of months) {
     const daysInMonth = new Date(year, month, 0).getDate()

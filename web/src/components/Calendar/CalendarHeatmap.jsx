@@ -16,9 +16,11 @@ export function CalendarHeatmap({
   filterSet,
   smartFilter,
   viewMode = '1x',
+  externalHoveredRange = null,
 }) {
   const [selectedDate, setSelectedDate] = useState(null)
   const [hoveredRange, setHoveredRange] = useState(null)
+  const activeHoveredRange = externalHoveredRange ?? hoveredRange
 
   const scoreMap = useMemo(() => {
     const map = new Map()
@@ -62,7 +64,7 @@ export function CalendarHeatmap({
     filterSet,
     compact,
     onDayClick: handleDayClick,
-    hoveredRange,
+    hoveredRange: activeHoveredRange,
     onDayHover: handleDayHover,
     onDayLeave: handleDayLeave,
   }

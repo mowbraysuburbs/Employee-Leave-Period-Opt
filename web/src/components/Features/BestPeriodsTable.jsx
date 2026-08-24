@@ -180,7 +180,7 @@ function ValuePill({ colour, children }) {
 
 // One ordinary row — either a single candidate period, or a member of an
 // expanded group. Always has its own checkbox and opens the detail panel.
-function PeriodRow({ period, selected, onToggleSelect, onOpen, colourMap, highlight }) {
+function PeriodRow({ period, selected, onToggleSelect, onOpen, colourMap, highlight, onHover }) {
   const { startDate, endDate, daysOff, leaveDaysUsed, ratio } = period
   const [startLabel, endLabel] = fmtRange(startDate, endDate)
   const key = `${startDate}-${leaveDaysUsed}`
@@ -188,6 +188,7 @@ function PeriodRow({ period, selected, onToggleSelect, onOpen, colourMap, highli
   return (
     <tr
       onClick={() => onOpen(startDate, leaveDaysUsed)}
+      onMouseEnter={() => onHover?.({ start: startDate, end: endDate })}
       className={`border-b border-slate-100 dark:border-slate-800 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800/60 active:bg-slate-100 dark:active:bg-slate-700/60 transition-colors cursor-pointer ${
         highlight ? 'bg-sky-50 dark:bg-sky-900/20' : 'bg-white dark:bg-transparent'
       }`}
@@ -217,13 +218,14 @@ function PeriodRow({ period, selected, onToggleSelect, onOpen, colourMap, highli
 
 // A collapsed run of adjacent same-result periods. Shows a layers icon +
 // count instead of a checkbox — tap it to expand into individual PeriodRows.
-function GroupRow({ group, groupKey, onToggleExpand, colourMap }) {
+function GroupRow({ group, groupKey, onToggleExpand, colourMap, onHoverClear }) {
   const { daysOff, leaveDaysUsed, ratio } = group[0]
   const { startLabel, endLabel } = fmtGroupRange(group)
 
   return (
     <tr
       onClick={() => onToggleExpand(groupKey)}
+      onMouseEnter={onHoverClear}
       className="border-b border-slate-100 dark:border-slate-800 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800/60 active:bg-slate-100 dark:active:bg-slate-700/60 transition-colors cursor-pointer bg-white dark:bg-transparent"
     >
       <td className="px-2 py-2 text-center">
@@ -247,10 +249,11 @@ function GroupRow({ group, groupKey, onToggleExpand, colourMap }) {
   )
 }
 
-function GroupCollapseRow({ groupKey, onToggleExpand }) {
+function GroupCollapseRow({ groupKey, onToggleExpand, onHoverClear }) {
   return (
     <tr
       onClick={() => onToggleExpand(groupKey)}
+      onMouseEnter={onHoverClear}
       className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
     >
       <td colSpan={6} className="py-1">
@@ -262,7 +265,7 @@ function GroupCollapseRow({ groupKey, onToggleExpand }) {
   )
 }
 
-export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFilter, legend = [] }) {
+export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFilter, holidayFilter, legend = [], nested = false, onHoverPeriod }) {
   const [sortKey, setSortKey] = useState('ratio')
   const [sortDir, setSortDir] = useState('desc')
   const [panelDate, setPanelDate]           = useState(null)
@@ -277,11 +280,13 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
   )
 
   const { periods, renderItems } = useMemo(() => {
+    const holidayDates = holidayFilter && holidayFilter.size > 0 ? [...holidayFilter] : null
     const filtered = [...allBestPeriods]
       .filter(p =>
         p.leaveDaysUsed <= leaveDays &&
         (!smartFilter || p.daysOff > leaveDays) &&
-        (filterSet == null || filterSet.size === 0 || filterSet.has(p.daysOff))
+        (filterSet == null || filterSet.size === 0 || filterSet.has(p.daysOff)) &&
+        (holidayDates == null || holidayDates.some(hDate => hDate >= p.startDate && hDate <= p.endDate))
       )
       .sort((a, b) => {
         const va = a[sortKey] ?? 0
@@ -290,7 +295,7 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
         return sortDir === 'asc' ? va - vb : vb - va
       })
     return { periods: filtered, renderItems: buildRenderList(filtered) }
-  }, [allBestPeriods, leaveDays, filterSet, smartFilter, sortKey, sortDir])
+  }, [allBestPeriods, leaveDays, filterSet, smartFilter, holidayFilter, sortKey, sortDir])
 
   const selectedPeriods = useMemo(
     () => periods.filter(p => selectedKeys.has(`${p.startDate}-${p.leaveDaysUsed}`)),
@@ -335,15 +340,8 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
     <>
       <div className="flex flex-col">
         {/* Sticky segmented colour bar + selection summary button */}
-        <div className="sticky top-0 md:top-[59px] z-20 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 md:rounded-xl md:rounded-b-none backdrop-blur-sm">
-          <div className="flex items-center gap-2 px-3 py-2">
-            <span className="text-[10px] text-slate-400 dark:text-slate-500 whitespace-nowrap">low</span>
-            <div className="flex-1 h-2 rounded-full overflow-hidden flex">
-              {legend.map(({ daysOff, colour }) => (
-                <div key={daysOff} className="flex-1" style={{ backgroundColor: colour }} />
-              ))}
-            </div>
-            <span className="text-[10px] text-slate-400 dark:text-slate-500 whitespace-nowrap">high</span>
+        <div className={`sticky top-0 ${nested ? '' : 'md:top-[59px]'} z-20 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 md:rounded-xl md:rounded-b-none backdrop-blur-sm`}>
+          <div className="flex items-center justify-end gap-2 px-3 py-2">
             {selectedKeys.size > 0 && (
               <button
                 onClick={() => setSummaryOpen(true)}
@@ -362,7 +360,7 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
               <col style={{ width: '8%' }} />
               {COLS.map(({ key, width }) => <col key={key} style={{ width }} />)}
             </colgroup>
-            <thead className="sticky top-[27px] md:top-[86px] z-10 bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+            <thead className={`sticky top-[27px] ${nested ? '' : 'md:top-[86px]'} z-10 bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700`}>
               <tr>
                 <th className="px-2 py-2" aria-hidden="true" />
                 {COLS.map(({ key, label, align }) => (
@@ -380,11 +378,11 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
                 ))}
               </tr>
             </thead>
-            <tbody>
+            <tbody onMouseLeave={() => onHoverPeriod?.(null)}>
               {renderItems.map((item, i) => {
                 if (item.type === 'heading') {
                   return (
-                    <tr key={`h-${i}`} className="bg-white dark:bg-transparent">
+                    <tr key={`h-${i}`} onMouseEnter={() => onHoverPeriod?.(null)} className="bg-white dark:bg-transparent">
                       <td colSpan={6} className="px-3 pt-3 pb-1">
                         <div className="flex items-center gap-2">
                           <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
@@ -400,7 +398,7 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
 
                 if (item.type === 'separator') {
                   return (
-                    <tr key={`s-${i}`} className="bg-white dark:bg-transparent">
+                    <tr key={`s-${i}`} onMouseEnter={() => onHoverPeriod?.(null)} className="bg-white dark:bg-transparent">
                       <td colSpan={6}>
                         <div className="mx-3 h-px bg-slate-200 dark:bg-slate-700" />
                       </td>
@@ -422,12 +420,13 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
                         groupKey={groupKey}
                         onToggleExpand={toggleExpand}
                         colourMap={colourMap}
+                        onHoverClear={() => onHoverPeriod?.(null)}
                       />
                     )
                   }
                   return (
                     <Fragment key={groupKey}>
-                      <GroupCollapseRow groupKey={groupKey} onToggleExpand={toggleExpand} />
+                      <GroupCollapseRow groupKey={groupKey} onToggleExpand={toggleExpand} onHoverClear={() => onHoverPeriod?.(null)} />
                       {group.map(p => (
                         <PeriodRow
                           key={`${p.startDate}-${p.leaveDaysUsed}`}
@@ -437,6 +436,7 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
                           onOpen={openPanel}
                           colourMap={colourMap}
                           highlight={p.startDate === firstPeriod.startDate && p.leaveDaysUsed === firstPeriod.leaveDaysUsed}
+                          onHover={onHoverPeriod}
                         />
                       ))}
                     </Fragment>
@@ -452,6 +452,7 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
                     onOpen={openPanel}
                     colourMap={colourMap}
                     highlight={highlight}
+                    onHover={onHoverPeriod}
                   />
                 )
               })}
