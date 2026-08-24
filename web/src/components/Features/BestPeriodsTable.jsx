@@ -1,8 +1,7 @@
 import { Fragment, useMemo, useState } from 'react'
 import { LeavePeriodPanel } from '../Calendar/LeavePeriodPanel'
-import { LeaveSummaryModal } from './LeaveSummaryModal'
 import { PUBLIC_HOLIDAYS } from '../../data/publicHolidays'
-import { addDays, fmtRange, fmtGroupRange } from '../../utils/dateFormat'
+import { addDays, fmtRangeNice, fmtGroupRangeNice } from '../../utils/dateFormat'
 
 const ALL_HOLIDAYS = Object.values(PUBLIC_HOLIDAYS).flat()
   .sort((a, b) => a.date.localeCompare(b.date))
@@ -182,7 +181,7 @@ function ValuePill({ colour, children }) {
 // expanded group. Always has its own checkbox and opens the detail panel.
 function PeriodRow({ period, selected, onToggleSelect, onOpen, colourMap, highlight, onHover }) {
   const { startDate, endDate, daysOff, leaveDaysUsed, ratio } = period
-  const [startLabel, endLabel] = fmtRange(startDate, endDate)
+  const [startLabel, endLabel] = fmtRangeNice(startDate, endDate)
   const key = `${startDate}-${leaveDaysUsed}`
 
   return (
@@ -201,8 +200,8 @@ function PeriodRow({ period, selected, onToggleSelect, onOpen, colourMap, highli
           className="w-4 h-4 rounded accent-sky-500 align-middle cursor-pointer"
         />
       </td>
-      <td className="px-3 py-2 text-slate-700 dark:text-slate-300 tabular-nums">{startLabel}</td>
-      <td className="px-3 py-2 text-slate-700 dark:text-slate-300 tabular-nums">{endLabel}</td>
+      <td className="px-3 py-2 text-slate-700 dark:text-slate-300 tabular-nums whitespace-nowrap">{startLabel}</td>
+      <td className="px-3 py-2 text-slate-700 dark:text-slate-300 tabular-nums whitespace-nowrap">{endLabel}</td>
       <td className="px-3 py-2 text-center">
         <ValuePill colour={getUsedColour(leaveDaysUsed)}>{leaveDaysUsed}</ValuePill>
       </td>
@@ -220,7 +219,7 @@ function PeriodRow({ period, selected, onToggleSelect, onOpen, colourMap, highli
 // count instead of a checkbox — tap it to expand into individual PeriodRows.
 function GroupRow({ group, groupKey, onToggleExpand, colourMap, onHoverClear }) {
   const { daysOff, leaveDaysUsed, ratio } = group[0]
-  const { startLabel, endLabel } = fmtGroupRange(group)
+  const { startLabel, endLabel } = fmtGroupRangeNice(group)
 
   return (
     <tr
@@ -234,8 +233,8 @@ function GroupRow({ group, groupKey, onToggleExpand, colourMap, onHoverClear }) 
           <span className="text-[9px] font-semibold leading-none">×{group.length}</span>
         </span>
       </td>
-      <td className="pl-5 pr-3 py-2 text-slate-700 dark:text-slate-300 tabular-nums">{startLabel}</td>
-      <td className="pl-5 pr-3 py-2 text-slate-700 dark:text-slate-300 tabular-nums">{endLabel}</td>
+      <td className="pl-5 pr-3 py-2 text-slate-700 dark:text-slate-300 tabular-nums whitespace-nowrap">{startLabel}</td>
+      <td className="pl-5 pr-3 py-2 text-slate-700 dark:text-slate-300 tabular-nums whitespace-nowrap">{endLabel}</td>
       <td className="px-3 py-2 text-center">
         <ValuePill colour={getUsedColour(leaveDaysUsed)}>{leaveDaysUsed}</ValuePill>
       </td>
@@ -265,14 +264,12 @@ function GroupCollapseRow({ groupKey, onToggleExpand, onHoverClear }) {
   )
 }
 
-export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFilter, holidayFilter, legend = [], nested = false, onHoverPeriod }) {
+export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFilter, holidayFilter, legend = [], nested = false, onHoverPeriod, selectedKeys, onToggleSelect }) {
   const [sortKey, setSortKey] = useState('ratio')
   const [sortDir, setSortDir] = useState('desc')
   const [panelDate, setPanelDate]           = useState(null)
   const [panelLeaveDays, setPanelLeaveDays] = useState(null)
-  const [selectedKeys, setSelectedKeys]     = useState(new Set())
   const [expandedGroups, setExpandedGroups] = useState(new Set())
-  const [summaryOpen, setSummaryOpen]       = useState(false)
 
   const colourMap = useMemo(
     () => new Map(legend.map(({ daysOff, colour }) => [daysOff, colour])),
@@ -297,23 +294,9 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
     return { periods: filtered, renderItems: buildRenderList(filtered) }
   }, [allBestPeriods, leaveDays, filterSet, smartFilter, holidayFilter, sortKey, sortDir])
 
-  const selectedPeriods = useMemo(
-    () => periods.filter(p => selectedKeys.has(`${p.startDate}-${p.leaveDaysUsed}`)),
-    [periods, selectedKeys]
-  )
-
   function toggleSort(key) {
     if (sortKey === key) setSortDir(d => d === 'desc' ? 'asc' : 'desc')
     else { setSortKey(key); setSortDir('desc') }
-  }
-
-  function toggleSelect(key) {
-    setSelectedKeys(prev => {
-      const next = new Set(prev)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
-      return next
-    })
   }
 
   function toggleExpand(key) {
@@ -339,28 +322,14 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
   return (
     <>
       <div className="flex flex-col">
-        {/* Sticky segmented colour bar + selection summary button */}
-        <div className={`sticky top-0 ${nested ? '' : 'md:top-[59px]'} z-20 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 md:rounded-xl md:rounded-b-none backdrop-blur-sm`}>
-          <div className="flex items-center justify-end gap-2 px-3 py-2">
-            {selectedKeys.size > 0 && (
-              <button
-                onClick={() => setSummaryOpen(true)}
-                className="flex-shrink-0 px-2.5 py-1 rounded-full bg-sky-500 hover:bg-sky-400 text-white text-[11px] font-semibold transition-colors whitespace-nowrap"
-              >
-                Summary ({selectedKeys.size})
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Table — thead is sticky below the gradient bar */}
-        <div className="border border-t-0 border-slate-200 dark:border-slate-700 md:rounded-xl md:rounded-t-none [overflow:clip]">
+        {/* Table — thead is the topmost sticky element now that the summary bar is gone */}
+        <div className="border border-slate-200 dark:border-slate-700 md:rounded-xl [overflow:clip]">
           <table className="w-full text-xs table-fixed">
             <colgroup>
               <col style={{ width: '8%' }} />
               {COLS.map(({ key, width }) => <col key={key} style={{ width }} />)}
             </colgroup>
-            <thead className={`sticky top-[27px] ${nested ? '' : 'md:top-[86px]'} z-10 bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700`}>
+            <thead className={`sticky top-0 ${nested ? '' : 'md:top-[59px]'} z-10 bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700`}>
               <tr>
                 <th className="px-2 py-2" aria-hidden="true" />
                 {COLS.map(({ key, label, align }) => (
@@ -432,7 +401,7 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
                           key={`${p.startDate}-${p.leaveDaysUsed}`}
                           period={p}
                           selected={selectedKeys.has(`${p.startDate}-${p.leaveDaysUsed}`)}
-                          onToggleSelect={toggleSelect}
+                          onToggleSelect={onToggleSelect}
                           onOpen={openPanel}
                           colourMap={colourMap}
                           highlight={p.startDate === firstPeriod.startDate && p.leaveDaysUsed === firstPeriod.leaveDaysUsed}
@@ -448,7 +417,7 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
                     key={`${startDate}-${leaveDaysUsed}`}
                     period={period}
                     selected={selectedKeys.has(`${startDate}-${leaveDaysUsed}`)}
-                    onToggleSelect={toggleSelect}
+                    onToggleSelect={onToggleSelect}
                     onOpen={openPanel}
                     colourMap={colourMap}
                     highlight={highlight}
@@ -466,13 +435,6 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
           date={panelDate}
           leaveDays={panelLeaveDays}
           onClose={() => { setPanelDate(null); setPanelLeaveDays(null) }}
-        />
-      )}
-
-      {summaryOpen && selectedPeriods.length > 0 && (
-        <LeaveSummaryModal
-          periods={selectedPeriods}
-          onClose={() => setSummaryOpen(false)}
         />
       )}
     </>
