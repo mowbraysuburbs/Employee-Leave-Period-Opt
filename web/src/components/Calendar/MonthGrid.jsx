@@ -33,7 +33,7 @@ export function MonthGrid({
   return (
     <div className={`flex flex-col gap-1 ${compact ? 'w-fit' : 'w-full'}`}>
       <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-0.5 uppercase tracking-wide">
-        {monthName}
+        {monthName} {year}
       </h3>
 
       <div className={`grid ${colClass} gap-0.5 mb-0.5`}>

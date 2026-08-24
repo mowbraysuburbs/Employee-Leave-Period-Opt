@@ -40,3 +40,40 @@ export function fmtGroupRange(group) {
     endLabel: fmtSubRange(group[0].endDate, group[group.length - 1].endDate),
   }
 }
+
+const SHORT_MONTH = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+// "03 May '26" — a friendlier alternative to fmt()'s "03/05/26", used by the
+// best-periods table only (other callers keep the slash format).
+export function fmtNice(dateStr) {
+  const [y, m, d] = dateStr.split('-')
+  return `${d} ${SHORT_MONTH[+m - 1]} '${y.slice(2)}`
+}
+
+export function fmtRangeNice(startDate, endDate) {
+  const [, ms, ds] = startDate.split('-')
+  const startNoYear = `${ds} ${SHORT_MONTH[+ms - 1]}`
+  return startDate.slice(0, 4) === endDate.slice(0, 4)
+    ? [startNoYear, fmtNice(endDate)]
+    : [fmtNice(startDate), fmtNice(endDate)]
+}
+
+function fmtSubRangeNice(a, b) {
+  const [ay, am, ad] = a.split('-')
+  const [by, , bd] = b.split('-')
+  if (a === b) return `${ad} ${SHORT_MONTH[+am - 1]}`
+  if (a.slice(0, 7) === b.slice(0, 7)) return `${ad}–${bd} ${SHORT_MONTH[+am - 1]}`
+  const sameYear = ay === by
+  const short = d => {
+    const [, mo, da] = d.split('-')
+    return sameYear ? `${da} ${SHORT_MONTH[+mo - 1]}` : fmtNice(d)
+  }
+  return `${short(a)}–${short(b)}`
+}
+
+export function fmtGroupRangeNice(group) {
+  return {
+    startLabel: fmtSubRangeNice(group[0].startDate, group[group.length - 1].startDate),
+    endLabel: fmtSubRangeNice(group[0].endDate, group[group.length - 1].endDate),
+  }
+}

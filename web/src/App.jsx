@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { CalendarHeatmap } from './components/Calendar/CalendarHeatmap'
 import { HolidaysList } from './components/Features/HolidaysList'
 import { LeavePlannerTab } from './components/Features/LeavePlannerTab'
+import { LeaveSummaryModal } from './components/Features/LeaveSummaryModal'
 import { BottomTabBar } from './components/Layout/BottomTabBar'
 import { LeaveDayRoller } from './components/Layout/LeaveDayRoller'
 import { computeLeaveScores } from './utils/leaveCalculator'
@@ -62,6 +63,8 @@ export default function App() {
   const [filterSet, setFilterSet] = useState(new Set())
   const [holidayFilter, setHolidayFilter] = useState(new Set())
   const [holidayDropdownOpen, setHolidayDropdownOpen] = useState(false)
+  const [selectedKeys, setSelectedKeys] = useState(new Set())
+  const [summaryOpen, setSummaryOpen] = useState(false)
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -70,6 +73,13 @@ export default function App() {
   const [dateSheetOpen, setDateSheetOpen] = useState(false)
   const [plannerStart, setPlannerStart] = useState(TODAY_STR)
   const [plannerEnd, setPlannerEnd] = useState(DATASET_END)
+
+  // Desktop header date inputs are pending until "Calculate" is clicked —
+  // mobile's own date sheet still commits live, unaffected by this.
+  const [pendingStart, setPendingStart] = useState(TODAY_STR)
+  const [pendingEnd, setPendingEnd] = useState(DATASET_END)
+  useEffect(() => { setPendingStart(plannerStart) }, [plannerStart])
+  useEffect(() => { setPendingEnd(plannerEnd) }, [plannerEnd])
 
   // Desktop-only pane toggles — replace the old sidebar's exclusive tab nav.
   // Either or both can be on; a handler refuses to turn the last one off.
@@ -173,6 +183,36 @@ export default function App() {
   const showPlannerPane = isDesktop ? plannerOn : activeTab === 'planner'
   const showSplit = isDesktop && calendarOn && plannerOn
 
+  function handleCalculate() {
+    setPlannerStart(pendingStart)
+    setPlannerEnd(pendingEnd)
+  }
+
+  // Selection lives here (not in BestPeriodsTable) so it survives toggling
+  // the Calendar/Planner panes on and off, and so the header badge can read it.
+  function toggleSelectPeriod(key) {
+    setSelectedKeys(prev => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
+
+  const selectedPeriods = useMemo(
+    () => allBestPeriodsCache.filter(p => selectedKeys.has(`${p.startDate}-${p.leaveDaysUsed}`)),
+    [selectedKeys]
+  )
+
+  const selectedStats = useMemo(() => {
+    let leaveDaysUsedSum = 0, daysOffSum = 0
+    for (const p of selectedPeriods) {
+      leaveDaysUsedSum += p.leaveDaysUsed
+      daysOffSum += p.daysOff
+    }
+    return { count: selectedPeriods.length, leaveDaysUsed: leaveDaysUsedSum, daysOff: daysOffSum }
+  }, [selectedPeriods])
+
   // splitRatio always means "the pane currently on the left"'s share, so swapping
   // just changes which pane that is without the on-screen widths jumping.
   const leftBasis = `${splitRatio * 100}%`
@@ -220,7 +260,7 @@ export default function App() {
       {/* Header */}
       <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-30 flex-shrink-0">
         {/* Title row */}
-        <div className="relative px-4 py-3 flex items-center justify-between md:justify-center">
+        <div className="relative px-4 py-3 flex items-center justify-between">
           {/* Hamburger — mobile only */}
           <button
             onClick={() => setMobileDrawerOpen(true)}
@@ -234,21 +274,33 @@ export default function App() {
             </svg>
           </button>
 
-          {/* Settings gear — desktop only */}
-          <button
-            onClick={() => setSettingsOpen(true)}
-            className="hidden md:flex absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            aria-label="Settings"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="3" />
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82A1.65 1.65 0 0 0 3 12.09H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-            </svg>
-          </button>
+          <div className="flex items-center gap-4">
+            <h1 className="text-[29px] font-bold text-slate-900 dark:text-slate-100 leading-none">
+              StretchMyLeave
+            </h1>
 
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 leading-none">
-            StretchMyLeave
-          </h1>
+            <div className="hidden md:flex items-stretch rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden flex-shrink-0">
+              <button
+                onClick={toggleCalendarPane}
+                style={{ order: calendarOrder }}
+                className={`px-6 py-2 text-sm font-semibold transition-colors ${
+                  calendarOn ? 'bg-sky-500 text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                }`}
+              >
+                Calendar
+              </button>
+              <div className="w-px bg-slate-200 dark:bg-slate-600" style={{ order: 1 }} />
+              <button
+                onClick={togglePlannerPane}
+                style={{ order: plannerOrder }}
+                className={`px-6 py-2 text-sm font-semibold transition-colors ${
+                  plannerOn ? 'bg-sky-500 text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+                }`}
+              >
+                Planner
+              </button>
+            </div>
+          </div>
 
           {/* Right side buttons — mobile only */}
           <div className="md:hidden flex items-center gap-1">
@@ -258,8 +310,290 @@ export default function App() {
               aria-label="Help"
             >?</button>
           </div>
+
+          {/* Date range — desktop only, absolutely centered so it never shifts as the Share button grows/shrinks */}
+          <div className="hidden md:flex items-end gap-2 absolute left-1/2 -translate-x-1/2">
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                Start date
+              </label>
+              <input
+                type="date"
+                value={pendingStart}
+                onChange={(e) => setPendingStart(e.target.value)}
+                min={TODAY_STR}
+                max={pendingEnd}
+                className="bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm rounded-lg px-2.5 py-1.5 border border-slate-200 dark:border-slate-600 focus:outline-none focus:border-sky-500"
+              />
+            </div>
+            <span className="text-slate-400 dark:text-slate-500 pb-2">–</span>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                End date
+              </label>
+              <input
+                type="date"
+                value={pendingEnd}
+                onChange={(e) => setPendingEnd(e.target.value)}
+                min={pendingStart}
+                max={DATASET_END}
+                className="bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm rounded-lg px-2.5 py-1.5 border border-slate-200 dark:border-slate-600 focus:outline-none focus:border-sky-500"
+              />
+            </div>
+            <button
+              onClick={handleCalculate}
+              disabled={pendingStart === plannerStart && pendingEnd === plannerEnd}
+              className="flex-shrink-0 px-4 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-400 text-white text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-sky-500"
+            >
+              Calculate
+            </button>
+          </div>
+
+          {/* Right side buttons — desktop only */}
+          <div className="hidden md:flex items-center gap-2">
+            {/* Selected-periods summary + share/export trigger */}
+            <button
+              onClick={() => setSummaryOpen(true)}
+              className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-sky-500 hover:bg-sky-400 text-white text-sm transition-colors"
+            >
+              {selectedStats.count > 0 && (
+                <>
+                  <span className="font-medium opacity-90 whitespace-nowrap">
+                    {selectedStats.leaveDaysUsed} days used · {selectedStats.daysOff} days off
+                  </span>
+                  <span className="opacity-50 font-normal">|</span>
+                </>
+              )}
+              <span className="font-bold">Share</span>
+            </button>
+
+            <div className="relative">
+              <button
+                onClick={() => setSettingsOpen((v) => !v)}
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                aria-label="Settings"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82A1.65 1.65 0 0 0 3 12.09H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+              </button>
+
+              {settingsOpen && (
+                <>
+                  <div className="fixed inset-0 z-20" onClick={() => setSettingsOpen(false)} />
+                  <div className="absolute top-full right-0 mt-1 z-30 w-60 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl py-2 px-3 flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-slate-700 dark:text-slate-300">Dark mode</span>
+                      <button
+                        onClick={() => setDarkMode((v) => !v)}
+                        role="switch"
+                        aria-checked={darkMode}
+                        className={`relative inline-flex w-11 h-6 rounded-full overflow-hidden transition-colors duration-200 focus:outline-none ${
+                          darkMode ? 'bg-sky-500' : 'bg-slate-300 dark:bg-slate-600'
+                        }`}
+                      >
+                        <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${
+                          darkMode ? 'translate-x-5' : 'translate-x-0'
+                        }`} />
+                      </button>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-slate-700 dark:text-slate-300">Bonus days only</span>
+                      <button
+                        onClick={() => setSmartFilter((v) => !v)}
+                        role="switch"
+                        aria-checked={smartFilter}
+                        className={`relative inline-flex w-11 h-6 rounded-full overflow-hidden transition-colors duration-200 focus:outline-none ${
+                          smartFilter ? 'bg-sky-500' : 'bg-slate-300 dark:bg-slate-600'
+                        }`}
+                      >
+                        <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${
+                          smartFilter ? 'translate-x-5' : 'translate-x-0'
+                        }`} />
+                      </button>
+                    </div>
+                    {calendarOn && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-slate-700 dark:text-slate-300">Calendar size</span>
+                        <button
+                          onClick={() => setViewMode(v => v === '1x' ? '2x' : '1x')}
+                          className={`flex-shrink-0 text-xs font-bold px-2.5 py-1 rounded-lg transition-colors ${
+                            viewMode === '2x'
+                              ? 'bg-sky-500 text-white'
+                              : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                          }`}
+                        >
+                          {viewMode === '2x' ? '2x' : '1x'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Help icon — placeholder, not wired up yet */}
+            <button
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              aria-label="Help"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </button>
+
+          </div>
         </div>
 
+        {/* Filters panel — desktop only, always shown */}
+        <div className="hidden md:flex flex-col gap-3 px-4 pb-3 pt-1">
+            <div className="flex flex-wrap items-center gap-6">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wide flex-shrink-0">
+                Leave days
+              </span>
+              <button
+                onClick={() => setLeaveDays((v) => Math.max(0, v - 1))}
+                disabled={leaveDays === 0}
+                className="w-6 h-6 flex-shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-sm font-bold leading-none flex items-center justify-center hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                aria-label="Decrease leave days"
+              >−</button>
+              <input
+                type="range"
+                min={0}
+                max={MAX_LEAVE}
+                value={leaveDays}
+                onChange={(e) => setLeaveDays(Number(e.target.value))}
+                className="w-[173px] h-2 rounded-full accent-sky-500 cursor-pointer"
+              />
+              <button
+                onClick={() => setLeaveDays((v) => Math.min(MAX_LEAVE, v + 1))}
+                disabled={leaveDays === MAX_LEAVE}
+                className="w-6 h-6 flex-shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-sm font-bold leading-none flex items-center justify-center hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                aria-label="Increase leave days"
+              >+</button>
+              <span className="text-sm font-bold text-slate-900 dark:text-slate-100 tabular-nums w-5 text-center flex-shrink-0">
+                {leaveDays}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 flex-shrink-0">
+                Days off <span className="font-normal normal-case text-slate-400 dark:text-slate-500">(click to filter)</span>
+              </span>
+              <div className="flex flex-nowrap gap-2">
+                {legend.filter(({ daysOff }) => !smartFilter || bonusDaysOffValues.has(daysOff)).map(({ daysOff, colour }) => {
+                  const isSelected = filterSet.has(daysOff)
+                  return (
+                    <button
+                      key={daysOff}
+                      onClick={() => setFilterSet((prev) => {
+                        const next = new Set(prev)
+                        if (next.has(daysOff)) next.delete(daysOff)
+                        else next.add(daysOff)
+                        return next
+                      })}
+                      title={`${daysOff} days off — click to filter`}
+                      className={`flex-shrink-0 w-[30px] h-[30px] rounded-full flex items-center justify-center text-xs font-bold transition-opacity focus:outline-none ${
+                        isSelected
+                          ? 'ring-2 ring-offset-2 ring-slate-900 dark:ring-white ring-offset-white dark:ring-offset-slate-900'
+                          : 'opacity-80 hover:opacity-100'
+                      }`}
+                      style={{ backgroundColor: colour, color: '#1e293b' }}
+                    >
+                      {daysOff}
+                    </button>
+                  )
+                })}
+              </div>
+              {filterSet.size > 0 && (
+                <button
+                  onClick={() => setFilterSet(new Set())}
+                  className="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors flex-shrink-0"
+                >×</button>
+              )}
+            </div>
+            </div>
+
+            {holidaysInRange.length > 0 && (
+              <div className="flex items-center gap-2 relative">
+                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 flex-shrink-0">
+                  Holidays
+                </span>
+
+                <div className="flex flex-wrap gap-2">
+                  {holidaysInRange.filter(h => holidayFilter.has(h.date)).map(({ date, name }) => (
+                    <button
+                      key={date}
+                      onClick={() => setHolidayFilter((prev) => {
+                        const next = new Set(prev)
+                        next.delete(date)
+                        return next
+                      })}
+                      title={`${name} — click to remove`}
+                      className="flex-shrink-0 flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-sky-500 text-white transition-colors hover:bg-sky-600"
+                    >
+                      {name} <span className="opacity-70">{fmt(date)}</span>
+                      <span className="ml-0.5">×</span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="relative flex-shrink-0">
+                  <button
+                    onClick={() => setHolidayDropdownOpen((v) => !v)}
+                    className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                      holidayDropdownOpen
+                        ? 'bg-slate-200 dark:bg-slate-600 text-slate-800 dark:text-slate-100'
+                        : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+                    }`}
+                  >
+                    {holidayFilter.size > 0 ? '+ Add' : 'Select holidays'} <span className="text-[10px]">▾</span>
+                  </button>
+
+                  {holidayDropdownOpen && (
+                    <>
+                      <div className="fixed inset-0 z-20" onClick={() => setHolidayDropdownOpen(false)} />
+                      <div className="absolute top-full right-0 mt-1 z-30 w-64 max-h-72 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl py-1">
+                        {holidaysInRange.map(({ date, name }) => {
+                          const isSelected = holidayFilter.has(date)
+                          return (
+                            <button
+                              key={date}
+                              onClick={() => setHolidayFilter((prev) => {
+                                const next = new Set(prev)
+                                if (next.has(date)) next.delete(date)
+                                else next.add(date)
+                                return next
+                              })}
+                              className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-xs text-left transition-colors ${
+                                isSelected
+                                  ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400'
+                                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                              }`}
+                            >
+                              <span>{name} <span className="opacity-60">{fmt(date)}</span></span>
+                              {isSelected && <span className="flex-shrink-0">✓</span>}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {holidayFilter.size > 0 && (
+                  <button
+                    onClick={() => setHolidayFilter(new Set())}
+                    className="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors flex-shrink-0"
+                  >×</button>
+                )}
+              </div>
+            )}
+          </div>
       </header>
 
       {/* Mobile filter drawer */}
@@ -359,174 +693,15 @@ export default function App() {
         </div>
       )}
 
-      {/* Settings modal — desktop only (opened by the header gear icon) */}
-      {settingsOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setSettingsOpen(false)} />
-          <div className="relative z-10 w-full max-w-sm mx-4 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-            <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-slate-100 dark:border-slate-700">
-              <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide">Settings</h2>
-              <button
-                onClick={() => setSettingsOpen(false)}
-                className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors"
-              >✕</button>
-            </div>
-            <div className="px-5 py-4 flex flex-col gap-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-700 dark:text-slate-300">Dark mode</span>
-                <button
-                  onClick={() => setDarkMode((v) => !v)}
-                  role="switch"
-                  aria-checked={darkMode}
-                  className={`relative inline-flex w-11 h-6 rounded-full overflow-hidden transition-colors duration-200 focus:outline-none ${
-                    darkMode ? 'bg-sky-500' : 'bg-slate-300 dark:bg-slate-600'
-                  }`}
-                >
-                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${
-                    darkMode ? 'translate-x-5' : 'translate-x-0'
-                  }`} />
-                </button>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-slate-700 dark:text-slate-300">Bonus days only</span>
-                <button
-                  onClick={() => setSmartFilter((v) => !v)}
-                  role="switch"
-                  aria-checked={smartFilter}
-                  className={`relative inline-flex w-11 h-6 rounded-full overflow-hidden transition-colors duration-200 focus:outline-none ${
-                    smartFilter ? 'bg-sky-500' : 'bg-slate-300 dark:bg-slate-600'
-                  }`}
-                >
-                  <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-200 ${
-                    smartFilter ? 'translate-x-5' : 'translate-x-0'
-                  }`} />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {summaryOpen && selectedPeriods.length > 0 && (
+        <LeaveSummaryModal
+          periods={selectedPeriods}
+          onClose={() => setSummaryOpen(false)}
+        />
       )}
 
       {/* Main content area — sidebar removed; desktop nav now lives in the header gear + bottom pill */}
       <main className={showSplit ? 'flex-1 overflow-hidden flex flex-col min-h-0' : 'flex-1 overflow-y-auto'}>
-        {/* Sticky filter chips — desktop, whenever a pane is visible */}
-        {(showCalendarPane || showPlannerPane) && (
-          <div className="hidden md:block flex-shrink-0 sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700">
-            <div className="flex px-4 py-2 items-center gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 flex-shrink-0">
-                Days off
-              </span>
-              <div className="flex flex-nowrap justify-center gap-2 overflow-x-auto flex-1 py-2 px-1">
-                {legend.filter(({ daysOff }) => !smartFilter || bonusDaysOffValues.has(daysOff)).map(({ daysOff, colour }) => {
-                  const isSelected = filterSet.has(daysOff)
-                  return (
-                    <button
-                      key={daysOff}
-                      onClick={() => setFilterSet((prev) => {
-                        const next = new Set(prev)
-                        if (next.has(daysOff)) next.delete(daysOff)
-                        else next.add(daysOff)
-                        return next
-                      })}
-                      title={`${daysOff} days off — click to filter`}
-                      className={`flex-shrink-0 w-[34px] h-[34px] rounded-full flex items-center justify-center text-xs font-bold transition-opacity focus:outline-none ${
-                        isSelected
-                          ? 'ring-2 ring-offset-2 ring-slate-900 dark:ring-white ring-offset-white dark:ring-offset-slate-900'
-                          : 'opacity-80 hover:opacity-100'
-                      }`}
-                      style={{ backgroundColor: colour, color: '#1e293b' }}
-                    >
-                      {daysOff}
-                    </button>
-                  )
-                })}
-              </div>
-              {filterSet.size > 0 && (
-                <button
-                  onClick={() => setFilterSet(new Set())}
-                  className="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors flex-shrink-0"
-                >×</button>
-              )}
-            </div>
-
-            {holidaysInRange.length > 0 && (
-              <div className="flex px-4 pb-2 items-center gap-2 relative">
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 flex-shrink-0">
-                  Holidays
-                </span>
-
-                <div className="flex flex-wrap gap-2 flex-1 py-1 px-1">
-                  {holidaysInRange.filter(h => holidayFilter.has(h.date)).map(({ date, name }) => (
-                    <button
-                      key={date}
-                      onClick={() => setHolidayFilter((prev) => {
-                        const next = new Set(prev)
-                        next.delete(date)
-                        return next
-                      })}
-                      title={`${name} — click to remove`}
-                      className="flex-shrink-0 flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-sky-500 text-white transition-colors hover:bg-sky-600"
-                    >
-                      {name} <span className="opacity-70">{fmt(date)}</span>
-                      <span className="ml-0.5">×</span>
-                    </button>
-                  ))}
-                </div>
-
-                <div className="relative flex-shrink-0">
-                  <button
-                    onClick={() => setHolidayDropdownOpen((v) => !v)}
-                    className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                      holidayDropdownOpen
-                        ? 'bg-slate-200 dark:bg-slate-600 text-slate-800 dark:text-slate-100'
-                        : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
-                    }`}
-                  >
-                    {holidayFilter.size > 0 ? '+ Add' : 'Select holidays'} <span className="text-[10px]">▾</span>
-                  </button>
-
-                  {holidayDropdownOpen && (
-                    <>
-                      <div className="fixed inset-0 z-20" onClick={() => setHolidayDropdownOpen(false)} />
-                      <div className="absolute top-full right-0 mt-1 z-30 w-64 max-h-72 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl py-1">
-                        {holidaysInRange.map(({ date, name }) => {
-                          const isSelected = holidayFilter.has(date)
-                          return (
-                            <button
-                              key={date}
-                              onClick={() => setHolidayFilter((prev) => {
-                                const next = new Set(prev)
-                                if (next.has(date)) next.delete(date)
-                                else next.add(date)
-                                return next
-                              })}
-                              className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-xs text-left transition-colors ${
-                                isSelected
-                                  ? 'bg-sky-50 dark:bg-sky-900/20 text-sky-600 dark:text-sky-400'
-                                  : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
-                              }`}
-                            >
-                              <span>{name} <span className="opacity-60">{fmt(date)}</span></span>
-                              {isSelected && <span className="flex-shrink-0">✓</span>}
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                {holidayFilter.size > 0 && (
-                  <button
-                    onClick={() => setHolidayFilter(new Set())}
-                    className="text-xs text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors flex-shrink-0"
-                  >×</button>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
         {/* Mobile weekday header + gradient bar — heatmap only, not in 2col (cards have own headers) */}
         {showCalendarPane && viewMode !== '2col' && (
           <div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 sm:hidden">
@@ -560,7 +735,7 @@ export default function App() {
         {showSplit && (
           <div className="flex-1 min-h-0 flex flex-row px-4 pb-2">
             <div className="min-w-0 h-full" style={{ flexBasis: calendarBasis, order: calendarOrder }}>
-              <div className="h-full min-h-0 overflow-y-auto pt-4 pl-4 pr-4 pb-24">
+              <div className="h-full min-h-0 overflow-y-auto pt-4 pl-4 pr-4 pb-6">
                 <CalendarHeatmap
                   scores={scores}
                   months={months}
@@ -597,7 +772,7 @@ export default function App() {
             </div>
 
             <div className="min-w-0 h-full" style={{ flexBasis: plannerBasis, order: plannerOrder }}>
-              <div className="h-full min-h-0 overflow-y-auto pb-24">
+              <div className="h-full min-h-0 overflow-y-auto pb-6">
                 <LeavePlannerTab
                   leaveDays={leaveDays}
                   startDate={plannerStart}
@@ -608,6 +783,8 @@ export default function App() {
                   legend={legend}
                   nested
                   onHoverPeriod={setHoveredPeriodRange}
+                  selectedKeys={selectedKeys}
+                  onToggleSelect={toggleSelectPeriod}
                 />
               </div>
             </div>
@@ -616,7 +793,7 @@ export default function App() {
 
         {/* Single-pane view — mobile (driven by activeTab), or desktop with exactly one pane on */}
         {!showSplit && (
-          <div className={(showPlannerPane && !showCalendarPane) ? 'pb-48 md:p-4 md:pb-24' : 'p-4 pb-48 md:pb-24'}>
+          <div className={(showPlannerPane && !showCalendarPane) ? 'pb-48 md:p-4 md:pb-6' : 'p-4 pb-48 md:pb-6'}>
             {showCalendarPane && (
               <CalendarHeatmap
                 scores={scores}
@@ -638,6 +815,8 @@ export default function App() {
                 smartFilter={smartFilter}
                 holidayFilter={holidayFilter}
                 legend={legend}
+                selectedKeys={selectedKeys}
+                onToggleSelect={toggleSelectPeriod}
               />
             )}
             {!isDesktop && activeTab === 'holidays' && (
@@ -727,105 +906,6 @@ export default function App() {
           >
             {viewMode}
           </button>
-        </div>
-      </div>
-
-      {/* Desktop bottom bar — Calendar/Planner pill + leave-day count, replaces the old sidebar's nav role */}
-      <div className="hidden md:flex fixed bottom-0 left-0 right-0 z-30 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 items-center justify-between px-6 py-3">
-        <div className="flex items-stretch rounded-full bg-slate-100 dark:bg-slate-700 overflow-hidden">
-          <button
-            onClick={toggleCalendarPane}
-            style={{ order: calendarOrder }}
-            className={`px-6 py-2 text-sm font-semibold transition-colors ${
-              calendarOn ? 'bg-sky-500 text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-            }`}
-          >
-            Calendar
-          </button>
-          <div className="w-px bg-slate-200 dark:bg-slate-600" style={{ order: 1 }} />
-          <button
-            onClick={togglePlannerPane}
-            style={{ order: plannerOrder }}
-            className={`px-6 py-2 text-sm font-semibold transition-colors ${
-              plannerOn ? 'bg-sky-500 text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-            }`}
-          >
-            Planner
-          </button>
-        </div>
-
-        {/* Single date range — drives both the calendar's visible window and the planner's search range */}
-        <div className="flex items-center gap-2">
-          <label className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wide flex-shrink-0">
-            From
-          </label>
-          <input
-            type="date"
-            value={plannerStart}
-            onChange={(e) => setPlannerStart(e.target.value)}
-            min={TODAY_STR}
-            max={plannerEnd}
-            className="bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm rounded-lg px-2.5 py-1.5 border border-slate-200 dark:border-slate-600 focus:outline-none focus:border-sky-500"
-          />
-          <span className="text-slate-400 dark:text-slate-500">–</span>
-          <label className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wide flex-shrink-0">
-            To
-          </label>
-          <input
-            type="date"
-            value={plannerEnd}
-            onChange={(e) => setPlannerEnd(e.target.value)}
-            min={plannerStart}
-            max={DATASET_END}
-            className="bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm rounded-lg px-2.5 py-1.5 border border-slate-200 dark:border-slate-600 focus:outline-none focus:border-sky-500"
-          />
-        </div>
-
-        {calendarOn && (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wide flex-shrink-0">
-              Calendar size
-            </span>
-            <button
-              onClick={() => setViewMode(v => v === '1x' ? '2x' : '1x')}
-              className={`flex-shrink-0 text-xs font-bold px-2.5 py-1 rounded-lg transition-colors ${
-                viewMode === '2x'
-                  ? 'bg-sky-500 text-white'
-                  : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
-              }`}
-            >
-              {viewMode === '2x' ? '2x' : '1x'}
-            </button>
-          </div>
-        )}
-
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wide flex-shrink-0">
-            Leave days
-          </span>
-          <button
-            onClick={() => setLeaveDays((v) => Math.max(0, v - 1))}
-            disabled={leaveDays === 0}
-            className="w-6 h-6 flex-shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-sm font-bold leading-none flex items-center justify-center hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-            aria-label="Decrease leave days"
-          >−</button>
-          <input
-            type="range"
-            min={0}
-            max={MAX_LEAVE}
-            value={leaveDays}
-            onChange={(e) => setLeaveDays(Number(e.target.value))}
-            className="w-[173px] h-2 rounded-full accent-sky-500 cursor-pointer"
-          />
-          <button
-            onClick={() => setLeaveDays((v) => Math.min(MAX_LEAVE, v + 1))}
-            disabled={leaveDays === MAX_LEAVE}
-            className="w-6 h-6 flex-shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-sm font-bold leading-none flex items-center justify-center hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-            aria-label="Increase leave days"
-          >+</button>
-          <span className="text-sm font-bold text-slate-900 dark:text-slate-100 tabular-nums w-5 text-center flex-shrink-0">
-            {leaveDays}
-          </span>
         </div>
       </div>
 
