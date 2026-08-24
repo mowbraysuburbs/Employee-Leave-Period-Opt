@@ -107,10 +107,10 @@ export default function App() {
   const viewEnd = { year: parseInt(plannerEndYear, 10), month: parseInt(plannerEndMonth, 10) }
 
   const startDateStr = `${viewStart.year}-${String(viewStart.month).padStart(2, '0')}-01`
-  const endDateStr = (() => {
-    const lastDay = new Date(viewEnd.year, viewEnd.month, 0).getDate()
-    return `${viewEnd.year}-${String(viewEnd.month).padStart(2, '0')}-${lastDay}`
-  })()
+  // Scores stop exactly at the chosen end date — the calendar still renders
+  // the whole final month (it can't show a partial month card), but days
+  // past plannerEnd get no score, so they show blank instead of colored.
+  const endDateStr = plannerEnd
 
   const months = useMemo(() => {
     const result = []
