@@ -10,7 +10,7 @@ const HOLIDAY_MAP = new Map(
 
 const SHORT_DAY   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
 const SHORT_MONTH = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-const WEEKDAY_LABELS = ['M','T','W','T','F','S','S']
+const WEEKDAY_LABELS = ['S','M','T','W','T','F','S']
 
 function formatNice(dateStr) {
   const [y, mo, day] = dateStr.split('-').map(Number)
@@ -39,11 +39,11 @@ function buildRows(breakdown) {
   if (!breakdown.length) return []
   const [fy, fm, fd] = breakdown[0].date.split('-').map(Number)
   const startObj    = new Date(fy, fm - 1, fd)
-  const firstDayMon = (startObj.getDay() + 6) % 7
+  const firstDayOffset = startObj.getDay()
   const allCells    = []
-  for (let i = 0; i < firstDayMon; i++) {
+  for (let i = 0; i < firstDayOffset; i++) {
     const d = new Date(startObj)
-    d.setDate(d.getDate() - (firstDayMon - i))
+    d.setDate(d.getDate() - (firstDayOffset - i))
     allCells.push({ outside: true, dayNum: d.getDate(), month: d.getMonth() + 1, year: d.getFullYear() })
   }
   for (const { date: dateStr, type } of breakdown) {
@@ -177,7 +177,7 @@ export function LeavePeriodPanel({ date, leaveDays, onClose }) {
           >
           <div className="grid grid-cols-[repeat(7,1fr)_32px] mb-1">
             {WEEKDAY_LABELS.map((h, i) => (
-              <div key={i} className={`text-center text-[10px] font-semibold uppercase ${i >= 5 ? 'text-slate-400 dark:text-slate-500' : 'text-slate-500 dark:text-slate-400'}`}>{h}</div>
+              <div key={i} className={`text-center text-[10px] font-semibold uppercase ${i === 0 || i === 6 ? 'text-slate-400 dark:text-slate-500' : 'text-slate-500 dark:text-slate-400'}`}>{h}</div>
             ))}
             <div />
           </div>

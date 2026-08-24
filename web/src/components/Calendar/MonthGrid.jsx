@@ -2,7 +2,7 @@ import { DayCell } from './DayCell'
 import { getHolidayName, isPublicHoliday } from '../../data/publicHolidays'
 import { getSchoolBreakLabel, isSchoolHoliday } from '../../data/schoolHolidays'
 
-const WEEKDAY_HEADERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+const WEEKDAY_HEADERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -15,17 +15,16 @@ export function MonthGrid({
 }) {
   const monthName = MONTH_NAMES[month - 1]
 
-  const firstDayRaw = new Date(year, month - 1, 1).getDay()
-  const firstDayMon = (firstDayRaw + 6) % 7
+  const firstDayOffset = new Date(year, month - 1, 1).getDay()
   const daysInMonth = new Date(year, month, 0).getDate()
 
   const cells = []
-  for (let i = 0; i < firstDayMon; i++) cells.push({ isEmpty: true, weekdayIndex: i })
+  for (let i = 0; i < firstDayOffset; i++) cells.push({ isEmpty: true, weekdayIndex: i })
   for (let d = 1; d <= daysInMonth; d++) {
     const mm = String(month).padStart(2, '0')
     const dd = String(d).padStart(2, '0')
     const dateStr = `${year}-${mm}-${dd}`
-    const weekdayIndex = (firstDayMon + d - 1) % 7
+    const weekdayIndex = (firstDayOffset + d - 1) % 7
     cells.push({ isEmpty: false, day: d, dateStr, weekdayIndex })
   }
 
@@ -42,7 +41,7 @@ export function MonthGrid({
           <div
             key={i}
             className={`text-center text-[10px] font-semibold uppercase ${
-              i >= 5 ? 'text-slate-600 dark:text-slate-300' : 'text-slate-700 dark:text-slate-200'
+              i === 0 || i === 6 ? 'text-slate-600 dark:text-slate-300' : 'text-slate-700 dark:text-slate-200'
             }`}
           >
             {label}

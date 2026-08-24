@@ -48,7 +48,7 @@ function buildCache() {
 const { periods: allBestPeriodsCache, scoresMap: plannerScoresMap } = buildCache()
 export { allBestPeriodsCache }
 
-export function LeavePlannerTab({ leaveDays, startDate, endDate, onStartChange, onEndChange, filterSet, smartFilter, legend }) {
+export function LeavePlannerTab({ leaveDays, startDate, endDate, filterSet, smartFilter, holidayFilter, legend, nested = false, onHoverPeriod }) {
   const filtered = useMemo(
     () => allBestPeriodsCache.filter((p) => p.startDate >= startDate && p.endDate <= endDate),
     [startDate, endDate]
@@ -56,42 +56,15 @@ export function LeavePlannerTab({ leaveDays, startDate, endDate, onStartChange, 
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Date inputs — desktop only; mobile uses the pill in the bottom bar */}
-      <div className="hidden md:grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1.5 font-medium uppercase tracking-wide">
-            From
-          </label>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => onStartChange(e.target.value)}
-            min={TODAY}
-            max={endDate}
-            className="w-full bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm rounded-lg px-3 py-2.5 border border-slate-200 dark:border-slate-600 focus:outline-none focus:border-sky-500"
-          />
-        </div>
-        <div>
-          <label className="block text-xs text-slate-500 dark:text-slate-400 mb-1.5 font-medium uppercase tracking-wide">
-            To
-          </label>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => onEndChange(e.target.value)}
-            min={startDate}
-            max={DATASET_END}
-            className="w-full bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm rounded-lg px-3 py-2.5 border border-slate-200 dark:border-slate-600 focus:outline-none focus:border-sky-500"
-          />
-        </div>
-      </div>
-
       <BestPeriodsTable
         allBestPeriods={filtered}
         leaveDays={leaveDays}
         filterSet={filterSet}
         smartFilter={smartFilter}
+        holidayFilter={holidayFilter}
         legend={legend}
+        nested={nested}
+        onHoverPeriod={onHoverPeriod}
       />
     </div>
   )
