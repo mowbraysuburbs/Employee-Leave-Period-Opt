@@ -48,7 +48,7 @@ function buildCache() {
 const { periods: allBestPeriodsCache, scoresMap: plannerScoresMap } = buildCache()
 export { allBestPeriodsCache }
 
-export function LeavePlannerTab({ leaveDays, startDate, endDate, filterSet, smartFilter, holidayFilter, legend, nested = false, onHoverPeriod, selectedKeys, onToggleSelect, onPageDatesChange }) {
+export function LeavePlannerTab({ leaveDays, startDate, endDate, filterSet, smartFilter, holidayFilter, nested = false, onHoverPeriod, selectedKeys, onToggleSelect, onPageDatesChange }) {
   const filtered = useMemo(
     () => allBestPeriodsCache.filter((p) => p.startDate >= startDate && p.endDate <= endDate),
     [startDate, endDate]
@@ -62,7 +62,6 @@ export function LeavePlannerTab({ leaveDays, startDate, endDate, filterSet, smar
         filterSet={filterSet}
         smartFilter={smartFilter}
         holidayFilter={holidayFilter}
-        legend={legend}
         nested={nested}
         onHoverPeriod={onHoverPeriod}
         selectedKeys={selectedKeys}
