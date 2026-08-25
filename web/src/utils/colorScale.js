@@ -1,54 +1,35 @@
-// Gradient stops: indigo/blue (low) → cyan → lime → yellow → red (high)
-// Red = high value (more days off), indigo = low
-const STOPS = [
-  [ 99,  102, 241],  // indigo-500 (low)
-  [ 56,  189, 248],  // sky-400
-  [ 45,  212, 191],  // teal-400
-  [ 34,  197,  94],  // green-500
-  [163,  230,  53],  // lime-400
-  [250,  204,  21],  // yellow-400
-  [251,  146,  60],  // orange-400
-  [248,  113, 113],  // red-400   (high)
+// A fixed, categorical palette — each days-off value gets one permanent
+// colour (Tailwind's own named hues, shade 500), not a colour interpolated
+// between whatever min/max happens to be in scope. This means a given value
+// always renders the same way everywhere (calendar dots, table pills,
+// filter chips), no matter what's currently filtered or paginated.
+const PALETTE = [
+  '#6366f1', // 1  indigo-500
+  '#3b82f6', // 2  blue-500
+  '#0ea5e9', // 3  sky-500
+  '#06b6d4', // 4  cyan-500
+  '#14b8a6', // 5  teal-500
+  '#10b981', // 6  emerald-500
+  '#22c55e', // 7  green-500
+  '#84cc16', // 8  lime-500
+  '#eab308', // 9  yellow-500
+  '#f59e0b', // 10 amber-500
+  '#f97316', // 11 orange-500
+  '#ef4444', // 12 red-500
+  '#f43f5e', // 13 rose-500
+  '#ec4899', // 14 pink-500
+  '#d946ef', // 15 fuchsia-500
+  '#a855f7', // 16 purple-500
+  '#8b5cf6', // 17 violet-500
 ]
 
-function interpolate(t) {
-  const pos = Math.max(0, Math.min(1, t)) * (STOPS.length - 1)
-  const lo = Math.floor(pos)
-  const hi = Math.min(lo + 1, STOPS.length - 1)
-  const f  = pos - lo
-  const [r, g, b] = [0, 1, 2].map(i => Math.round(STOPS[lo][i] + (STOPS[hi][i] - STOPS[lo][i]) * f))
-  return `rgb(${r},${g},${b})`
-}
-
 /**
- * Maps a daysOff count to a gradient colour, stretched across the actual visible range.
- * min → yellow (low end), max → cyan (high end).
- * Pass the actual min/max from the current score set for maximum colour separation.
+ * Maps a daysOff count to its fixed colour. Values beyond the palette's
+ * length clamp to the last (most extreme) colour rather than repeating an
+ * earlier hue.
  */
-export function getColourForDaysOff(daysOff, min = 1, max = 14) {
+export function getColourForDaysOff(daysOff) {
   if (daysOff <= 0) return null
-  if (min === max) return interpolate(0.5)
-  return interpolate((daysOff - min) / (max - min))
-}
-
-export function getTextContrast() {
-  return 'dark' // all gradient colours are light enough for dark text
-}
-
-/**
- * Returns a legend array — one entry per distinct days-off value found in scores.
- * Colours are spread across the full gradient from the actual min to max values.
- */
-export function buildLegend(scores) {
-  const seen = new Set()
-  for (const { daysOff } of scores) if (daysOff > 0) seen.add(daysOff)
-  const values = [...seen].sort((a, b) => a - b)
-  if (!values.length) return []
-  const min = values[0]
-  const max = values[values.length - 1]
-  return values.map((daysOff) => ({
-    daysOff,
-    colour: getColourForDaysOff(daysOff, min, max),
-    label: `${daysOff} day${daysOff === 1 ? '' : 's'} off`,
-  }))
+  const index = Math.min(daysOff, PALETTE.length) - 1
+  return PALETTE[index]
 }

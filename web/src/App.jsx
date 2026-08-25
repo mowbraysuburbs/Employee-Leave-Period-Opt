@@ -134,69 +134,107 @@ export default function App() {
     [startDateStr, endDateStr, leaveDays]
   )
 
-  // Legend and bonus values derived from the planner cache so every daysOff value
-  // that appears in the table (including those from shorter leave periods) gets a chip and colour.
-  const legend = useMemo(() => {
-    const values = [...new Set(
-      allBestPeriodsCache.filter(p => p.leaveDaysUsed <= leaveDays).map(p => p.daysOff)
-    )].sort((a, b) => a - b)
-    if (!values.length) return []
-    const min = values[0]
-    const max = values[values.length - 1]
-    return values.map(daysOff => ({
-      daysOff,
-      colour: getColourForDaysOff(daysOff, min, max),
-      label: `${daysOff} day${daysOff === 1 ? '' : 's'} off`,
-    }))
-  }, [leaveDays])
-
-  const bonusDaysOffValues = useMemo(() => {
-    const set = new Set()
-    for (const p of allBestPeriodsCache) {
-      if (p.leaveDaysUsed <= leaveDays && p.daysOff > leaveDays) set.add(p.daysOff)
-    }
-    return set
-  }, [leaveDays])
-
-  // Remove from filterSet any chips that are now hidden by the bonus filter
-  useEffect(() => {
-    if (!smartFilter) return
-    setFilterSet(prev => {
-      const next = new Set([...prev].filter(d => bonusDaysOffValues.has(d)))
-      return next.size === prev.size ? prev : next
-    })
-  }, [smartFilter, bonusDaysOffValues])
-
-  // Public holidays that fall inside the chosen From/To range — the holiday
-  // filter's options are only ever drawn from this, never the full dataset.
-  const holidaysInRange = useMemo(() => {
-    return Object.values(PUBLIC_HOLIDAYS).flat()
-      .filter(h => h.date >= plannerStart && h.date <= plannerEnd)
-      .sort((a, b) => a.date.localeCompare(b.date))
-  }, [plannerStart, plannerEnd])
-
-  // Drop any selected holiday that fell out of range when the dates changed
-  useEffect(() => {
-    setHolidayFilter(prev => {
-      const validDates = new Set(holidaysInRange.map(h => h.date))
-      const next = new Set([...prev].filter(d => validDates.has(d)))
-      return next.size === prev.size ? prev : next
-    })
-  }, [holidaysInRange])
-
   // Which panes are visible, unified across breakpoints: desktop reads the new
   // calendarOn/plannerOn toggles, mobile keeps reading activeTab exactly as before.
   const showCalendarPane = isDesktop ? calendarOn : activeTab === 'heatmap'
   const showPlannerPane = isDesktop ? plannerOn : activeTab === 'planner'
   const showSplit = isDesktop && calendarOn && plannerOn
 
+  // Two scopes, for two different jobs:
+  //  - inScopePeriods: every period reachable at all (leaveDays + date range).
+  //    Used only to decide whether an ACTIVE filter selection is still valid —
+  //    kept broad so simply turning a page never silently drops a selection
+  //    that's still perfectly valid on other pages.
+  //  - pageScopePeriods: exactly what's on the table's current page right
+  //    now. Used to decide what's OFFERED (which chips appear, which colour
+  //    they use, which holidays are selectable) — and, critically, the same
+  //    period set that already restricts the calendar's own coloring, so a
+  //    chip's colour and a calendar day's colour for the same value are
+  //    always computed from the same min/max, never two different scales.
+  // Both drop to null the moment the table isn't shown, so every filter goes
+  // back to its full, unrestricted range.
+  const inScopePeriods = useMemo(() => {
+    if (!showPlannerPane) return null
+    return allBestPeriodsCache.filter(p =>
+      p.leaveDaysUsed <= leaveDays && p.startDate >= plannerStart && p.endDate <= plannerEnd
+    )
+  }, [showPlannerPane, leaveDays, plannerStart, plannerEnd])
+
+  const pageScopePeriods = showPlannerPane ? (visiblePagePeriods ?? inScopePeriods) : null
+
+  // Legend and bonus values derived from the planner cache so every daysOff value
+  // that appears in the table (including those from shorter leave periods) gets a chip and colour.
+  // Colours come from the fixed palette (see colorScale.js) — every value has
+  // one permanent colour, so there's no min/max to keep in sync with the
+  // calendar's own scoping anymore.
+  const legend = useMemo(() => {
+    const base = pageScopePeriods ?? allBestPeriodsCache.filter(p => p.leaveDaysUsed <= leaveDays)
+    const source = smartFilter ? base.filter(p => p.daysOff > leaveDays) : base
+    const values = [...new Set(source.map(p => p.daysOff))].sort((a, b) => a - b)
+    return values.map(daysOff => ({
+      daysOff,
+      colour: getColourForDaysOff(daysOff),
+      label: `${daysOff} day${daysOff === 1 ? '' : 's'} off`,
+    }))
+  }, [pageScopePeriods, leaveDays, smartFilter])
+
+  const bonusDaysOffValues = useMemo(() => {
+    const source = pageScopePeriods ?? allBestPeriodsCache.filter(p => p.leaveDaysUsed <= leaveDays)
+    return new Set(source.filter(p => p.daysOff > leaveDays).map(p => p.daysOff))
+  }, [pageScopePeriods, leaveDays])
+
+  // Remove from filterSet any selection no longer valid ANYWHERE in scope
+  // (not just on the current page — see inScopePeriods above)
+  useEffect(() => {
+    const validValues = inScopePeriods
+      ? new Set(inScopePeriods.map(p => p.daysOff))
+      : new Set(legend.map(l => l.daysOff))
+    setFilterSet(prev => {
+      const next = new Set([...prev].filter(d =>
+        validValues.has(d) && (!smartFilter || bonusDaysOffValues.has(d))
+      ))
+      return next.size === prev.size ? prev : next
+    })
+  }, [inScopePeriods, legend, smartFilter, bonusDaysOffValues])
+
+  // Public holidays that fall inside the chosen From/To range — narrowed to
+  // only holidays some period on the current page actually touches, while
+  // the table is in view.
+  const holidaysInRange = useMemo(() => {
+    const inRange = Object.values(PUBLIC_HOLIDAYS).flat()
+      .filter(h => h.date >= plannerStart && h.date <= plannerEnd)
+      .sort((a, b) => a.date.localeCompare(b.date))
+    if (!pageScopePeriods) return inRange
+    return inRange.filter(h => pageScopePeriods.some(p => h.date >= p.startDate && h.date <= p.endDate))
+  }, [plannerStart, plannerEnd, pageScopePeriods])
+
+  // Drop any selected holiday no longer valid ANYWHERE in scope (mirrors the
+  // filterSet cleanup above — broad, so paging never silently drops it)
+  useEffect(() => {
+    const validDates = inScopePeriods
+      ? new Set(
+          Object.values(PUBLIC_HOLIDAYS).flat()
+            .filter(h => h.date >= plannerStart && h.date <= plannerEnd)
+            .filter(h => inScopePeriods.some(p => h.date >= p.startDate && h.date <= p.endDate))
+            .map(h => h.date)
+        )
+      : new Set(holidaysInRange.map(h => h.date))
+    setHolidayFilter(prev => {
+      const next = new Set([...prev].filter(d => validDates.has(d)))
+      return next.size === prev.size ? prev : next
+    })
+  }, [inScopePeriods, holidaysInRange, plannerStart, plannerEnd])
+
   // Only restrict the calendar to the table's current page while the table
   // is actually on screen — guards against stale leftover data from a
-  // previous view (e.g. right after switching back to Calendar-only).
+  // previous view (e.g. right after switching back to Calendar-only). Reuses
+  // the same pageScopePeriods that drives the days-off/holiday filter
+  // options above, so the calendar's colours and the filter chips' colours
+  // are always computed from the same min/max — never two different scales.
   const pageStartDates = useMemo(() => {
-    if (!showPlannerPane || visiblePagePeriods == null) return null
-    return new Set(visiblePagePeriods.map(p => p.startDate))
-  }, [showPlannerPane, visiblePagePeriods])
+    if (!pageScopePeriods) return null
+    return new Set(pageScopePeriods.map(p => p.startDate))
+  }, [pageScopePeriods])
 
   // While restricted, drop any month card that has none of the current
   // page's dates in it — sort order doesn't matter here, since this just
@@ -808,7 +846,6 @@ export default function App() {
                   filterSet={filterSet}
                   smartFilter={smartFilter}
                   holidayFilter={holidayFilter}
-                  legend={legend}
                   nested
                   onHoverPeriod={setHoveredPeriodRange}
                   selectedKeys={selectedKeys}
@@ -844,7 +881,6 @@ export default function App() {
                 filterSet={filterSet}
                 smartFilter={smartFilter}
                 holidayFilter={holidayFilter}
-                legend={legend}
                 selectedKeys={selectedKeys}
                 onToggleSelect={toggleSelectPeriod}
                 onPageDatesChange={setVisiblePagePeriods}
