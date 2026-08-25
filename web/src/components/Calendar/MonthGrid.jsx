@@ -11,7 +11,7 @@ const MONTH_NAMES = [
 
 export function MonthGrid({
   year, month, scoreMap, colourRange, showSchoolHolidays, provinceCode, filterSet, compact, onDayClick,
-  hoveredRange, onDayHover, onDayLeave,
+  hoveredRange, onDayHover, onDayLeave, cellPx,
 }) {
   const monthName = MONTH_NAMES[month - 1]
 
@@ -28,15 +28,28 @@ export function MonthGrid({
     cells.push({ isEmpty: false, day: d, dateStr, weekdayIndex })
   }
 
-  const colClass = compact ? 'grid-cols-[repeat(7,26px)]' : 'grid-cols-7'
+  // cellPx (desktop, from CalendarHeatmap's 3-tier auto-size) is a runtime
+  // value, so the column width has to be inline style — Tailwind's JIT can
+  // only pick up class names that are literal strings in the source. The
+  // card's overall width is also set explicitly (not left to `w-fit`) so its
+  // flex-wrap sibling packs tightly against it instead of leaving a gap sized
+  // by whatever the browser guesses the content's intrinsic width to be.
+  const usingCellPx = cellPx != null
+  const colStyle = usingCellPx ? { gridTemplateColumns: `repeat(7, ${cellPx}px)` } : undefined
+  const colClass = usingCellPx ? '' : compact ? 'grid-cols-[repeat(7,26px)]' : 'grid-cols-7'
+  const effectiveCompact = usingCellPx ? cellPx < 32 : compact
+  const cardWidthPx = usingCellPx ? cellPx * 7 + 2 * 6 : undefined
 
   return (
-    <div className={`flex flex-col gap-1 ${compact ? 'w-fit' : 'w-full'}`}>
+    <div
+      className={`flex flex-col gap-1 flex-shrink-0 ${usingCellPx || compact ? 'w-fit' : 'w-full'}`}
+      style={cardWidthPx ? { width: cardWidthPx } : undefined}
+    >
       <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-0.5 uppercase tracking-wide">
         {monthName} {year}
       </h3>
 
-      <div className={`grid ${colClass} gap-0.5 mb-0.5`}>
+      <div className={`grid ${colClass} gap-0.5 mb-0.5`} style={colStyle}>
         {WEEKDAY_HEADERS.map((label, i) => (
           <div
             key={i}
@@ -50,7 +63,7 @@ export function MonthGrid({
       </div>
 
       {/* onMouseLeave clears the hover range when mouse exits the month entirely */}
-      <div className={`grid ${colClass} gap-0.5`} onMouseLeave={onDayLeave}>
+      <div className={`grid ${colClass} gap-0.5`} style={colStyle} onMouseLeave={onDayLeave}>
         {cells.map((cell, i) => {
           if (cell.isEmpty) {
             return (
@@ -79,7 +92,7 @@ export function MonthGrid({
               holidayName={getHolidayName(dateStr, year)}
               isSchoolHoliday={schoolHol}
               schoolBreakLabel={schoolHol ? getSchoolBreakLabel(dateStr, provinceCode, year) : null}
-              compact={compact}
+              compact={effectiveCompact}
               onDayClick={onDayClick}
               hoveredRange={hoveredRange}
               weekdayIndex={weekdayIndex}

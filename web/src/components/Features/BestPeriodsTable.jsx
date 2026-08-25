@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from 'react'
+import { Fragment, useMemo, useState, useEffect } from 'react'
 import { LeavePeriodPanel } from '../Calendar/LeavePeriodPanel'
 import { PUBLIC_HOLIDAYS } from '../../data/publicHolidays'
 import { addDays, fmtRangeNice, fmtGroupRangeNice } from '../../utils/dateFormat'
@@ -104,6 +104,37 @@ function buildRenderList(periods) {
   pushRuns(byWin.get('__none__') ?? [])
 
   return items
+}
+
+// Slices a built render list down to one page's worth of ROWS (a clustered/
+// collapsed run counts as a single row, matching what's actually on screen —
+// not the raw period count underneath it). Carries the nearest preceding
+// heading along so a page that starts mid-window still shows which holiday
+// window its rows belong to, even if that heading was already shown on the
+// previous page.
+function paginateRenderItems(items, page, pageSize) {
+  const startRow = (page - 1) * pageSize
+  const endRow = startRow + pageSize
+
+  let rowIndex = 0
+  let firstRowItemIdx = -1
+  let lastRowItemIdx = -1
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].type !== 'row') continue
+    if (rowIndex === startRow) firstRowItemIdx = i
+    if (rowIndex === endRow - 1) lastRowItemIdx = i
+    rowIndex++
+  }
+  if (firstRowItemIdx === -1) return []
+  if (lastRowItemIdx === -1) lastRowItemIdx = items.length - 1
+
+  let headingIdx = -1
+  for (let i = firstRowItemIdx - 1; i >= 0; i--) {
+    if (items[i].type === 'heading') { headingIdx = i; break }
+  }
+
+  const slice = items.slice(firstRowItemIdx, lastRowItemIdx + 1)
+  return headingIdx === -1 ? slice : [items[headingIdx], ...slice]
 }
 
 const GRADIENT_STOPS = [
@@ -264,7 +295,7 @@ function GroupCollapseRow({ groupKey, onToggleExpand, onHoverClear }) {
   )
 }
 
-export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFilter, holidayFilter, legend = [], nested = false, onHoverPeriod, selectedKeys, onToggleSelect }) {
+export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFilter, holidayFilter, legend = [], nested = false, onHoverPeriod, selectedKeys, onToggleSelect, onPageDatesChange }) {
   const [sortKey, setSortKey] = useState('ratio')
   const [sortDir, setSortDir] = useState('desc')
   const [panelDate, setPanelDate]           = useState(null)
@@ -276,9 +307,9 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
     [legend]
   )
 
-  const { periods, renderItems } = useMemo(() => {
+  const periods = useMemo(() => {
     const holidayDates = holidayFilter && holidayFilter.size > 0 ? [...holidayFilter] : null
-    const filtered = [...allBestPeriods]
+    return [...allBestPeriods]
       .filter(p =>
         p.leaveDaysUsed <= leaveDays &&
         (!smartFilter || p.daysOff > leaveDays) &&
@@ -291,8 +322,44 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
         if (typeof va === 'string') return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va)
         return sortDir === 'asc' ? va - vb : vb - va
       })
-    return { periods: filtered, renderItems: buildRenderList(filtered) }
   }, [allBestPeriods, leaveDays, filterSet, smartFilter, holidayFilter, sortKey, sortDir])
+
+  const allRenderItems = useMemo(() => buildRenderList(periods), [periods])
+  const totalRows = useMemo(
+    () => allRenderItems.reduce((n, item) => n + (item.type === 'row' ? 1 : 0), 0),
+    [allRenderItems]
+  )
+
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const totalPages = Math.max(1, Math.ceil(totalRows / pageSize))
+
+  // Jump back to page 1 whenever the filtered/sorted result set — or the page
+  // size itself — changes, otherwise you could be stranded on a page that no
+  // longer exists.
+  useEffect(() => { setPage(1) }, [periods, pageSize])
+
+  const renderItems = useMemo(
+    () => paginateRenderItems(allRenderItems, page, pageSize),
+    [allRenderItems, page, pageSize]
+  )
+
+  // Tell the calendar which periods are on the current page — a clustered/
+  // collapsed row still reports every date underneath it, since those are
+  // still "on this page," just visually folded into one row. Report `null`
+  // on unmount so the calendar goes back to showing everything once the
+  // table isn't in view to page through.
+  useEffect(() => {
+    if (!onPageDatesChange) return
+    const pagePeriods = []
+    for (const item of renderItems) {
+      if (item.type !== 'row') continue
+      if (item.group) pagePeriods.push(...item.group)
+      else pagePeriods.push(item.period)
+    }
+    onPageDatesChange(pagePeriods)
+    return () => onPageDatesChange(null)
+  }, [renderItems, onPageDatesChange])
 
   function toggleSort(key) {
     if (sortKey === key) setSortDir(d => d === 'desc' ? 'asc' : 'desc')
@@ -317,11 +384,46 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
     return <p className="text-slate-500 dark:text-slate-400 text-xs px-4">No periods found.</p>
   }
 
-  const firstPeriod = periods[0]
+  // The "top pick" highlight is scoped to whatever's on the current page —
+  // not the globally best period, which might not even be visible here.
+  const firstPeriod = renderItems.find(item => item.type === 'row')?.period
 
   return (
     <>
       <div className="flex flex-col">
+        {totalRows > 5 && (
+          <div className="flex items-center justify-center gap-4 pb-3">
+            {totalPages > 1 && (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page === 1}
+                  className="w-8 h-8 flex-shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-sm font-bold leading-none flex items-center justify-center hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  aria-label="Previous page"
+                >‹</button>
+                <span className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">
+                  Page {page} of {totalPages}
+                </span>
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page === totalPages}
+                  className="w-8 h-8 flex-shrink-0 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-sm font-bold leading-none flex items-center justify-center hover:bg-slate-300 dark:hover:bg-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  aria-label="Next page"
+                >›</button>
+              </div>
+            )}
+            <label className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+              Per page
+              <select
+                value={pageSize}
+                onChange={(e) => setPageSize(Number(e.target.value))}
+                className="bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs rounded-lg pl-2 pr-6 py-1 border border-slate-200 dark:border-slate-600 focus:outline-none focus:border-sky-500"
+              >
+                {[5, 10, 15, 20].map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </label>
+          </div>
+        )}
         {/* Table — thead is the topmost sticky element now that the summary bar is gone */}
         <div className="border border-slate-200 dark:border-slate-700 [overflow:clip]">
           <table className="w-full text-xs table-fixed">
@@ -377,7 +479,7 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
 
                 const { period, group } = item
                 const { startDate, leaveDaysUsed } = period
-                const highlight = startDate === firstPeriod.startDate && leaveDaysUsed === firstPeriod.leaveDaysUsed
+                const highlight = firstPeriod != null && startDate === firstPeriod.startDate && leaveDaysUsed === firstPeriod.leaveDaysUsed
 
                 if (group) {
                   const groupKey = `g-${group[0].startDate}-${group[group.length - 1].startDate}-${leaveDaysUsed}`
@@ -404,7 +506,7 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
                           onToggleSelect={onToggleSelect}
                           onOpen={openPanel}
                           colourMap={colourMap}
-                          highlight={p.startDate === firstPeriod.startDate && p.leaveDaysUsed === firstPeriod.leaveDaysUsed}
+                          highlight={firstPeriod != null && p.startDate === firstPeriod.startDate && p.leaveDaysUsed === firstPeriod.leaveDaysUsed}
                           onHover={onHoverPeriod}
                         />
                       ))}

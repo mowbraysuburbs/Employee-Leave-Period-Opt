@@ -83,6 +83,39 @@ export function computeLeaveScores(startDateStr, endDateStr, leaveDays) {
 }
 
 /**
+ * Like computeLeaveScores, but for each day tries every spend from 0 up to
+ * maxLeaveDays and keeps whichever gives the best days-off-per-leave-day
+ * ratio — not a forced full spend. A date right before a public holiday
+ * might do best spending only 2 of your 5 available days; a date with
+ * nothing nearby still does best spending all 5, since there's no
+ * efficiency to be gained by holding back.
+ *
+ * Returns [{ date: "YYYY-MM-DD", daysOff: number, leaveDaysUsed: number }, ...]
+ */
+export function computeBestScores(startDateStr, endDateStr, maxLeaveDays) {
+  const holidaySet = buildMultiYearHolidaySet(startDateStr, endDateStr)
+
+  const scores = []
+  const end = new Date(endDateStr + 'T00:00:00')
+  let current = new Date(startDateStr + 'T00:00:00')
+
+  while (current <= end) {
+    let best = null
+    for (let k = 0; k <= maxLeaveDays; k++) {
+      const { totalDaysOff } = calcDaysOffFromDate(current, k, holidaySet)
+      const ratio = k > 0 ? totalDaysOff / k : totalDaysOff
+      if (best === null || ratio > best.ratio) {
+        best = { daysOff: totalDaysOff, leaveDaysUsed: k, ratio }
+      }
+    }
+    scores.push({ date: toDateStr(current), daysOff: best.daysOff, leaveDaysUsed: best.leaveDaysUsed })
+    current = addDays(current, 1)
+  }
+
+  return scores
+}
+
+/**
  * Walk forward from startDateStr spending leaveDays credits.
  * Returns the full day-by-day breakdown — used to render the leave period panel
  * when a user clicks a calendar cell.
