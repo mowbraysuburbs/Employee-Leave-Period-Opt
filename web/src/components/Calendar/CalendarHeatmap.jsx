@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from 'react'
+import { useMemo, useState, useCallback, useRef, useEffect } from 'react'
 import { MonthGrid } from './MonthGrid'
 import { ContinuousCalendar } from './ContinuousCalendar'
 import { LeavePeriodPanel } from './LeavePeriodPanel'
@@ -17,6 +17,7 @@ export function CalendarHeatmap({
   smartFilter,
   viewMode = '1x',
   externalHoveredRange = null,
+  restrictToDates = null,
 }) {
   const [selectedDate, setSelectedDate] = useState(null)
   const [hoveredRange, setHoveredRange] = useState(null)
@@ -24,11 +25,22 @@ export function CalendarHeatmap({
 
   const scoreMap = useMemo(() => {
     const map = new Map()
-    for (const { date, daysOff } of scores) {
-      map.set(date, smartFilter && daysOff <= leaveDays ? 0 : daysOff)
+    for (const { date, daysOff, leaveDaysUsed } of scores) {
+      if (restrictToDates && !restrictToDates.has(date)) continue
+      map.set(date, smartFilter && daysOff <= leaveDaysUsed ? 0 : daysOff)
     }
     return map
-  }, [scores, smartFilter, leaveDays])
+  }, [scores, smartFilter, restrictToDates])
+
+  // Each date's color comes from whichever leave-day spend gave it the best
+  // ratio (see computeBestScores) — this map remembers which spend that was,
+  // so hovering/clicking a day previews the period that actually earned its
+  // color instead of always assuming the slider's full leave-day count.
+  const leaveDaysUsedMap = useMemo(() => {
+    const map = new Map()
+    for (const { date, leaveDaysUsed } of scores) map.set(date, leaveDaysUsed)
+    return map
+  }, [scores])
 
   const colourRange = useMemo(() => {
     let min = Infinity, max = 0
@@ -39,12 +51,12 @@ export function CalendarHeatmap({
   }, [scoreMap])
 
   const handleDayHover = useCallback((dateStr) => {
-    if (leaveDays === 0) return
-    const range = getLeaveRange(dateStr, leaveDays)
+    const k = leaveDaysUsedMap.get(dateStr) ?? leaveDays
+    const range = getLeaveRange(dateStr, k)
     setHoveredRange(prev =>
       prev?.start === range.startDate ? prev : { start: range.startDate, end: range.endDate }
     )
-  }, [leaveDays])
+  }, [leaveDaysUsedMap, leaveDays])
 
   const handleDayLeave = useCallback(() => {
     setHoveredRange(null)
@@ -55,6 +67,34 @@ export function CalendarHeatmap({
   }, [])
 
   const compact = viewMode === '2x'
+
+  // Desktop month cards snap between three fixed cell sizes — never a
+  // continuous shrink/grow, since the grid track width is always one of
+  // exactly three pixel values, not a fraction of the container. The size
+  // is picked from how much width each card would actually get if laid out
+  // up to 4 per row, not from the pane's raw width alone — otherwise a pane
+  // with plenty of room but only one or two month cards in it (e.g. a
+  // page-restricted view) would stay small even though there's nothing else
+  // competing for that space.
+  const desktopGridRef = useRef(null)
+  const [desktopWidth, setDesktopWidth] = useState(0)
+
+  useEffect(() => {
+    const el = desktopGridRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver((entries) => {
+      setDesktopWidth(entries[0].contentRect.width)
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  const desktopCellPx = useMemo(() => {
+    if (desktopWidth === 0) return 30
+    const columns = Math.max(1, Math.min(months.length, 4))
+    const perCardWidth = desktopWidth / columns
+    return perCardWidth >= 300 ? 36 : perCardWidth >= 230 ? 30 : 24
+  }, [desktopWidth, months.length])
 
   const sharedProps = {
     scoreMap,
@@ -84,13 +124,16 @@ export function CalendarHeatmap({
         </div>
       )}
 
-      {/* Desktop: month card grid */}
-      <div className={`${compact ? 'hidden sm:flex sm:flex-wrap' : 'hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'} gap-5`}>
+      {/* Desktop: month card grid — always fixed-width cards that wrap, so
+          the available row count adapts to the pane's width without any
+          individual card ever resizing. */}
+      <div ref={desktopGridRef} className="hidden sm:flex sm:flex-wrap gap-5">
         {months.map(({ year, month }) => (
           <MonthGrid
             key={`${year}-${month}`}
             year={year}
             month={month}
+            cellPx={desktopCellPx}
             {...sharedProps}
           />
         ))}
@@ -99,7 +142,7 @@ export function CalendarHeatmap({
       {selectedDate && (
         <LeavePeriodPanel
           date={selectedDate}
-          leaveDays={leaveDays}
+          leaveDays={leaveDaysUsedMap.get(selectedDate) ?? leaveDays}
           onClose={() => setSelectedDate(null)}
         />
       )}

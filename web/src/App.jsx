@@ -5,7 +5,7 @@ import { LeavePlannerTab } from './components/Features/LeavePlannerTab'
 import { LeaveSummaryModal } from './components/Features/LeaveSummaryModal'
 import { BottomTabBar } from './components/Layout/BottomTabBar'
 import { LeaveDayRoller } from './components/Layout/LeaveDayRoller'
-import { computeLeaveScores } from './utils/leaveCalculator'
+import { computeBestScores } from './utils/leaveCalculator'
 import { getColourForDaysOff } from './utils/colorScale'
 import { allBestPeriodsCache } from './components/Features/LeavePlannerTab'
 import { PROVINCES } from './data/schoolHolidays'
@@ -93,6 +93,12 @@ export default function App() {
   // on the calendar, reusing the calendar's own day-hover range highlight.
   const [hoveredPeriodRange, setHoveredPeriodRange] = useState(null)
 
+  // The planner table reports which periods are on its current page — while
+  // it's visible, the calendar only colors those periods' start dates,
+  // instead of every day in range, so paging through the table re-focuses
+  // the calendar on exactly what's being reviewed right now.
+  const [visiblePagePeriods, setVisiblePagePeriods] = useState(null)
+
   const isDesktop = useIsDesktop()
 
   useEffect(() => {
@@ -124,7 +130,7 @@ export default function App() {
   }, [plannerStart, plannerEnd])
 
   const scores = useMemo(
-    () => computeLeaveScores(startDateStr, endDateStr, leaveDays),
+    () => computeBestScores(startDateStr, endDateStr, leaveDays),
     [startDateStr, endDateStr, leaveDays]
   )
 
@@ -183,6 +189,26 @@ export default function App() {
   const showCalendarPane = isDesktop ? calendarOn : activeTab === 'heatmap'
   const showPlannerPane = isDesktop ? plannerOn : activeTab === 'planner'
   const showSplit = isDesktop && calendarOn && plannerOn
+
+  // Only restrict the calendar to the table's current page while the table
+  // is actually on screen — guards against stale leftover data from a
+  // previous view (e.g. right after switching back to Calendar-only).
+  const pageStartDates = useMemo(() => {
+    if (!showPlannerPane || visiblePagePeriods == null) return null
+    return new Set(visiblePagePeriods.map(p => p.startDate))
+  }, [showPlannerPane, visiblePagePeriods])
+
+  // While restricted, drop any month card that has none of the current
+  // page's dates in it — sort order doesn't matter here, since this just
+  // asks "does this year-month appear anywhere in the page's dates," so a
+  // page sorted by ratio/days-off (scattered across the year, not
+  // chronological) still shows exactly the right, possibly non-contiguous,
+  // set of months.
+  const visibleMonths = useMemo(() => {
+    if (!pageStartDates) return months
+    const monthKeys = new Set([...pageStartDates].map(d => d.slice(0, 7)))
+    return months.filter(m => monthKeys.has(`${m.year}-${String(m.month).padStart(2, '0')}`))
+  }, [months, pageStartDates])
 
   function handleCalculate() {
     setPlannerStart(pendingStart)
@@ -739,7 +765,7 @@ export default function App() {
               <div className="h-full min-h-0 overflow-y-auto pt-4 pl-4 pr-4 pb-6">
                 <CalendarHeatmap
                   scores={scores}
-                  months={months}
+                  months={visibleMonths}
                   leaveDays={leaveDays}
                   showSchoolHolidays={showSchoolHols}
                   provinceCode={provinceCode}
@@ -747,6 +773,7 @@ export default function App() {
                   smartFilter={smartFilter}
                   viewMode={viewMode}
                   externalHoveredRange={hoveredPeriodRange}
+                  restrictToDates={pageStartDates}
                 />
               </div>
             </div>
@@ -786,6 +813,7 @@ export default function App() {
                   onHoverPeriod={setHoveredPeriodRange}
                   selectedKeys={selectedKeys}
                   onToggleSelect={toggleSelectPeriod}
+                  onPageDatesChange={setVisiblePagePeriods}
                 />
               </div>
             </div>
@@ -798,13 +826,14 @@ export default function App() {
             {showCalendarPane && (
               <CalendarHeatmap
                 scores={scores}
-                months={months}
+                months={visibleMonths}
                 leaveDays={leaveDays}
                 showSchoolHolidays={showSchoolHols}
                 provinceCode={provinceCode}
                 filterSet={filterSet}
                 smartFilter={smartFilter}
                 viewMode={viewMode}
+                restrictToDates={pageStartDates}
               />
             )}
             {showPlannerPane && (
@@ -818,6 +847,7 @@ export default function App() {
                 legend={legend}
                 selectedKeys={selectedKeys}
                 onToggleSelect={toggleSelectPeriod}
+                onPageDatesChange={setVisiblePagePeriods}
               />
             )}
             {!isDesktop && activeTab === 'holidays' && (
