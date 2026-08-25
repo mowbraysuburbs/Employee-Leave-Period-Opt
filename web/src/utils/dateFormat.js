@@ -77,3 +77,37 @@ export function fmtGroupRangeNice(group) {
     endLabel: fmtSubRangeNice(group[0].endDate, group[group.length - 1].endDate),
   }
 }
+
+const FULL_MONTH = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+]
+
+const shortYear = y => `'${y.slice(2)}`
+
+// "12 December '26" — full day and month, short year. Used by the
+// best-periods table's separate Start Date / End Date columns.
+export function fmtFull(dateStr) {
+  const [y, m, d] = dateStr.split('-')
+  return `${parseInt(d, 10)} ${FULL_MONTH[+m - 1]} ${shortYear(y)}`
+}
+
+function fmtSubRangeFull(a, b) {
+  if (a === b) return fmtFull(a)
+  const [ay, am, ad] = a.split('-')
+  const [by, bm, bd] = b.split('-')
+  if (a.slice(0, 7) === b.slice(0, 7)) {
+    return `${parseInt(ad, 10)}–${parseInt(bd, 10)} ${FULL_MONTH[+am - 1]} ${shortYear(ay)}`
+  }
+  if (ay === by) {
+    return `${parseInt(ad, 10)} ${FULL_MONTH[+am - 1]} – ${parseInt(bd, 10)} ${FULL_MONTH[+bm - 1]} ${shortYear(ay)}`
+  }
+  return `${fmtFull(a)} – ${fmtFull(b)}`
+}
+
+export function fmtGroupRangeFull(group) {
+  return {
+    startLabel: fmtSubRangeFull(group[0].startDate, group[group.length - 1].startDate),
+    endLabel: fmtSubRangeFull(group[0].endDate, group[group.length - 1].endDate),
+  }
+}

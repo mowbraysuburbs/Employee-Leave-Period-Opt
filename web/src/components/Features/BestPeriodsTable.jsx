@@ -1,7 +1,8 @@
 import { Fragment, useMemo, useState, useEffect } from 'react'
 import { LeavePeriodPanel } from '../Calendar/LeavePeriodPanel'
 import { PUBLIC_HOLIDAYS } from '../../data/publicHolidays'
-import { addDays, fmtRangeNice, fmtGroupRangeNice } from '../../utils/dateFormat'
+import { addDays, fmtFull, fmtGroupRangeFull } from '../../utils/dateFormat'
+import { getColourForDaysOff } from '../../utils/colorScale'
 
 const ALL_HOLIDAYS = Object.values(PUBLIC_HOLIDAYS).flat()
   .sort((a, b) => a.date.localeCompare(b.date))
@@ -106,22 +107,6 @@ function buildRenderList(periods) {
   return items
 }
 
-// A flat list, no headings, no leaveDaysUsed sub-grouping — just the exact
-// order `periods` is already in, with adjacent identical runs collapsed.
-// Used whenever the user has explicitly picked a sort: the holiday-window
-// grouping (and its own internal leaveDaysUsed bucketing) is a curation aid
-// for the default ratio-sorted browsing view, and both of those groupings
-// re-order rows in ways that break any OTHER column's requested order —
-// e.g. sorting by Days Off ascending would otherwise still jump back down
-// every time a new leaveDaysUsed sub-group or holiday window starts.
-function buildFlatRenderList(periods) {
-  const items = []
-  for (const run of collapseConsecutiveRuns(periods)) {
-    items.push({ type: 'row', period: run[0], group: run.length > 1 ? run : null })
-  }
-  return items
-}
-
 // Slices a built render list down to one page's worth of ROWS (a clustered/
 // collapsed run counts as a single row, matching what's actually on screen —
 // not the raw period count underneath it). Carries the nearest preceding
@@ -153,36 +138,6 @@ function paginateRenderItems(items, page, pageSize) {
   return headingIdx === -1 ? slice : [items[headingIdx], ...slice]
 }
 
-const GRADIENT_STOPS = [
-  [254, 240, 138],
-  [163, 230,  53],
-  [ 34, 197,  94],
-  [ 45, 212, 191],
-  [103, 232, 249],
-]
-
-function interpolate(t) {
-  const pos = t * (GRADIENT_STOPS.length - 1)
-  const lo = Math.floor(pos)
-  const hi = Math.min(lo + 1, GRADIENT_STOPS.length - 1)
-  const f = pos - lo
-  const [r, g, b] = [0, 1, 2].map(i =>
-    Math.round(GRADIENT_STOPS[lo][i] + (GRADIENT_STOPS[hi][i] - GRADIENT_STOPS[lo][i]) * f)
-  )
-  return `rgb(${r},${g},${b})`
-}
-
-// Days gained = days off beyond what you actually spent — 0 means you just
-// broke even, higher means a better deal. Colour scales across a 0-10 range.
-function getGainedColour(gained) {
-  if (gained == null) return '#e2e8f0'
-  return interpolate(Math.max(0, Math.min(1, gained / 10)))
-}
-
-function getUsedColour(used) {
-  return interpolate(Math.max(0, Math.min(1, 1 - (used - 1) / 9)))
-}
-
 function LayersIcon({ className }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -202,14 +157,19 @@ function ChevronDownIcon({ className }) {
 }
 
 const COLS = [
-  { key: 'leaveDaysUsed', label: 'Days Used',   align: 'center', width: '20%' },
-  { key: 'daysGained',    label: 'Days Gained', align: 'center', width: '20%' },
-  { key: 'startDate',     label: 'Total Leave', align: 'left',   width: '60%' },
+  { key: 'startDate',     label: 'Start Date',         align: 'left',   width: '25%' },
+  { key: 'endDate',       label: 'End Date',           align: 'left',   width: '25%' },
+  { key: 'leaveDaysUsed', label: 'Days Used',          align: 'center', width: '16.5%' },
+  { key: 'daysGained',    label: 'Days Gained',        align: 'center', width: '16.5%' },
+  { key: 'daysOff',       label: 'Days Off',           align: 'center', width: '17%' },
 ]
 
 function ValuePill({ colour, children }) {
   return (
-    <span className="inline-block rounded-full px-2 py-0.5 font-semibold tabular-nums" style={{ backgroundColor: colour, color: '#1e293b' }}>
+    <span
+      className="inline-flex items-center justify-center w-[30px] h-[30px] rounded-full font-bold text-xs tabular-nums"
+      style={{ backgroundColor: colour, color: '#1e293b' }}
+    >
       {children}
     </span>
   )
@@ -220,7 +180,6 @@ function ValuePill({ colour, children }) {
 function PeriodRow({ period, selected, onToggleSelect, onOpen, highlight, onHover }) {
   const { startDate, endDate, daysOff, leaveDaysUsed } = period
   const daysGained = daysOff - leaveDaysUsed
-  const [startLabel, endLabel] = fmtRangeNice(startDate, endDate)
   const key = `${startDate}-${leaveDaysUsed}`
 
   return (
@@ -239,13 +198,13 @@ function PeriodRow({ period, selected, onToggleSelect, onOpen, highlight, onHove
           className="w-4 h-4 rounded accent-sky-500 align-middle cursor-pointer"
         />
       </td>
+      <td className="px-3 py-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">{fmtFull(startDate)}</td>
+      <td className="px-3 py-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">{fmtFull(endDate)}</td>
+      <td className="px-3 py-2 text-center text-slate-700 dark:text-slate-300 tabular-nums">{leaveDaysUsed}</td>
+      <td className="px-3 py-2 text-center text-slate-700 dark:text-slate-300 tabular-nums">{daysGained}</td>
       <td className="px-3 py-2 text-center">
-        <ValuePill colour={getUsedColour(leaveDaysUsed)}>{leaveDaysUsed}</ValuePill>
+        <ValuePill colour={getColourForDaysOff(daysOff)}>{daysOff}</ValuePill>
       </td>
-      <td className="px-3 py-2 text-center">
-        <ValuePill colour={getGainedColour(daysGained)}>{daysGained}</ValuePill>
-      </td>
-      <td className="px-3 py-2 text-slate-700 dark:text-slate-300 tabular-nums whitespace-nowrap">{startLabel} – {endLabel}</td>
     </tr>
   )
 }
@@ -255,7 +214,7 @@ function PeriodRow({ period, selected, onToggleSelect, onOpen, highlight, onHove
 function GroupRow({ group, groupKey, onToggleExpand, onHoverClear }) {
   const { daysOff, leaveDaysUsed } = group[0]
   const daysGained = daysOff - leaveDaysUsed
-  const { startLabel, endLabel } = fmtGroupRangeNice(group)
+  const { startLabel, endLabel } = fmtGroupRangeFull(group)
 
   return (
     <tr
@@ -269,13 +228,13 @@ function GroupRow({ group, groupKey, onToggleExpand, onHoverClear }) {
           <span className="text-[9px] font-semibold leading-none">×{group.length}</span>
         </span>
       </td>
+      <td className="pl-5 pr-3 py-2 text-slate-700 dark:text-slate-300">{startLabel}</td>
+      <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{endLabel}</td>
+      <td className="px-3 py-2 text-center text-slate-700 dark:text-slate-300 tabular-nums">{leaveDaysUsed}</td>
+      <td className="px-3 py-2 text-center text-slate-700 dark:text-slate-300 tabular-nums">{daysGained}</td>
       <td className="px-3 py-2 text-center">
-        <ValuePill colour={getUsedColour(leaveDaysUsed)}>{leaveDaysUsed}</ValuePill>
+        <ValuePill colour={getColourForDaysOff(daysOff)}>{daysOff}</ValuePill>
       </td>
-      <td className="px-3 py-2 text-center">
-        <ValuePill colour={getGainedColour(daysGained)}>{daysGained}</ValuePill>
-      </td>
-      <td className="pl-5 pr-3 py-2 text-slate-700 dark:text-slate-300 tabular-nums whitespace-nowrap">{startLabel} – {endLabel}</td>
     </tr>
   )
 }
@@ -287,7 +246,7 @@ function GroupCollapseRow({ groupKey, onToggleExpand, onHoverClear }) {
       onMouseEnter={onHoverClear}
       className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
     >
-      <td colSpan={4} className="py-1">
+      <td colSpan={6} className="py-1">
         <div className="flex justify-center">
           <ChevronDownIcon className="w-4 h-4 text-slate-400 dark:text-slate-500 rotate-180" />
         </div>
@@ -303,6 +262,12 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
   const [panelLeaveDays, setPanelLeaveDays] = useState(null)
   const [expandedGroups, setExpandedGroups] = useState(new Set())
 
+  // Always sorted by the default (ratio desc) order — this is what decides
+  // page membership, so a column-header sort never changes which periods
+  // land on the current page. That matters because the calendar and the
+  // filter options are scoped to whatever's on the current page: if sorting
+  // could reshuffle page membership, clicking a column header would look
+  // like it was silently changing the calendar too.
   const periods = useMemo(() => {
     const holidayDates = holidayFilter && holidayFilter.size > 0 ? [...holidayFilter] : null
     return [...allBestPeriods]
@@ -312,20 +277,11 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
         (filterSet == null || filterSet.size === 0 || filterSet.has(p.daysOff)) &&
         (holidayDates == null || holidayDates.some(hDate => hDate >= p.startDate && hDate <= p.endDate))
       )
-      .sort((a, b) => {
-        const val = p => sortKey === 'daysGained' ? p.daysOff - p.leaveDaysUsed : p[sortKey] ?? 0
-        const va = val(a)
-        const vb = val(b)
-        if (typeof va === 'string') return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va)
-        return sortDir === 'asc' ? va - vb : vb - va
-      })
-  }, [allBestPeriods, leaveDays, filterSet, smartFilter, holidayFilter, sortKey, sortDir])
+      .sort((a, b) => (b.ratio ?? 0) - (a.ratio ?? 0) || b.daysOff - a.daysOff)
+  }, [allBestPeriods, leaveDays, filterSet, smartFilter, holidayFilter])
 
   const isDefaultSort = sortKey === 'ratio' && sortDir === 'desc'
-  const allRenderItems = useMemo(
-    () => isDefaultSort ? buildRenderList(periods) : buildFlatRenderList(periods),
-    [periods, isDefaultSort]
-  )
+  const allRenderItems = useMemo(() => buildRenderList(periods), [periods])
   const totalRows = useMemo(
     () => allRenderItems.reduce((n, item) => n + (item.type === 'row' ? 1 : 0), 0),
     [allRenderItems]
@@ -345,19 +301,37 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
     [allRenderItems, page, pageSize]
   )
 
-  // Tell the calendar which periods are on the current page — a clustered/
-  // collapsed row still reports every date underneath it, since those are
-  // still "on this page," just visually folded into one row. Report `null`
-  // on unmount so the calendar goes back to showing everything once the
-  // table isn't in view to page through.
+  // A column-header sort only reorders the rows already on this page — it
+  // never changes which periods those are (see `periods` above). Headings
+  // and separators are dropped once locally sorted, since they belong to
+  // the default browsing order and would sit in the wrong place once rows
+  // move around.
+  const sortedRenderItems = useMemo(() => {
+    if (isDefaultSort) return renderItems
+    const rows = renderItems.filter(item => item.type === 'row')
+    const val = item => sortKey === 'daysGained'
+      ? item.period.daysOff - item.period.leaveDaysUsed
+      : item.period[sortKey] ?? 0
+    return [...rows].sort((a, b) => {
+      const va = val(a)
+      const vb = val(b)
+      if (typeof va === 'string') return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va)
+      return sortDir === 'asc' ? va - vb : vb - va
+    })
+  }, [renderItems, isDefaultSort, sortKey, sortDir])
+
+  // Tell the calendar which periods are on the current page — one per
+  // visible row, at most. A clustered/collapsed "×N" row only reports its
+  // own representative date, not all N members, so the calendar never shows
+  // more dots than there are rows on the page: 10 rows per page means at
+  // most 10 dots, and filtering rows out can only shrink that further, never
+  // grow it. Report `null` on unmount so the calendar goes back to showing
+  // everything once the table isn't in view to page through.
   useEffect(() => {
     if (!onPageDatesChange) return
-    const pagePeriods = []
-    for (const item of renderItems) {
-      if (item.type !== 'row') continue
-      if (item.group) pagePeriods.push(...item.group)
-      else pagePeriods.push(item.period)
-    }
+    const pagePeriods = renderItems
+      .filter(item => item.type === 'row')
+      .map(item => item.period)
     onPageDatesChange(pagePeriods)
     return () => onPageDatesChange(null)
   }, [renderItems, onPageDatesChange])
@@ -387,7 +361,7 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
 
   // The "top pick" highlight is scoped to whatever's on the current page —
   // not the globally best period, which might not even be visible here.
-  const firstPeriod = renderItems.find(item => item.type === 'row')?.period
+  const firstPeriod = sortedRenderItems.find(item => item.type === 'row')?.period
 
   return (
     <>
@@ -420,7 +394,7 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
                 onChange={(e) => setPageSize(Number(e.target.value))}
                 className="bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs rounded-lg pl-2 pr-6 py-1 border border-slate-200 dark:border-slate-600 focus:outline-none focus:border-sky-500"
               >
-                {[5, 10, 15, 20].map(n => <option key={n} value={n}>{n}</option>)}
+                {[5, 10, 20, 30, 50, 100, 200].map(n => <option key={n} value={n}>{n}</option>)}
               </select>
             </label>
           </div>
@@ -439,7 +413,7 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
                   <th
                     key={key}
                     onClick={() => toggleSort(key)}
-                    className={`px-3 py-2 font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer whitespace-nowrap text-${align}`}
+                    className={`px-3 py-2 font-bold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer whitespace-nowrap text-${align}`}
                   >
                     {label}
                     <span className="ml-0.5 inline-block w-2.5 text-slate-400 dark:text-slate-500">
@@ -450,11 +424,11 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
               </tr>
             </thead>
             <tbody onMouseLeave={() => onHoverPeriod?.(null)}>
-              {renderItems.map((item, i) => {
+              {sortedRenderItems.map((item, i) => {
                 if (item.type === 'heading') {
                   return (
                     <tr key={`h-${i}`} onMouseEnter={() => onHoverPeriod?.(null)} className="bg-white dark:bg-transparent">
-                      <td colSpan={4} className="px-3 pt-3 pb-1">
+                      <td colSpan={6} className="px-3 pt-3 pb-1">
                         <div className="flex items-center gap-2">
                           <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
                           <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 whitespace-nowrap">
@@ -470,7 +444,7 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
                 if (item.type === 'separator') {
                   return (
                     <tr key={`s-${i}`} onMouseEnter={() => onHoverPeriod?.(null)} className="bg-white dark:bg-transparent">
-                      <td colSpan={4}>
+                      <td colSpan={6}>
                         <div className="mx-3 h-px bg-slate-200 dark:bg-slate-700" />
                       </td>
                     </tr>
