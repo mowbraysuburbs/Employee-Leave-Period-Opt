@@ -18,29 +18,30 @@ export function CalendarHeatmap({
   viewMode = '1x',
   externalHoveredRange = null,
   restrictToDates = null,
+  pageDaysOffMap = null,
 }) {
   const [selectedDate, setSelectedDate] = useState(null)
   const [hoveredRange, setHoveredRange] = useState(null)
   const activeHoveredRange = externalHoveredRange ?? hoveredRange
 
+  // A Days Off chip filters by a specific value — a page-scoped date has to
+  // be coloured by whichever value actually qualified it for that filter,
+  // not the calendar's own independently-computed full-spend total (which
+  // can be a different number, and a different colour, if the qualifying
+  // table row used fewer leave days than the slider). Every date in
+  // pageDaysOffMap already passed the table's own filterSet check, so using
+  // it here is always safe. Without an active filter, the calendar still
+  // shows the full-spend max for every date, as it always has.
+  const hasActiveFilter = filterSet && filterSet.size > 0
   const scoreMap = useMemo(() => {
     const map = new Map()
-    for (const { date, daysOff, leaveDaysUsed } of scores) {
+    for (const { date, daysOff } of scores) {
       if (restrictToDates && !restrictToDates.has(date)) continue
-      map.set(date, smartFilter && daysOff <= leaveDaysUsed ? 0 : daysOff)
+      const value = hasActiveFilter && pageDaysOffMap?.has(date) ? pageDaysOffMap.get(date) : daysOff
+      map.set(date, smartFilter && value <= leaveDays ? 0 : value)
     }
     return map
-  }, [scores, smartFilter, restrictToDates])
-
-  // Each date's color comes from whichever leave-day spend gave it the best
-  // ratio (see computeBestScores) — this map remembers which spend that was,
-  // so hovering/clicking a day previews the period that actually earned its
-  // color instead of always assuming the slider's full leave-day count.
-  const leaveDaysUsedMap = useMemo(() => {
-    const map = new Map()
-    for (const { date, leaveDaysUsed } of scores) map.set(date, leaveDaysUsed)
-    return map
-  }, [scores])
+  }, [scores, smartFilter, restrictToDates, leaveDays, hasActiveFilter, pageDaysOffMap])
 
   const colourRange = useMemo(() => {
     let min = Infinity, max = 0
@@ -51,12 +52,11 @@ export function CalendarHeatmap({
   }, [scoreMap])
 
   const handleDayHover = useCallback((dateStr) => {
-    const k = leaveDaysUsedMap.get(dateStr) ?? leaveDays
-    const range = getLeaveRange(dateStr, k)
+    const range = getLeaveRange(dateStr, leaveDays)
     setHoveredRange(prev =>
       prev?.start === range.startDate ? prev : { start: range.startDate, end: range.endDate }
     )
-  }, [leaveDaysUsedMap, leaveDays])
+  }, [leaveDays])
 
   const handleDayLeave = useCallback(() => {
     setHoveredRange(null)
@@ -101,7 +101,16 @@ export function CalendarHeatmap({
     colourRange,
     showSchoolHolidays,
     provinceCode,
-    filterSet,
+    // When the table is already restricting which dates show (restrictToDates),
+    // that restriction IS the days-off filter's effect — every date it lets
+    // through already belongs to a qualifying table row, possibly one using
+    // fewer leave days than the slider. Applying filterSet again here would
+    // re-check against the calendar's own full-spend value for that date,
+    // which can legitimately differ from the row that actually qualified,
+    // and would wrongly hide a date the table says is a valid match. Only
+    // apply it directly when there's no table driving what's shown (e.g.
+    // Calendar-only mode), where it's the only filtering mechanism at all.
+    filterSet: restrictToDates ? null : filterSet,
     compact,
     onDayClick: handleDayClick,
     hoveredRange: activeHoveredRange,
@@ -142,7 +151,7 @@ export function CalendarHeatmap({
       {selectedDate && (
         <LeavePeriodPanel
           date={selectedDate}
-          leaveDays={leaveDaysUsedMap.get(selectedDate) ?? leaveDays}
+          leaveDays={leaveDays}
           onClose={() => setSelectedDate(null)}
         />
       )}

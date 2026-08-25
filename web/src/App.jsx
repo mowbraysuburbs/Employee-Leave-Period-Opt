@@ -5,7 +5,7 @@ import { LeavePlannerTab } from './components/Features/LeavePlannerTab'
 import { LeaveSummaryModal } from './components/Features/LeaveSummaryModal'
 import { BottomTabBar } from './components/Layout/BottomTabBar'
 import { LeaveDayRoller } from './components/Layout/LeaveDayRoller'
-import { computeBestScores } from './utils/leaveCalculator'
+import { computeLeaveScores } from './utils/leaveCalculator'
 import { getColourForDaysOff } from './utils/colorScale'
 import { allBestPeriodsCache } from './components/Features/LeavePlannerTab'
 import { PROVINCES } from './data/schoolHolidays'
@@ -130,7 +130,7 @@ export default function App() {
   }, [plannerStart, plannerEnd])
 
   const scores = useMemo(
-    () => computeBestScores(startDateStr, endDateStr, leaveDays),
+    () => computeLeaveScores(startDateStr, endDateStr, leaveDays),
     [startDateStr, endDateStr, leaveDays]
   )
 
@@ -236,17 +236,42 @@ export default function App() {
     return new Set(pageScopePeriods.map(p => p.startDate))
   }, [pageScopePeriods])
 
-  // While restricted, drop any month card that has none of the current
-  // page's dates in it — sort order doesn't matter here, since this just
-  // asks "does this year-month appear anywhere in the page's dates," so a
-  // page sorted by ratio/days-off (scattered across the year, not
-  // chronological) still shows exactly the right, possibly non-contiguous,
-  // set of months.
+  // When a Days Off chip is active, a page-scoped date's color needs to
+  // match the value that actually qualified it for the filter — not the
+  // calendar's own independently-computed full-spend total, which can be a
+  // completely different number (and color) if the qualifying table row
+  // used fewer leave days than the slider. Every entry here already passed
+  // the table's own filterSet check, so using it is always safe.
+  const pageDaysOffMap = useMemo(() => {
+    if (!pageScopePeriods) return null
+    const map = new Map()
+    for (const p of pageScopePeriods) map.set(p.startDate, p.daysOff)
+    return map
+  }, [pageScopePeriods])
+
+  // While restricted, drop any month card that the current page's periods
+  // never touch — but "touch" has to mean the whole [startDate, endDate]
+  // span, not just the start date. A period starting 22 March and ending
+  // 4 April genuinely runs into April, so April has to stay on the
+  // calendar too, or hovering that period can't show its full extent. Sort
+  // order doesn't matter here either way — this just asks "does this
+  // year-month fall anywhere within some period's span," so a page sorted
+  // by ratio/days-off (scattered across the year, not chronological) still
+  // shows exactly the right, possibly non-contiguous, set of months.
   const visibleMonths = useMemo(() => {
-    if (!pageStartDates) return months
-    const monthKeys = new Set([...pageStartDates].map(d => d.slice(0, 7)))
-    return months.filter(m => monthKeys.has(`${m.year}-${String(m.month).padStart(2, '0')}`))
-  }, [months, pageStartDates])
+    if (!pageScopePeriods) return months
+    const monthKeys = new Set()
+    for (const p of pageScopePeriods) {
+      let [y, m] = p.startDate.slice(0, 7).split('-').map(Number)
+      const [endY, endM] = p.endDate.slice(0, 7).split('-').map(Number)
+      while (y < endY || (y === endY && m <= endM)) {
+        monthKeys.add(`${y}-${String(m).padStart(2, '0')}`)
+        m++
+        if (m > 12) { m = 1; y++ }
+      }
+    }
+    return months.filter(mo => monthKeys.has(`${mo.year}-${String(mo.month).padStart(2, '0')}`))
+  }, [months, pageScopePeriods])
 
   function handleCalculate() {
     setPlannerStart(pendingStart)
@@ -268,6 +293,22 @@ export default function App() {
     () => allBestPeriodsCache.filter(p => selectedKeys.has(`${p.startDate}-${p.leaveDaysUsed}`)),
     [selectedKeys]
   )
+
+  // The date range is the highest-priority filter — narrowing it drops any
+  // selected period that's no longer in range, so the Share summary can
+  // never keep stats for something you can't even see in the table anymore.
+  useEffect(() => {
+    setSelectedKeys(prev => {
+      if (prev.size === 0) return prev
+      const next = new Set(
+        [...prev].filter(key => {
+          const period = allBestPeriodsCache.find(p => `${p.startDate}-${p.leaveDaysUsed}` === key)
+          return period && period.startDate >= plannerStart && period.endDate <= plannerEnd
+        })
+      )
+      return next.size === prev.size ? prev : next
+    })
+  }, [plannerStart, plannerEnd])
 
   const selectedStats = useMemo(() => {
     let leaveDaysUsedSum = 0, daysOffSum = 0
@@ -812,6 +853,7 @@ export default function App() {
                   viewMode={viewMode}
                   externalHoveredRange={hoveredPeriodRange}
                   restrictToDates={pageStartDates}
+                  pageDaysOffMap={pageDaysOffMap}
                 />
               </div>
             </div>
@@ -871,6 +913,7 @@ export default function App() {
                 smartFilter={smartFilter}
                 viewMode={viewMode}
                 restrictToDates={pageStartDates}
+                pageDaysOffMap={pageDaysOffMap}
               />
             )}
             {showPlannerPane && (
