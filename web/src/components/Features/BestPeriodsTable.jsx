@@ -177,7 +177,7 @@ function ValuePill({ colour, children }) {
 
 // One ordinary row — either a single candidate period, or a member of an
 // expanded group. Always has its own checkbox and opens the detail panel.
-function PeriodRow({ period, selected, onToggleSelect, onOpen, highlight, onHover }) {
+function PeriodRow({ period, selected, onToggleSelect, onOpen, highlight, onHover, pinned }) {
   const { startDate, endDate, daysOff, leaveDaysUsed } = period
   const daysGained = daysOff - leaveDaysUsed
   const key = `${startDate}-${leaveDaysUsed}`
@@ -187,7 +187,7 @@ function PeriodRow({ period, selected, onToggleSelect, onOpen, highlight, onHove
       onClick={() => onOpen(startDate, leaveDaysUsed)}
       onMouseEnter={() => onHover?.({ start: startDate, end: endDate })}
       className={`border-b border-slate-100 dark:border-slate-800 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800/60 active:bg-slate-100 dark:active:bg-slate-700/60 transition-colors cursor-pointer ${
-        highlight ? 'bg-sky-50 dark:bg-sky-900/20' : 'bg-white dark:bg-transparent'
+        pinned ? 'bg-amber-50 dark:bg-amber-900/10' : highlight ? 'bg-sky-50 dark:bg-sky-900/20' : 'bg-white dark:bg-transparent'
       }`}
     >
       <td className="px-2 py-2 text-center" onClick={e => e.stopPropagation()}>
@@ -255,12 +255,29 @@ function GroupCollapseRow({ groupKey, onToggleExpand, onHoverClear }) {
   )
 }
 
-export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFilter, holidayFilter, nested = false, onHoverPeriod, selectedKeys, onToggleSelect, onPageDatesChange }) {
+export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFilter, holidayFilter, nested = false, onHoverPeriod, selectedKeys, onToggleSelect, onPageDatesChange, pinnedKeys = new Set() }) {
   const [sortKey, setSortKey] = useState('ratio')
   const [sortDir, setSortDir] = useState('desc')
   const [panelDate, setPanelDate]           = useState(null)
   const [panelLeaveDays, setPanelLeaveDays] = useState(null)
   const [expandedGroups, setExpandedGroups] = useState(new Set())
+
+  // Quick Start picks are pulled out before any filter runs — a pinned row
+  // must never vanish because of a leave-days/days-off/holiday filter it
+  // doesn't know about. Shown as its own flat, chronological block above
+  // the normal (filtered, paginated) rows, so it always reads as "exactly
+  // what you picked," not folded into the holiday-window grouping below.
+  const pinnedPeriods = useMemo(() => {
+    if (pinnedKeys.size === 0) return []
+    return allBestPeriods
+      .filter(p => pinnedKeys.has(`${p.startDate}-${p.leaveDaysUsed}`))
+      .sort((a, b) => a.startDate.localeCompare(b.startDate))
+  }, [allBestPeriods, pinnedKeys])
+
+  const unpinnedBestPeriods = useMemo(
+    () => pinnedKeys.size === 0 ? allBestPeriods : allBestPeriods.filter(p => !pinnedKeys.has(`${p.startDate}-${p.leaveDaysUsed}`)),
+    [allBestPeriods, pinnedKeys]
+  )
 
   // Always sorted by the default (ratio desc) order — this is what decides
   // page membership, so a column-header sort never changes which periods
@@ -270,7 +287,7 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
   // like it was silently changing the calendar too.
   const periods = useMemo(() => {
     const holidayDates = holidayFilter && holidayFilter.size > 0 ? [...holidayFilter] : null
-    return [...allBestPeriods]
+    return [...unpinnedBestPeriods]
       .filter(p =>
         p.leaveDaysUsed <= leaveDays &&
         (!smartFilter || p.daysOff > leaveDays) &&
@@ -278,7 +295,7 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
         (holidayDates == null || holidayDates.some(hDate => hDate >= p.startDate && hDate <= p.endDate))
       )
       .sort((a, b) => (b.ratio ?? 0) - (a.ratio ?? 0) || b.daysOff - a.daysOff)
-  }, [allBestPeriods, leaveDays, filterSet, smartFilter, holidayFilter])
+  }, [unpinnedBestPeriods, leaveDays, filterSet, smartFilter, holidayFilter])
 
   const isDefaultSort = sortKey === 'ratio' && sortDir === 'desc'
   const allRenderItems = useMemo(() => buildRenderList(periods), [periods])
@@ -332,9 +349,9 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
     const pagePeriods = renderItems
       .filter(item => item.type === 'row')
       .map(item => item.period)
-    onPageDatesChange(pagePeriods)
+    onPageDatesChange([...pinnedPeriods, ...pagePeriods])
     return () => onPageDatesChange(null)
-  }, [renderItems, onPageDatesChange])
+  }, [renderItems, pinnedPeriods, onPageDatesChange])
 
   function toggleSort(key) {
     if (sortKey === key) setSortDir(d => d === 'desc' ? 'asc' : 'desc')
@@ -355,7 +372,7 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
     setPanelLeaveDays(leaveDaysUsed)
   }
 
-  if (periods.length === 0) {
+  if (periods.length === 0 && pinnedPeriods.length === 0) {
     return <p className="text-slate-500 dark:text-slate-400 text-xs px-4">No periods found.</p>
   }
 
@@ -424,6 +441,45 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
               </tr>
             </thead>
             <tbody onMouseLeave={() => onHoverPeriod?.(null)}>
+              {pinnedPeriods.length > 0 && (
+                <>
+                  <tr onMouseEnter={() => onHoverPeriod?.(null)} className="bg-white dark:bg-transparent">
+                    <td colSpan={6} className="px-3 pt-3 pb-1">
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-px bg-amber-200 dark:bg-amber-800" />
+                        <span className="text-[10px] font-semibold uppercase tracking-widest text-amber-500 dark:text-amber-400 whitespace-nowrap">
+                          ★ Your Quick Start picks
+                        </span>
+                        <div className="flex-1 h-px bg-amber-200 dark:bg-amber-800" />
+                      </div>
+                    </td>
+                  </tr>
+                  {pinnedPeriods.map((p) => (
+                    <PeriodRow
+                      key={`pinned-${p.startDate}-${p.leaveDaysUsed}`}
+                      period={p}
+                      selected={selectedKeys.has(`${p.startDate}-${p.leaveDaysUsed}`)}
+                      onToggleSelect={onToggleSelect}
+                      onOpen={openPanel}
+                      pinned
+                      onHover={onHoverPeriod}
+                    />
+                  ))}
+                  {periods.length > 0 && (
+                    <tr onMouseEnter={() => onHoverPeriod?.(null)} className="bg-white dark:bg-transparent">
+                      <td colSpan={6} className="px-3 pt-3 pb-1">
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+                          <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                            More candidates
+                          </span>
+                          <div className="flex-1 h-px bg-slate-200 dark:bg-slate-700" />
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </>
+              )}
               {sortedRenderItems.map((item, i) => {
                 if (item.type === 'heading') {
                   return (

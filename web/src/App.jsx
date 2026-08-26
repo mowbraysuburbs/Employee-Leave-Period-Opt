@@ -5,6 +5,9 @@ import { LeavePlannerTab } from './components/Features/LeavePlannerTab'
 import { LeaveSummaryModal } from './components/Features/LeaveSummaryModal'
 import { BottomTabBar } from './components/Layout/BottomTabBar'
 import { LeaveDayRoller } from './components/Layout/LeaveDayRoller'
+import { DaysLeftTracker } from './components/Layout/DaysLeftTracker'
+import { QuickStartWizard } from './components/Features/QuickStart/QuickStartWizard'
+import { ConfirmedPanel } from './components/Features/QuickStart/ConfirmedPanel'
 import { computeLeaveScores } from './utils/leaveCalculator'
 import { getColourForDaysOff } from './utils/colorScale'
 import { allBestPeriodsCache } from './components/Features/LeavePlannerTab'
@@ -43,6 +46,17 @@ function useIsDesktop() {
   return isDesktop
 }
 
+const QUICK_START_SEEN_KEY = 'stretchmyleave.quickStartSeen'
+
+function CompassIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" />
+      <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+    </svg>
+  )
+}
+
 function SwapIcon({ className }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -73,6 +87,22 @@ export default function App() {
   const [dateSheetOpen, setDateSheetOpen] = useState(false)
   const [plannerStart, setPlannerStart] = useState(TODAY_STR)
   const [plannerEnd, setPlannerEnd] = useState(DATASET_END)
+
+  // Quick Start wizard — wizardOpen mounts/unmounts the wizard (so its own
+  // step state always starts fresh); budgetDays is null until a plan exists,
+  // which is what makes the Days-left tracker appear; pinnedKeys marks which
+  // periods came from the wizard, separate from selectedKeys (pin = "this
+  // was recommended," select = "this is currently checked").
+  const [wizardOpen, setWizardOpen] = useState(false)
+  const [confirmedOpen, setConfirmedOpen] = useState(false)
+  const [budgetDays, setBudgetDays] = useState(null)
+  const [pinnedKeys, setPinnedKeys] = useState(new Set())
+
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem(QUICK_START_SEEN_KEY)) setWizardOpen(true)
+    } catch { /* localStorage unavailable — just skip the auto-open */ }
+  }, [])
 
   // Desktop header date inputs are pending until "Calculate" is clicked —
   // mobile's own date sheet still commits live, unaffected by this.
@@ -310,6 +340,47 @@ export default function App() {
     })
   }, [plannerStart, plannerEnd])
 
+  // Mirrors the selectedKeys pruning effect above, for the same reason —
+  // narrowing the date range shouldn't leave a pinned key pointing at a
+  // period the table can no longer show.
+  useEffect(() => {
+    setPinnedKeys(prev => {
+      if (prev.size === 0) return prev
+      const next = new Set(
+        [...prev].filter(key => {
+          const period = allBestPeriodsCache.find(p => `${p.startDate}-${p.leaveDaysUsed}` === key)
+          return period && period.startDate >= plannerStart && period.endDate <= plannerEnd
+        })
+      )
+      return next.size === prev.size ? prev : next
+    })
+  }, [plannerStart, plannerEnd])
+
+  function closeWizard() {
+    setWizardOpen(false)
+    try { localStorage.setItem(QUICK_START_SEEN_KEY, '1') } catch { /* ignore */ }
+  }
+
+  // Replaces (not merges) selectedKeys/pinnedKeys with exactly what the
+  // wizard produced — mixing in prior manual picks would corrupt the
+  // days-left math and defeat the point of a clean recommendation.
+  function handleWizardComplete(periods, action, budget) {
+    const keys = new Set(periods.map(p => `${p.startDate}-${p.leaveDaysUsed}`))
+    setSelectedKeys(keys)
+    setPinnedKeys(keys)
+    setBudgetDays(budget)
+    const maxUsed = periods.reduce((m, p) => Math.max(m, p.leaveDaysUsed), 0)
+    setLeaveDays(v => Math.min(MAX_LEAVE, Math.max(v, maxUsed)))
+    closeWizard()
+    if (action === 'accept') {
+      setConfirmedOpen(true)
+    } else if (isDesktop) {
+      setPlannerOn(true)
+    } else {
+      setActiveTab('planner')
+    }
+  }
+
   const selectedStats = useMemo(() => {
     let leaveDaysUsedSum = 0, daysOffSum = 0
     for (const p of selectedPeriods) {
@@ -411,6 +482,13 @@ export default function App() {
           {/* Right side buttons — mobile only */}
           <div className="md:hidden flex items-center gap-1">
             <button
+              onClick={() => setWizardOpen(true)}
+              className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-sky-500 bg-sky-50 dark:bg-sky-900/30 text-sky-500 hover:bg-sky-100 dark:hover:bg-sky-900/50 transition-colors"
+              aria-label="Quick Start"
+            >
+              <CompassIcon className="w-3.5 h-3.5" />
+            </button>
+            <button
               onClick={() => setHelpOpen(true)}
               className="w-8 h-8 flex items-center justify-center rounded-full border-2 border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-sm font-bold transition-colors leading-none"
               aria-label="Help"
@@ -471,6 +549,24 @@ export default function App() {
                 </>
               )}
               <span className="font-bold">Share</span>
+            </button>
+
+            {budgetDays != null && (
+              <DaysLeftTracker
+                budgetDays={budgetDays}
+                usedDays={selectedStats.leaveDaysUsed}
+                onClick={() => setConfirmedOpen(true)}
+                onDismiss={() => setBudgetDays(null)}
+              />
+            )}
+
+            <button
+              onClick={() => setWizardOpen(true)}
+              className="w-8 h-8 flex items-center justify-center rounded-lg border-2 border-sky-500 bg-sky-50 dark:bg-sky-900/30 text-sky-500 hover:bg-sky-100 dark:hover:bg-sky-900/50 transition-colors"
+              aria-label="Quick Start"
+              title="Quick Start"
+            >
+              <CompassIcon className="w-4 h-4" />
             </button>
 
             <div className="relative">
@@ -806,6 +902,23 @@ export default function App() {
         />
       )}
 
+      {wizardOpen && (
+        <QuickStartWizard
+          cache={allBestPeriodsCache}
+          todayStr={TODAY_STR}
+          datasetEnd={DATASET_END}
+          onComplete={handleWizardComplete}
+          onClose={closeWizard}
+        />
+      )}
+
+      {confirmedOpen && selectedPeriods.length > 0 && (
+        <ConfirmedPanel
+          periods={selectedPeriods}
+          onClose={() => setConfirmedOpen(false)}
+        />
+      )}
+
       {/* Main content area — sidebar removed; desktop nav now lives in the header gear + bottom pill */}
       <main className={showSplit ? 'flex-1 overflow-hidden flex flex-col min-h-0' : 'flex-1 overflow-y-auto'}>
         {/* Mobile weekday header + gradient bar — heatmap only, not in 2col (cards have own headers) */}
@@ -893,6 +1006,7 @@ export default function App() {
                   selectedKeys={selectedKeys}
                   onToggleSelect={toggleSelectPeriod}
                   onPageDatesChange={setVisiblePagePeriods}
+                  pinnedKeys={pinnedKeys}
                 />
               </div>
             </div>
@@ -927,6 +1041,7 @@ export default function App() {
                 selectedKeys={selectedKeys}
                 onToggleSelect={toggleSelectPeriod}
                 onPageDatesChange={setVisiblePagePeriods}
+                pinnedKeys={pinnedKeys}
               />
             )}
             {!isDesktop && activeTab === 'holidays' && (
@@ -942,8 +1057,8 @@ export default function App() {
 
       {/* Mobile bottom controls bar — sits above BottomTabBar */}
       <div className="fixed bottom-[52px] left-0 right-0 z-30 md:hidden bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700">
-        {/* Row 1: Date range pill */}
-        <div className="px-4 py-1 flex items-center justify-center border-b border-slate-200 dark:border-slate-700">
+        {/* Row 1: Date range pill (+ Days-left tracker, once a plan exists) */}
+        <div className="px-4 py-1 flex items-center justify-center gap-2 border-b border-slate-200 dark:border-slate-700">
           <button
             onClick={() => setDateSheetOpen(true)}
             className="flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-600 dark:text-slate-300 active:bg-slate-200 dark:active:bg-slate-700 transition-colors"
@@ -953,6 +1068,15 @@ export default function App() {
             <span className="text-slate-400 dark:text-slate-500">–</span>
             <span>{fmtPill(plannerEnd)}</span>
           </button>
+          {budgetDays != null && (
+            <DaysLeftTracker
+              compact
+              budgetDays={budgetDays}
+              usedDays={selectedStats.leaveDaysUsed}
+              onClick={() => setConfirmedOpen(true)}
+              onDismiss={() => setBudgetDays(null)}
+            />
+          )}
         </div>
 
         {/* Row 2: Days off chips — heatmap and planner tabs */}
