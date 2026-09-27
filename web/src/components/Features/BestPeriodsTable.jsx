@@ -1,7 +1,7 @@
-import { Fragment, useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { LeavePeriodPanel } from '../Calendar/LeavePeriodPanel'
 import { PUBLIC_HOLIDAYS } from '../../data/publicHolidays'
-import { addDays, fmtFull, fmtGroupRangeFull } from '../../utils/dateFormat'
+import { addDays, fmtFull } from '../../utils/dateFormat'
 import { getColourForDaysOff } from '../../utils/colorScale'
 
 const ALL_HOLIDAYS = Object.values(PUBLIC_HOLIDAYS).flat()
@@ -52,6 +52,19 @@ function collapseConsecutiveRuns(periods) {
     }
   }
   return runs
+}
+
+// Stable id for a run, used to remember which of its start dates is showing.
+function groupKeyOf(group) {
+  return `g-${group[0].startDate}-${group[group.length - 1].startDate}-${group[0].leaveDaysUsed}`
+}
+
+// Which member of a run the row shows: the one the user stepped to, else one
+// they've already ticked (so a selection is never hidden), else the earliest.
+function pickIndex(group, groupChoice, selectedKeys) {
+  const chosen = groupChoice[groupKeyOf(group)]
+  if (chosen != null) return chosen
+  return Math.max(0, group.findIndex(p => selectedKeys.has(`${p.startDate}-${p.leaveDaysUsed}`)))
 }
 
 // Build a flat render list: heading → rows → separator → rows → heading → ...
@@ -138,24 +151,6 @@ function paginateRenderItems(items, page, pageSize) {
   return headingIdx === -1 ? slice : [items[headingIdx], ...slice]
 }
 
-function LayersIcon({ className }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <polygon points="12 2 2 7 12 12 22 7 12 2" />
-      <polyline points="2 17 12 22 22 17" />
-      <polyline points="2 12 12 17 22 12" />
-    </svg>
-  )
-}
-
-function ChevronDownIcon({ className }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <polyline points="6 9 12 15 18 9" />
-    </svg>
-  )
-}
-
 const COLS = [
   { key: 'startDate',     label: 'Start Date',         align: 'left',   width: '25%' },
   { key: 'endDate',       label: 'End Date',           align: 'left',   width: '25%' },
@@ -175,9 +170,38 @@ function ValuePill({ colour, children }) {
   )
 }
 
-// One ordinary row — either a single candidate period, or a member of an
-// expanded group. Always has its own checkbox and opens the detail panel.
-function PeriodRow({ period, selected, onToggleSelect, onOpen, highlight, onHover, pinned }) {
+// A run's start date plus a joined ‹ › pair that steps between the run's
+// start dates (all of which give the same result). Clicks stop here so
+// stepping never also opens the detail panel.
+function StartDateStepper({ date, index, count, onStep }) {
+  const btn =
+    'w-5 h-5 flex items-center justify-center text-sm font-bold leading-none ' +
+    'text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-800/50 ' +
+    'disabled:opacity-30 disabled:cursor-not-allowed transition-colors'
+
+  return (
+    <div className="flex flex-col gap-0.5">
+      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
+        <span>{fmtFull(date)}</span>
+        <span
+          onClick={e => e.stopPropagation()}
+          className="inline-flex rounded-full overflow-hidden border border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-sky-900/20"
+        >
+          <button type="button" onClick={() => onStep(-1)} disabled={index === 0} aria-label="Start one day earlier" className={btn}>‹</button>
+          <button type="button" onClick={() => onStep(1)} disabled={index === count - 1} aria-label="Start one day later" className={`${btn} border-l border-sky-200 dark:border-sky-800`}>›</button>
+        </span>
+      </div>
+      <span className="text-[10px] text-slate-400 dark:text-slate-500 tabular-nums">
+        {index + 1} of {count} start days
+      </span>
+    </div>
+  )
+}
+
+// One table row. For a run of same-result start dates, `stepper` is passed
+// and the start cell gets ‹ › controls; the row always shows (and its
+// checkbox always selects) whichever start date is currently chosen.
+function PeriodRow({ period, selected, onToggleSelect, onOpen, highlight, onHover, pinned, stepper }) {
   const { startDate, endDate, daysOff, leaveDaysUsed } = period
   const daysGained = daysOff - leaveDaysUsed
   const key = `${startDate}-${leaveDaysUsed}`
@@ -198,7 +222,9 @@ function PeriodRow({ period, selected, onToggleSelect, onOpen, highlight, onHove
           className="w-4 h-4 rounded accent-sky-500 align-middle cursor-pointer"
         />
       </td>
-      <td className="px-3 py-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">{fmtFull(startDate)}</td>
+      <td className="px-3 py-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">
+        {stepper ? <StartDateStepper date={startDate} {...stepper} /> : fmtFull(startDate)}
+      </td>
       <td className="px-3 py-2 text-slate-700 dark:text-slate-300 whitespace-nowrap">{fmtFull(endDate)}</td>
       <td className="px-3 py-2 text-center text-slate-700 dark:text-slate-300 tabular-nums">{leaveDaysUsed}</td>
       <td className="px-3 py-2 text-center text-slate-700 dark:text-slate-300 tabular-nums">{daysGained}</td>
@@ -209,58 +235,13 @@ function PeriodRow({ period, selected, onToggleSelect, onOpen, highlight, onHove
   )
 }
 
-// A collapsed run of adjacent same-result periods. Shows a layers icon +
-// count instead of a checkbox — tap it to expand into individual PeriodRows.
-function GroupRow({ group, groupKey, onToggleExpand, onHoverClear }) {
-  const { daysOff, leaveDaysUsed } = group[0]
-  const daysGained = daysOff - leaveDaysUsed
-  const { startLabel, endLabel } = fmtGroupRangeFull(group)
-
-  return (
-    <tr
-      onClick={() => onToggleExpand(groupKey)}
-      onMouseEnter={onHoverClear}
-      className="border-b border-slate-100 dark:border-slate-800 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800/60 active:bg-slate-100 dark:active:bg-slate-700/60 transition-colors cursor-pointer bg-white dark:bg-transparent"
-    >
-      <td className="px-2 py-2 text-center">
-        <span className="inline-flex flex-col items-center gap-0.5 text-slate-400 dark:text-slate-500">
-          <LayersIcon className="w-4 h-4" />
-          <span className="text-[9px] font-semibold leading-none">×{group.length}</span>
-        </span>
-      </td>
-      <td className="pl-5 pr-3 py-2 text-slate-700 dark:text-slate-300">{startLabel}</td>
-      <td className="px-3 py-2 text-slate-700 dark:text-slate-300">{endLabel}</td>
-      <td className="px-3 py-2 text-center text-slate-700 dark:text-slate-300 tabular-nums">{leaveDaysUsed}</td>
-      <td className="px-3 py-2 text-center text-slate-700 dark:text-slate-300 tabular-nums">{daysGained}</td>
-      <td className="px-3 py-2 text-center">
-        <ValuePill colour={getColourForDaysOff(daysOff)}>{daysOff}</ValuePill>
-      </td>
-    </tr>
-  )
-}
-
-function GroupCollapseRow({ groupKey, onToggleExpand, onHoverClear }) {
-  return (
-    <tr
-      onClick={() => onToggleExpand(groupKey)}
-      onMouseEnter={onHoverClear}
-      className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
-    >
-      <td colSpan={6} className="py-1">
-        <div className="flex justify-center">
-          <ChevronDownIcon className="w-4 h-4 text-slate-400 dark:text-slate-500 rotate-180" />
-        </div>
-      </td>
-    </tr>
-  )
-}
-
 export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFilter, holidayFilter, nested = false, onHoverPeriod, selectedKeys, onToggleSelect, onPageDatesChange, pinnedKeys = new Set() }) {
   const [sortKey, setSortKey] = useState('ratio')
   const [sortDir, setSortDir] = useState('desc')
   const [panelDate, setPanelDate]           = useState(null)
   const [panelLeaveDays, setPanelLeaveDays] = useState(null)
-  const [expandedGroups, setExpandedGroups] = useState(new Set())
+  // groupKey → index of the start date a run's row is showing (see pickIndex)
+  const [groupChoice, setGroupChoice] = useState({})
 
   // Quick Start picks are pulled out before any filter runs — a pinned row
   // must never vanish because of a leave-days/days-off/holiday filter it
@@ -338,8 +319,8 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
   }, [renderItems, isDefaultSort, sortKey, sortDir])
 
   // Tell the calendar which periods are on the current page — one per
-  // visible row, at most. A clustered/collapsed "×N" row only reports its
-  // own representative date, not all N members, so the calendar never shows
+  // visible row, at most. A run of same-result start dates only reports the
+  // start date its row is currently showing, not all N members, so the calendar never shows
   // more dots than there are rows on the page: 10 rows per page means at
   // most 10 dots, and filtering rows out can only shrink that further, never
   // grow it. Report `null` on unmount so the calendar goes back to showing
@@ -348,23 +329,21 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
     if (!onPageDatesChange) return
     const pagePeriods = renderItems
       .filter(item => item.type === 'row')
-      .map(item => item.period)
+      .map(item => item.group ? item.group[pickIndex(item.group, groupChoice, selectedKeys)] : item.period)
     onPageDatesChange([...pinnedPeriods, ...pagePeriods])
     return () => onPageDatesChange(null)
-  }, [renderItems, pinnedPeriods, onPageDatesChange])
+  }, [renderItems, pinnedPeriods, onPageDatesChange, groupChoice, selectedKeys])
 
   function toggleSort(key) {
     if (sortKey === key) setSortDir(d => d === 'desc' ? 'asc' : 'desc')
     else { setSortKey(key); setSortDir('desc') }
   }
 
-  function toggleExpand(key) {
-    setExpandedGroups(prev => {
-      const next = new Set(prev)
-      if (next.has(key)) next.delete(key)
-      else next.add(key)
-      return next
-    })
+  function stepGroup(group, delta) {
+    const current = pickIndex(group, groupChoice, selectedKeys)
+    const next = Math.min(group.length - 1, Math.max(0, current + delta))
+    setGroupChoice(prev => ({ ...prev, [groupKeyOf(group)]: next }))
+    onHoverPeriod?.({ start: group[next].startDate, end: group[next].endDate })
   }
 
   function openPanel(startDate, leaveDaysUsed) {
@@ -512,33 +491,20 @@ export function BestPeriodsTable({ allBestPeriods, leaveDays, filterSet, smartFi
                 const highlight = firstPeriod != null && startDate === firstPeriod.startDate && leaveDaysUsed === firstPeriod.leaveDaysUsed
 
                 if (group) {
-                  const groupKey = `g-${group[0].startDate}-${group[group.length - 1].startDate}-${leaveDaysUsed}`
-                  if (!expandedGroups.has(groupKey)) {
-                    return (
-                      <GroupRow
-                        key={groupKey}
-                        group={group}
-                        groupKey={groupKey}
-                        onToggleExpand={toggleExpand}
-                        onHoverClear={() => onHoverPeriod?.(null)}
-                      />
-                    )
-                  }
+                  const index = pickIndex(group, groupChoice, selectedKeys)
+                  const shown = group[index]
+                  const shownKey = `${shown.startDate}-${shown.leaveDaysUsed}`
                   return (
-                    <Fragment key={groupKey}>
-                      <GroupCollapseRow groupKey={groupKey} onToggleExpand={toggleExpand} onHoverClear={() => onHoverPeriod?.(null)} />
-                      {group.map(p => (
-                        <PeriodRow
-                          key={`${p.startDate}-${p.leaveDaysUsed}`}
-                          period={p}
-                          selected={selectedKeys.has(`${p.startDate}-${p.leaveDaysUsed}`)}
-                          onToggleSelect={onToggleSelect}
-                          onOpen={openPanel}
-                          highlight={firstPeriod != null && p.startDate === firstPeriod.startDate && p.leaveDaysUsed === firstPeriod.leaveDaysUsed}
-                          onHover={onHoverPeriod}
-                        />
-                      ))}
-                    </Fragment>
+                    <PeriodRow
+                      key={groupKeyOf(group)}
+                      period={shown}
+                      selected={selectedKeys.has(shownKey)}
+                      onToggleSelect={onToggleSelect}
+                      onOpen={openPanel}
+                      highlight={highlight}
+                      onHover={onHoverPeriod}
+                      stepper={{ index, count: group.length, onStep: delta => stepGroup(group, delta) }}
+                    />
                   )
                 }
 
