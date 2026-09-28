@@ -19,6 +19,9 @@ export function CalendarHeatmap({
   externalHoveredRange = null,
   restrictToDates = null,
   pageDaysOffMap = null,
+  // "My leave" view: Map(date -> day type) for the user's ticked periods.
+  // When set, cells are coloured by type and the heatmap scores are hidden.
+  dayTypes = null,
 }) {
   const [selectedDate, setSelectedDate] = useState(null)
   const [hoveredRange, setHoveredRange] = useState(null)
@@ -35,13 +38,14 @@ export function CalendarHeatmap({
   const hasActiveFilter = filterSet && filterSet.size > 0
   const scoreMap = useMemo(() => {
     const map = new Map()
+    if (dayTypes) return map
     for (const { date, daysOff } of scores) {
       if (restrictToDates && !restrictToDates.has(date)) continue
       const value = hasActiveFilter && pageDaysOffMap?.has(date) ? pageDaysOffMap.get(date) : daysOff
       map.set(date, smartFilter && value <= leaveDays ? 0 : value)
     }
     return map
-  }, [scores, smartFilter, restrictToDates, leaveDays, hasActiveFilter, pageDaysOffMap])
+  }, [scores, smartFilter, restrictToDates, leaveDays, hasActiveFilter, pageDaysOffMap, dayTypes])
 
   const colourRange = useMemo(() => {
     let min = Infinity, max = 0
@@ -116,6 +120,7 @@ export function CalendarHeatmap({
     hoveredRange: activeHoveredRange,
     onDayHover: handleDayHover,
     onDayLeave: handleDayLeave,
+    dayTypes,
   }
 
   return (

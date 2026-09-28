@@ -1,5 +1,6 @@
 import { useState, memo } from 'react'
 import { getColourForDaysOff } from '../../utils/colorScale'
+import { DAY_TYPE_COLOUR, DAY_TYPE_LEGEND } from '../../utils/dayTypes'
 
 function inRange(hr, date) { return !!hr && date >= hr.start && date <= hr.end }
 
@@ -7,6 +8,7 @@ function dayCellEqual(prev, next) {
   if (
     prev.date            !== next.date            ||
     prev.daysOff         !== next.daysOff         ||
+    prev.dayType         !== next.dayType         ||
     prev.isPublicHoliday !== next.isPublicHoliday ||
     prev.isSchoolHoliday !== next.isSchoolHoliday ||
     prev.weekdayIndex    !== next.weekdayIndex    ||
@@ -38,6 +40,7 @@ export const DayCell = memo(function DayCell({
   onDayHover,
   hoveredRange,
   weekdayIndex,
+  dayType = null,
 }) {
   const [tooltipVisible, setTooltipVisible] = useState(false)
 
@@ -46,7 +49,9 @@ export const DayCell = memo(function DayCell({
   const today = new Date().toISOString().split('T')[0]
   const isToday = date === today
 
-  const colour = getColourForDaysOff(daysOff)
+  // In the calendar's "My leave" view a day is coloured by what kind of
+  // day it is in the user's plan, not by its days-off score.
+  const colour = dayType ? DAY_TYPE_COLOUR[dayType] : getColourForDaysOff(daysOff)
   const hasBackground = colour !== null
 
   // Range highlight flags
@@ -82,6 +87,7 @@ export const DayCell = memo(function DayCell({
   }
 
   const tooltipLines = []
+  if (dayType) tooltipLines.push(DAY_TYPE_LEGEND.find(l => l.type === dayType).label)
   if (daysOff > 0) tooltipLines.push(`${daysOff} day${daysOff === 1 ? '' : 's'} off`)
   if (isPublicHoliday && holidayName) tooltipLines.push(`🗓 ${holidayName}`)
   if (isSchoolHoliday && schoolBreakLabel) tooltipLines.push(`🏫 ${schoolBreakLabel}`)
@@ -117,6 +123,8 @@ export const DayCell = memo(function DayCell({
           className={`${compact ? 'text-[9px]' : 'text-sm sm:text-xs'} leading-none ${
             isPublicHoliday
               ? 'text-white font-bold italic'
+              : dayType
+              ? 'text-white font-semibold'
               : hasBackground
               ? 'text-black dark:text-slate-900 font-medium'
               : isInRange
