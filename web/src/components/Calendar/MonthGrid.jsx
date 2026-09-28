@@ -11,7 +11,7 @@ const MONTH_NAMES = [
 
 export function MonthGrid({
   year, month, scoreMap, colourRange, showSchoolHolidays, provinceCode, filterSet, compact, onDayClick,
-  hoveredRange, onDayHover, onDayLeave, cellPx,
+  hoveredRange, onDayHover, onDayLeave, cellPx, dayTypes = null,
 }) {
   const monthName = MONTH_NAMES[month - 1]
 
@@ -97,6 +97,7 @@ export function MonthGrid({
               hoveredRange={hoveredRange}
               weekdayIndex={weekdayIndex}
               onDayHover={onDayHover}
+              dayType={dayTypes?.get(dateStr) ?? null}
             />
           )
         })}

@@ -14,9 +14,16 @@ import { allBestPeriodsCache } from './components/Features/LeavePlannerTab'
 import { PROVINCES } from './data/schoolHolidays'
 import { PUBLIC_HOLIDAYS } from './data/publicHolidays'
 import { fmt } from './utils/dateFormat'
+import { CalendarViewToggle } from './components/Calendar/CalendarViewToggle'
+import { MyPlanPanel } from './components/Features/MyPlan/MyPlanPanel'
+import { summarisePlan } from './utils/planStats'
+import { DAY_TYPE_LEGEND } from './utils/dayTypes'
 
 const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 const MAX_LEAVE = 10
+// Yearly allowance the My plan panel assumes until one is set: the BCEA
+// minimum of 21 consecutive days, i.e. 15 working days.
+const DEFAULT_ALLOWANCE = 15
 
 function addMonths(ym, n) {
   const total = ym.year * 12 + (ym.month - 1) + n
@@ -84,6 +91,8 @@ export default function App() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [smartFilter, setSmartFilter] = useState(true)
   const [viewMode, setViewMode] = useState('1x')
+  // 'heatmap' = days-off scores; 'plan' = ticked periods coloured by day type
+  const [calendarView, setCalendarView] = useState('heatmap')
   const [dateSheetOpen, setDateSheetOpen] = useState(false)
   const [plannerStart, setPlannerStart] = useState(TODAY_STR)
   const [plannerEnd, setPlannerEnd] = useState(DATASET_END)
@@ -322,6 +331,33 @@ export default function App() {
   const selectedPeriods = useMemo(
     () => allBestPeriodsCache.filter(p => selectedKeys.has(`${p.startDate}-${p.leaveDaysUsed}`)),
     [selectedKeys]
+  )
+
+  const planStats = useMemo(() => summarisePlan(selectedPeriods), [selectedPeriods])
+  const isPlanView = calendarView === 'plan'
+
+  // Toggle + (in My leave) the My plan panel, shown above the calendar in
+  // both the desktop split view and the single-pane/mobile view.
+  const calendarTop = (
+    <div className="flex flex-col gap-3 pb-4">
+      <div className="flex justify-center">
+        <CalendarViewToggle view={calendarView} onChange={setCalendarView} selectedCount={selectedPeriods.length} />
+      </div>
+      {isPlanView && selectedPeriods.length > 0 && (
+        <MyPlanPanel
+          stats={planStats}
+          allowance={budgetDays ?? DEFAULT_ALLOWANCE}
+          isDefaultAllowance={budgetDays == null}
+          onAllowanceChange={setBudgetDays}
+        />
+      )}
+    </div>
+  )
+
+  const planEmptyState = (
+    <div className="mx-auto mt-6 max-w-xs rounded-xl border border-dashed border-slate-300 dark:border-slate-600 px-4 py-3 text-center text-xs text-slate-500 dark:text-slate-400">
+      Tick periods in the table to see them here
+    </div>
   )
 
   // The date range is the highest-priority filter — narrowing it drops any
@@ -924,7 +960,18 @@ export default function App() {
         {/* Mobile weekday header + gradient bar — heatmap only, not in 2col (cards have own headers) */}
         {showCalendarPane && viewMode !== '2col' && (
           <div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 sm:hidden">
-            {/* Segmented colour bar — mobile, sits above weekday letters */}
+            {/* Segmented colour bar — mobile, sits above weekday letters.
+                In My leave view it becomes the leave/holiday/weekend key. */}
+            {isPlanView ? (
+              <div className="flex items-center justify-center gap-4 px-4 py-2">
+                {DAY_TYPE_LEGEND.map(({ type, colour, label }) => (
+                  <span key={type} className="inline-flex items-center gap-1.5 text-[10px] text-slate-500 dark:text-slate-400">
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: colour }} />
+                    {label}
+                  </span>
+                ))}
+              </div>
+            ) : (
             <div className="flex items-center gap-2 px-4 py-2">
               <span className="text-[10px] text-slate-400 dark:text-slate-500 whitespace-nowrap">low</span>
               <div className="flex-1 h-2 rounded-full overflow-hidden flex">
@@ -934,6 +981,7 @@ export default function App() {
               </div>
               <span className="text-[10px] text-slate-400 dark:text-slate-500 whitespace-nowrap">high</span>
             </div>
+            )}
             <div className={`grid ${viewMode === '2x' ? 'grid-cols-[repeat(7,28px)_24px] w-fit mx-auto' : 'grid-cols-[repeat(7,1fr)_32px] px-4'} gap-0 pb-1`}>
               {['S','M','T','W','T','F','S'].map((h, i) => (
                 <div
@@ -955,9 +1003,12 @@ export default function App() {
           <div className="flex-1 min-h-0 flex flex-row px-4 pb-2">
             <div className="min-w-0 h-full" style={{ flexBasis: calendarBasis, order: calendarOrder }}>
               <div className="h-full min-h-0 overflow-y-auto pt-4 pl-4 pr-4 pb-6">
+                {calendarTop}
+                {isPlanView && selectedPeriods.length === 0 ? planEmptyState : (
                 <CalendarHeatmap
                   scores={scores}
-                  months={visibleMonths}
+                  months={isPlanView ? planStats.months : visibleMonths}
+                  dayTypes={isPlanView ? planStats.dayTypes : null}
                   leaveDays={leaveDays}
                   showSchoolHolidays={showSchoolHols}
                   provinceCode={provinceCode}
@@ -968,6 +1019,7 @@ export default function App() {
                   restrictToDates={pageStartDates}
                   pageDaysOffMap={pageDaysOffMap}
                 />
+                )}
               </div>
             </div>
 
@@ -1016,10 +1068,12 @@ export default function App() {
         {/* Single-pane view — mobile (driven by activeTab), or desktop with exactly one pane on */}
         {!showSplit && (
           <div className={(showPlannerPane && !showCalendarPane) ? 'pb-48 md:p-4 md:pb-6' : 'p-4 pb-48 md:pb-6'}>
-            {showCalendarPane && (
+            {showCalendarPane && calendarTop}
+            {showCalendarPane && (isPlanView && selectedPeriods.length === 0 ? planEmptyState : (
               <CalendarHeatmap
                 scores={scores}
-                months={visibleMonths}
+                months={isPlanView ? planStats.months : visibleMonths}
+                dayTypes={isPlanView ? planStats.dayTypes : null}
                 leaveDays={leaveDays}
                 showSchoolHolidays={showSchoolHols}
                 provinceCode={provinceCode}
@@ -1029,7 +1083,7 @@ export default function App() {
                 restrictToDates={pageStartDates}
                 pageDaysOffMap={pageDaysOffMap}
               />
-            )}
+            ))}
             {showPlannerPane && (
               <LeavePlannerTab
                 leaveDays={leaveDays}

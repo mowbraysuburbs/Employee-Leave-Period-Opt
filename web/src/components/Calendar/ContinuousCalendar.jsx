@@ -77,6 +77,7 @@ export function ContinuousCalendar({
   hoveredRange,
   onDayHover,
   onDayLeave,
+  dayTypes = null,
 }) {
   const rows = useMemo(
     () => buildRows(months, scoreMap, filterSet),
@@ -151,6 +152,7 @@ export function ContinuousCalendar({
                     hoveredRange={hoveredRange}
                     weekdayIndex={weekdayIndex}
                     onDayHover={onDayHover}
+                    dayType={dayTypes?.get(dateStr) ?? null}
                   />
                 </div>
               )

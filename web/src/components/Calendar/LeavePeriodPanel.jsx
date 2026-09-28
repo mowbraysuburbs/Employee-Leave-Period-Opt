@@ -3,6 +3,7 @@ import { getLeaveRange } from '../../utils/leaveCalculator'
 import { PUBLIC_HOLIDAYS } from '../../data/publicHolidays'
 import { addDays } from '../../utils/dateFormat'
 import { buildIcs } from '../../utils/ics'
+import { DAY_TYPE_LEGEND, DAY_TYPE_COLOUR } from '../../utils/dayTypes'
 
 const HOLIDAY_MAP = new Map(
   Object.values(PUBLIC_HOLIDAYS).flat().map(({ date, name }) => [date, name])
@@ -28,12 +29,8 @@ function downloadIcs(startDate, endDate, daysOff, leaveDays) {
   URL.revokeObjectURL(url)
 }
 
-const LEGEND = [
-  { type: 'leave',          colour: '#38bdf8', label: 'Leave day' },
-  { type: 'public_holiday', colour: '#fb923c', label: 'Public holiday' },
-  { type: 'weekend',        colour: '#475569', label: 'Weekend' },
-]
-const TYPE_COLOUR = Object.fromEntries(LEGEND.map(l => [l.type, l.colour]))
+const LEGEND = DAY_TYPE_LEGEND
+const TYPE_COLOUR = DAY_TYPE_COLOUR
 
 function buildRows(breakdown) {
   if (!breakdown.length) return []
