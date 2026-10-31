@@ -33,3 +33,20 @@ export function getColourForDaysOff(daysOff) {
   const index = Math.min(daysOff, PALETTE.length) - 1
   return PALETTE[index]
 }
+
+/**
+ * Snaps a multiplier (days off ÷ leave days) to a fixed 0.25 step, so the
+ * multiplier view gets the same "one value, one permanent colour" behaviour
+ * as the days-off view.
+ */
+export function multiplierBucket(multiplier) {
+  return Math.round(multiplier * 4) / 4
+}
+
+// 1.0× maps to the first palette colour and each 0.25 step moves one hue
+// along; anything past the end clamps to the last colour.
+export function getColourForMultiplier(multiplier) {
+  if (multiplier <= 0) return null
+  const steps = Math.round((multiplierBucket(multiplier) - 1) * 4)
+  return PALETTE[Math.min(Math.max(steps, 0), PALETTE.length - 1)]
+}
