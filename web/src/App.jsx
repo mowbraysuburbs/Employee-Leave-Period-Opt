@@ -18,6 +18,7 @@ import { CalendarViewToggle } from './components/Calendar/CalendarViewToggle'
 import { MyPlanPanel } from './components/Features/MyPlan/MyPlanPanel'
 import { summarisePlan } from './utils/planStats'
 import { DAY_TYPE_LEGEND } from './utils/dayTypes'
+import { DesktopApp } from './components/Desktop/DesktopApp'
 
 const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 const MAX_LEAVE = 10
@@ -467,6 +468,10 @@ export default function App() {
     e.preventDefault()
     setSplitRatio(0.5)
   }
+
+  // Desktop has its own simpler calendar-first layout; everything below is
+  // the mobile UI. This must stay after every hook call above.
+  if (isDesktop) return <DesktopApp />
 
   return (
     <div className="h-screen bg-slate-50 dark:bg-slate-900 flex flex-col transition-colors">

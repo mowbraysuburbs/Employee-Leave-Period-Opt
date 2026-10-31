@@ -42,6 +42,19 @@ export function fmtGroupRange(group) {
 }
 
 const SHORT_MONTH = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const SHORT_WEEKDAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+// "Sat 20 Mar" — weekday, day and month, no year. Used by the desktop
+// calendar's hover card, detail panel and My breaks list.
+export function fmtDay(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00')
+  return `${SHORT_WEEKDAY[d.getDay()]} ${d.getDate()} ${SHORT_MONTH[d.getMonth()]}`
+}
+
+// "Sat 20 – Mon 29 Mar 2027" style range; the year is only shown once, at the end.
+export function fmtDayRange(startDate, endDate) {
+  return `${fmtDay(startDate)} – ${fmtDay(endDate)} ${endDate.slice(0, 4)}`
+}
 
 // "03 May '26" — a friendlier alternative to fmt()'s "03/05/26", used by the
 // best-periods table only (other callers keep the slash format).
