@@ -2,6 +2,7 @@ import { PlanList } from './PlanList'
 import { PlanDetails } from './PlanDetails'
 import { PeriodPicker } from '../PeriodPicker'
 import { ProvincePicker } from '../ProvincePicker'
+import { EventsComingSoon } from '../EventsComingSoon'
 import { OVERVIEW_LEAVE } from '../../../utils/plans'
 
 /**
@@ -16,8 +17,9 @@ import { OVERVIEW_LEAVE } from '../../../utils/plans'
  *   isSaved                      – (break) => bool
  *   onAdd, onExport, onView      – (breaks) => void
  *   province, onProvinceChange   – school province, shown on School run
+ *   eventsSelected               – the Events row is selected (shows its coming-soon panel)
  */
-export function OverviewPage({ plans, selectedPlan, onSelect, period, ticked, onToggle, onToggleAll, isSaved, onAdd, onExport, onView, province, onProvinceChange }) {
+export function OverviewPage({ plans, selectedPlan, onSelect, period, ticked, onToggle, onToggleAll, isSaved, onAdd, onExport, onView, province, onProvinceChange, eventsSelected }) {
   const chosen = selectedPlan ? selectedPlan.breaks.filter(b => ticked.has(b.startDate)) : []
 
   return (
@@ -38,7 +40,8 @@ export function OverviewPage({ plans, selectedPlan, onSelect, period, ticked, on
         </div>
       ) : (
         <div className="flex flex-wrap gap-[18px] items-start">
-          <PlanList plans={plans} selectedId={selectedPlan?.id} onSelect={onSelect} />
+          <PlanList plans={plans} selectedId={eventsSelected ? 'events' : selectedPlan?.id} onSelect={onSelect} />
+          {eventsSelected && <EventsComingSoon />}
           {selectedPlan && (
             <PlanDetails
               plan={selectedPlan}

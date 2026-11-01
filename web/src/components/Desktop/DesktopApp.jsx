@@ -9,6 +9,7 @@ import { BreakDetailPanel } from './BreakDetailPanel'
 import { MyBreaksPanel } from './MyBreaksPanel'
 import { PreviewBanner } from './PreviewBanner'
 import { OverviewPage } from './Overview/OverviewPage'
+import { EventsComingSoon } from './EventsComingSoon'
 import { HolidaysList } from '../Features/HolidaysList'
 import { useSavedBreaks } from './useSavedBreaks'
 import { buildBreak, buildBreaksInRange, breakKey, hasGain, toCalendarEvent } from '../../utils/breaks'
@@ -87,7 +88,9 @@ export function DesktopApp() {
     }
     return dates
   }, [schoolOn, province, from, to])
-  const selectedPlan = plans.find(p => p.id === selectedPlanId) ?? plans[0] ?? null
+  // 'events' selects the Overview's coming-soon Events row instead of a plan.
+  const eventsSelected = selectedPlanId === 'events'
+  const selectedPlan = eventsSelected ? null : plans.find(p => p.id === selectedPlanId) ?? plans[0] ?? null
   const ticked = useMemo(() => {
     if (!selectedPlan) return new Set()
     const off = unticked[selectedPlan.id] ?? []
@@ -239,8 +242,11 @@ export function DesktopApp() {
             onView={viewOnCalendar}
             province={province}
             onProvinceChange={setProvince}
+            eventsSelected={eventsSelected}
           />
         )}
+
+        {page === 'events' && <EventsComingSoon variant="page" />}
 
         {page === 'holidays' && <HolidaysList months={months} showSchoolHolidays={false} provinceCode="GP" />}
 

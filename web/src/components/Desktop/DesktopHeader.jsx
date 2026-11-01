@@ -2,6 +2,7 @@ const PAGES = [
   { id: 'overview', label: 'Overview' },
   { id: 'calendar', label: 'Calendar' },
   { id: 'holidays', label: 'Public holidays' },
+  { id: 'events', label: 'Events', soon: true },
 ]
 
 export function DesktopHeader({ page, onPageChange }) {
@@ -24,6 +25,7 @@ export function DesktopHeader({ page, onPageChange }) {
               ].join(' ')}
             >
               {p.label}
+              {p.soon && <span className="ml-1.5 px-1.5 py-px rounded-full bg-teal-100 text-teal-800 text-[10px] font-bold align-middle">Soon</span>}
             </button>
           ))}
         </nav>
