@@ -1,6 +1,5 @@
 import { PeriodPicker } from '../PeriodPicker'
 import { HolidayFilterMenu } from '../HolidayFilterMenu'
-import { StatTile } from '../StatTile'
 
 const MODES = [
   { id: 'daysOff', label: 'Days off' },
@@ -122,16 +121,6 @@ export function RailExpanded({ c }) {
         >
           School holidays · {c.provinceName}
         </button>
-      </section>
-
-      <section aria-label="Hover card key" className={card}>
-        <div className="text-[13px] font-bold">Hover card key</div>
-        <div className="flex flex-wrap gap-1.5">
-          <StatTile kind="leave" label="leave" />
-          <StatTile kind="free" label="free days" />
-          <StatTile kind="multiplier" value="×" label="multiplier" />
-          <StatTile kind="total" label="total off" />
-        </div>
       </section>
     </aside>
   )
