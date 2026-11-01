@@ -15,7 +15,7 @@ import { CalendarKey } from '../Desktop/CalendarKey'
 import { BreakDetailPanel } from '../Desktop/BreakDetailPanel'
 import { MyBreaksPanel } from '../Desktop/MyBreaksPanel'
 import { PreviewBanner } from '../Desktop/PreviewBanner'
-import { OverviewPage } from '../Desktop/Overview/OverviewPage'
+import { MobileOverview } from './MobileOverview'
 import { EventsComingSoon } from '../Desktop/EventsComingSoon'
 import { HolidaysList } from '../Features/HolidaysList'
 import { useLeavePlanner, MAX_LEAVE, ALLOWANCE } from '../../hooks/useLeavePlanner'
@@ -72,7 +72,22 @@ export function MobileApp() {
         </button>
       </header>
 
-      {calendarPage ? (
+      {page === 'overview' ? (
+        <MobileOverview
+          plans={p.plans}
+          selectedPlan={p.selectedPlan}
+          onSelect={p.setSelectedPlanId}
+          ticked={p.ticked}
+          onToggle={p.toggleTick}
+          onToggleAll={p.toggleAllTicks}
+          isSaved={p.isSaved}
+          onAdd={p.addBreaks}
+          onExport={p.exportBreaks}
+          onView={viewOnCalendar}
+          province={p.province}
+          onProvinceChange={p.setProvince}
+        />
+      ) : calendarPage ? (
         <main className="flex-1 min-h-0 flex flex-col">
           {p.preview && (
             <div className="shrink-0 px-3 pt-2">
@@ -115,25 +130,6 @@ export function MobileApp() {
         </main>
       ) : (
         <main className="flex-1 min-h-0 overflow-y-auto px-3 py-4">
-          {page === 'overview' && (
-            <OverviewPage
-              plans={p.plans}
-              selectedPlan={p.selectedPlan}
-              onSelect={p.setSelectedPlanId}
-              period={p.period}
-              ticked={p.ticked}
-              onToggle={p.toggleTick}
-              onToggleAll={p.toggleAllTicks}
-              isSaved={p.isSaved}
-              onAdd={p.addBreaks}
-              onExport={p.exportBreaks}
-              onView={viewOnCalendar}
-              province={p.province}
-              onProvinceChange={p.setProvince}
-              eventsSelected={p.eventsSelected}
-              phone
-            />
-          )}
           {page === 'holidays' && <HolidaysList months={p.months} showSchoolHolidays={false} provinceCode={p.province} />}
           {page === 'events' && <EventsComingSoon variant="page" />}
         </main>
