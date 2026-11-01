@@ -19,7 +19,7 @@ import { OVERVIEW_LEAVE } from '../../../utils/plans'
  *   province, onProvinceChange   – school province, shown on School run
  *   eventsSelected               – the Events row is selected (shows its coming-soon panel)
  */
-export function OverviewPage({ plans, selectedPlan, onSelect, period, ticked, onToggle, onToggleAll, isSaved, onAdd, onExport, onView, province, onProvinceChange, eventsSelected }) {
+export function OverviewPage({ plans, selectedPlan, onSelect, period, ticked, onToggle, onToggleAll, isSaved, onAdd, onExport, onView, province, onProvinceChange, eventsSelected, phone = false }) {
   const chosen = selectedPlan ? selectedPlan.breaks.filter(b => ticked.has(b.startDate)) : []
 
   return (
@@ -44,6 +44,7 @@ export function OverviewPage({ plans, selectedPlan, onSelect, period, ticked, on
           {eventsSelected && <EventsComingSoon />}
           {selectedPlan && (
             <PlanDetails
+              phone={phone}
               plan={selectedPlan}
               ticked={ticked}
               onToggle={onToggle}

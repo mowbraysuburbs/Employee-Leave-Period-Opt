@@ -131,6 +131,7 @@ export function MobileApp() {
               province={p.province}
               onProvinceChange={p.setProvince}
               eventsSelected={p.eventsSelected}
+              phone
             />
           )}
           {page === 'holidays' && <HolidaysList months={p.months} showSchoolHolidays={false} provinceCode={p.province} />}

@@ -1,6 +1,7 @@
 import { PlanTheme } from './PlanTheme'
 import { PlanStats } from './PlanStats'
 import { PlanBreaksTable } from './PlanBreaksTable'
+import { PlanBreaksTablePhone } from './PlanBreaksTablePhone'
 import { BreakWeeks } from '../BreakWeeks'
 import { BreakDaysTable } from '../BreakDaysTable'
 
@@ -24,8 +25,9 @@ const THEME_CLASSES = {
  *   allSaved                – every ticked break is already in My breaks
  *   onAdd, onExport, onView – (tickedBreaks) => void
  *   topSlot                 – optional controls under the description (School run's province)
+ *   phone                   – use the phone table (dates fixed, numbers scroll sideways)
  */
-export function PlanDetails({ plan, ticked, onToggle, onToggleAll, allSaved, onAdd, onExport, onView, topSlot }) {
+export function PlanDetails({ plan, ticked, onToggle, onToggleAll, allSaved, onAdd, onExport, onView, topSlot, phone = false }) {
   const chosen = plan.breaks.filter(b => ticked.has(b.startDate))
   const single = plan.breaks.length === 1
   const none = chosen.length === 0
@@ -58,6 +60,8 @@ export function PlanDetails({ plan, ticked, onToggle, onToggleAll, allSaved, onA
               <BreakDaysTable brk={plan.breaks[0]} />
             </div>
           </div>
+        ) : phone ? (
+          <PlanBreaksTablePhone breaks={plan.breaks} ticked={ticked} onToggle={onToggle} onToggleAll={onToggleAll} />
         ) : (
           <PlanBreaksTable breaks={plan.breaks} ticked={ticked} onToggle={onToggle} onToggleAll={onToggleAll} />
         )}
