@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useRef, useState, useEffect } from 'react'
 import { MonthCard } from './MonthCard'
 import { HoverCard } from './HoverCard'
 import { AddPrompt } from './AddPrompt'
@@ -66,6 +66,8 @@ function withBand(day, brk) {
  *   previewDayTypes, previewStarts – a quick pick being previewed from
  *                    Overview (Map date -> type, Set of start dates), or null
  *   schoolDates    – Set of school-holiday dates to underline, or null when the filter is off
+ *   daysOffFilter  – Set of days-off values to keep coloured, or null; months without a
+ *                    match are hidden, but any row with a match is kept whole
  *   hoveredDate    – day under the mouse (owned by the parent so Details can follow it)
  *   confirmDate    – day whose Add prompt is open, or null
  *   onDayHover, onDayClick, onConfirm, onCancelConfirm
@@ -82,6 +84,7 @@ export function YearCalendar({
   previewDayTypes,
   previewStarts,
   schoolDates,
+  daysOffFilter,
   hoveredDate,
   confirmDate,
   onDayHover,
@@ -98,6 +101,7 @@ export function YearCalendar({
       if (previewDayTypes) return previewDayTypes.has(date) ? typeLook(previewDayTypes.get(date)) : FADED
       if (picksOnly) return savedDayTypes.has(date) ? typeLook(savedDayTypes.get(date)) : FADED
       if (!hasGain(brk)) return NO_GAIN
+      if (daysOffFilter && !daysOffFilter.has(brk.daysOff)) return FADED
       if (!passesFilter(brk)) return FADED
       const bg = colourBy === 'multiplier' ? getColourForMultiplier(brk.multiplier) : getColourForDaysOff(brk.daysOff)
       return { bg, fg: '#0f172a' }
@@ -138,7 +142,33 @@ export function YearCalendar({
         }
       }),
     }))
-  }, [months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, previewStarts, schoolDates])
+  }, [months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, previewStarts, schoolDates, daysOffFilter])
+
+  // How many month cards fit per row, matching the grid's minmax(260px, 1fr) and 16px gap.
+  const gridRef = useRef(null)
+  const [columns, setColumns] = useState(3)
+  useEffect(() => {
+    const el = gridRef.current
+    if (!el) return
+    const observer = new ResizeObserver(([entry]) => {
+      setColumns(Math.max(1, Math.floor((entry.contentRect.width + 16) / (260 + 16))))
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  // With a days-off filter, keep only rows of months that contain a match,
+  // but keep each such row whole so the grid never has gaps.
+  const visibleMonths = useMemo(() => {
+    if (!daysOffFilter) return monthDays
+    const kept = []
+    for (let i = 0; i < monthDays.length; i += columns) {
+      const row = monthDays.slice(i, i + columns)
+      const hasMatch = row.some(m => m.days.some(d => breaks[d.date] && daysOffFilter.has(breaks[d.date].daysOff)))
+      if (hasMatch) kept.push(...row)
+    }
+    return kept
+  }, [monthDays, daysOffFilter, columns, breaks])
 
   const hoverBreak = hoveredDate ? breaks[hoveredDate] : null
 
@@ -152,8 +182,13 @@ export function YearCalendar({
   }
 
   return (
-    <section aria-label="Calendar" className="flex-[999_1_640px] min-w-0 grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4">
-      {monthDays.map(m => (
+    <section ref={gridRef} aria-label="Calendar" className="flex-[999_1_640px] min-w-0 grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4">
+      {visibleMonths.length === 0 && (
+        <div className="col-span-full p-5 border-[1.5px] border-dashed border-slate-300 rounded-2xl text-sm text-slate-600 text-center">
+          No start days give that many days off in this period. Pick other numbers or clear the filter.
+        </div>
+      )}
+      {visibleMonths.map(m => (
         <MonthCard
           key={`${m.year}-${m.month}`}
           year={m.year}

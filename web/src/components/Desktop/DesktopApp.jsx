@@ -51,6 +51,8 @@ export function DesktopApp() {
   const [to, setTo] = useState(LAST_DATE)
   const [holidayFilter, setHolidayFilter] = useState([])
   const [picksOnly, setPicksOnly] = useState(false)
+  // Days-off values picked from the legend; only applies in Days off mode for now.
+  const [daysOffFilter, setDaysOffFilter] = useState([])
   const [tab, setTab] = useState('details')
   // The day under the mouse only drives the hover card and band; Details
   // changes when a day is clicked, so people can read it while moving around.
@@ -150,9 +152,14 @@ export function DesktopApp() {
     const values = gaining.map(b => (colourBy === 'multiplier' ? multiplierBucket(b.multiplier) : b.daysOff))
     return [...new Set(values)].sort((a, b) => a - b).map(v => colourBy === 'multiplier'
       // Buckets are 0.25 steps, so show them exactly (1.25×) rather than rounded.
-      ? { label: `${v}×`, colour: getColourForMultiplier(v) }
-      : { label: String(v), colour: getColourForDaysOff(v) })
+      ? { value: v, label: `${v}×`, colour: getColourForMultiplier(v) }
+      : { value: v, label: String(v), colour: getColourForDaysOff(v) })
   }, [breaks, colourBy])
+
+  const activeDaysOff = useMemo(
+    () => (colourBy === 'daysOff' && !picksOnly && daysOffFilter.length > 0 ? new Set(daysOffFilter) : null),
+    [colourBy, picksOnly, daysOffFilter]
+  )
 
   const isSaved = brk => savedKeys.has(breakKey(brk))
   const period = {
@@ -255,11 +262,15 @@ export function DesktopApp() {
         {page === 'calendar' && (
           <>
             <div className="flex flex-wrap gap-4 items-stretch">
-              <LeaveDaysCard value={leaveDays} min={1} max={MAX_LEAVE} onChange={setLeaveDays} />
+              {/* The days-off values change with leave days, so a new amount clears the filter. */}
+              <LeaveDaysCard value={leaveDays} min={1} max={MAX_LEAVE} onChange={v => { setLeaveDays(v); setDaysOffFilter([]) }} />
               <ColourModeCard
                 colourBy={colourBy}
                 onColourByChange={setColourBy}
                 legend={legend}
+                daysOffFilter={daysOffFilter}
+                onToggleDaysOff={v => setDaysOffFilter(f => (f.includes(v) ? f.filter(x => x !== v) : [...f, v]))}
+                onClearDaysOff={() => setDaysOffFilter([])}
                 picksOnly={picksOnly}
                 leaveDays={leaveDays}
               />
@@ -310,6 +321,7 @@ export function DesktopApp() {
                 previewDayTypes={previewOnly ? previewDays.dayTypes : null}
                 previewStarts={previewOnly ? previewDays.starts : null}
                 schoolDates={schoolDates}
+                daysOffFilter={activeDaysOff}
                 hoveredDate={hoveredDate}
                 confirmDate={confirmDate}
                 onDayHover={setHoveredDate}
