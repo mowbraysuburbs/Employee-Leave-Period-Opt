@@ -1,6 +1,7 @@
 import { BreakWeeks } from './BreakWeeks'
 import { BreakDaysTable } from './BreakDaysTable'
 import { StartDateChips } from './StartDateChips'
+import { AddBreakControls } from './AddBreakControls'
 import { fmtDayRange } from '../../utils/dateFormat'
 import { formatMultiplier } from '../../utils/breaks'
 
@@ -24,8 +25,9 @@ function Stat({ value, label, highlight }) {
  *   equalStarts, onPickStart – equal alternatives to move to (see StartDateChips)
  *   isSaved    – already in My breaks
  *   onAdd, onRemove
+ *   overlaps, combined, onReplace, leaveLeft, allowance – see AddBreakControls
  */
-export function BreakDetailPanel({ brk, nextBreak, bestNote, label, equalStarts, onPickStart, isSaved, onAdd, onRemove }) {
+export function BreakDetailPanel({ brk, nextBreak, bestNote, label, equalStarts, onPickStart, isSaved, onAdd, onRemove, ...addProps }) {
   if (!brk) {
     return (
       <div className="px-5 py-7 border-[1.5px] border-dashed border-slate-300 rounded-2xl text-sm text-slate-600 text-center">
@@ -46,15 +48,7 @@ export function BreakDetailPanel({ brk, nextBreak, bestNote, label, equalStarts,
         )}
       </div>
 
-      {isSaved ? (
-        <button type="button" onClick={onRemove} className="h-11 rounded-xl bg-white text-red-700 border border-red-300 text-[15px] font-bold">
-          Remove from my breaks
-        </button>
-      ) : (
-        <button type="button" onClick={onAdd} className="h-11 rounded-xl bg-sky-700 text-white text-[15px] font-bold">
-          + Add to my breaks
-        </button>
-      )}
+      <AddBreakControls brk={brk} isSaved={isSaved} onAdd={onAdd} onRemove={onRemove} {...addProps} />
 
       <StartDateChips options={equalStarts} current={brk.startDate} onPick={onPickStart} />
 

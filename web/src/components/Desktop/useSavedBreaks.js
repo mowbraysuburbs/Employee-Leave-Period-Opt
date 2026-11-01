@@ -33,5 +33,10 @@ export function useSavedBreaks() {
     setSaved(prev => prev.filter(s => breakKey(s) !== breakKey(entry)))
   }
 
-  return { saved, add, remove }
+  // Swaps in a whole new list, for changes that combine or replace breaks.
+  function replaceAll(next) {
+    setSaved(next)
+  }
+
+  return { saved, add, remove, replaceAll }
 }
