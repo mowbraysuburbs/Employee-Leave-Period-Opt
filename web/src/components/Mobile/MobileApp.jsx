@@ -169,7 +169,16 @@ export function MobileApp() {
         </BottomSheet>
       )}
 
-      {showWelcome && calendarPage && !sheet && <GuidedTour steps={tourSteps(true)} onClose={closeWelcome} />}
+      {showWelcome && calendarPage && (
+        <GuidedTour
+          steps={tourSteps(true, p.demoDate, {
+            reset: () => setSheet(null),
+            showDate: () => { p.selectDay(p.demoDate); setSheet('day') },
+            showSummary: () => setSheet('summary'),
+          })}
+          onClose={() => { closeWelcome(); setSheet(null) }}
+        />
+      )}
 
       {sheet === 'settings' && (
         <SettingsSheet

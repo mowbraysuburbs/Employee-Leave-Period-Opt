@@ -33,7 +33,7 @@ function initialRailCollapsed() {
 export function DesktopApp() {
   const {
     controls, period, colourBy, holidayFilter, picksOnly, setPicksOnly, activeDaysOff, province, setProvince, schoolDates,
-    months, breaks, plans, selectedPlan, setSelectedPlanId, eventsSelected, ticked, toggleTick, toggleAllTicks, exportBreaks,
+    months, breaks, demoDate, plans, selectedPlan, setSelectedPlanId, eventsSelected, ticked, toggleTick, toggleAllTicks, exportBreaks,
     preview, setPreview, previewOnly, previewDays, previewLabel, openPreview,
     saved, savedBreaks, savedDayTypes, savedStarts, isSaved, justAddedKey, setJustAddedKey,
     detailBreak, nextBreak, bestNote, equalStarts, overlaps, combined, leaveLeft,
@@ -182,7 +182,16 @@ export function DesktopApp() {
       </main>
       )}
       {helpOpen && <HelpPanel onClose={() => setHelpOpen(false)} onReplay={() => { setHelpOpen(false); setPage('calendar'); replayWelcome() }} />}
-      {showWelcome && calendarPage && <GuidedTour steps={tourSteps(false)} onClose={closeWelcome} />}
+      {showWelcome && calendarPage && (
+        <GuidedTour
+          steps={tourSteps(false, demoDate, {
+            reset: () => setTab('details'),
+            showDate: () => { selectDay(demoDate); setTab('details') },
+            showSummary: () => setTab('summary'),
+          })}
+          onClose={() => { closeWelcome(); setTab('details') }}
+        />
+      )}
     </div>
   )
 }

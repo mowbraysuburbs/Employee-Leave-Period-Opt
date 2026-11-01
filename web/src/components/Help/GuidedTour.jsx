@@ -3,9 +3,11 @@ import { useState, useEffect, useLayoutEffect } from 'react'
 const PAD = 6
 const GAP = 12
 
-// The first element with data-tour={target} that's actually on screen.
-function findTarget(target) {
-  return [...document.querySelectorAll(`[data-tour="${target}"]`)].find(el => el.getClientRects().length > 0) ?? null
+// The first element matching the step that's actually on screen: a
+// data-tour name, or a calendar day when the step names a date.
+function findTarget(step) {
+  const selector = step.date ? `[data-date="${step.date}"]` : `[data-tour="${step.target}"]`
+  return [...document.querySelectorAll(selector)].find(el => el.getClientRects().length > 0) ?? null
 }
 
 /**
@@ -14,7 +16,8 @@ function findTarget(target) {
  * next to it. If a step's control isn't on screen the bubble is centred.
  *
  * Props:
- *   steps   – [{ target, title, text }]
+ *   steps   – [{ target | date, title, text, enter? }]; enter() runs when the
+ *             step opens, e.g. to select a date or open Summary
  *   onClose – called on Skip, Escape or the last step's Done
  */
 export function GuidedTour({ steps, onClose }) {
@@ -23,15 +26,28 @@ export function GuidedTour({ steps, onClose }) {
   const step = steps[index]
   const last = index === steps.length - 1
 
-  // Measure the highlighted control now and whenever the page moves.
+  // Run the step's action, wait for its control to appear (up to ~half a
+  // second), then measure it now and whenever the page moves.
   useLayoutEffect(() => {
-    findTarget(step.target)?.scrollIntoView({ block: 'nearest' })
+    step.enter?.()
     let frame = 0
+    let tries = 0
     function measure() {
       cancelAnimationFrame(frame)
-      frame = requestAnimationFrame(() => setRect(findTarget(step.target)?.getBoundingClientRect() ?? null))
+      frame = requestAnimationFrame(() => setRect(findTarget(step)?.getBoundingClientRect() ?? null))
     }
-    measure()
+    function waitForTarget() {
+      const el = findTarget(step)
+      if (el) {
+        el.scrollIntoView({ block: 'nearest' })
+        measure()
+      } else if (tries++ < 30) {
+        frame = requestAnimationFrame(waitForTarget)
+      } else {
+        measure()
+      }
+    }
+    frame = requestAnimationFrame(waitForTarget)
     window.addEventListener('resize', measure)
     window.addEventListener('scroll', measure, true)
     return () => {
@@ -39,7 +55,8 @@ export function GuidedTour({ steps, onClose }) {
       window.removeEventListener('resize', measure)
       window.removeEventListener('scroll', measure, true)
     }
-  }, [step.target])
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- re-run per step, not when the parent re-renders
+  }, [index])
 
   useEffect(() => {
     function handleKey(e) {

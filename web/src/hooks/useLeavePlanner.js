@@ -70,6 +70,16 @@ export function useLeavePlanner() {
     () => buildBreaksInRange(from, to, leaveDays, { best: colourBy === 'multiplier' }),
     [from, to, leaveDays, colourBy]
   )
+  // The guided tour taps this date as its example: the longest break in the
+  // first month (earliest on a tie).
+  const demoDate = useMemo(() => {
+    const first = months[0] && `${months[0].year}-${String(months[0].month).padStart(2, '0')}`
+    let best = null
+    for (const [date, brk] of Object.entries(breaks)) {
+      if (date.slice(0, 7) === first && (!best || brk.daysOff > breaks[best].daysOff)) best = date
+    }
+    return best
+  }, [months, breaks])
   const plans = useMemo(() => computePlans({ from, to, provinceCode: province }), [from, to, province])
   const schoolDates = useMemo(() => {
     if (!schoolOn) return null
@@ -279,7 +289,7 @@ export function useLeavePlanner() {
     holidayFilter, setHolidayFilter, holidayOptions, picksOnly, setPicksOnly,
     daysOffFilter, toggleDaysOff, clearDaysOff: () => setDaysOffFilter([]), activeDaysOff, legend,
     province, setProvince, schoolOn, setSchoolOn, schoolDates,
-    months, breaks, plans, selectedPlan, setSelectedPlanId, eventsSelected, ticked, toggleTick, toggleAllTicks, exportBreaks,
+    months, breaks, demoDate, plans, selectedPlan, setSelectedPlanId, eventsSelected, ticked, toggleTick, toggleAllTicks, exportBreaks,
     preview, setPreview, previewOnly, setPreviewOnly, previewDays, previewLabel, openPreview,
     saved, savedBreaks, savedDayTypes, savedStarts, isSaved, justAddedKey, setJustAddedKey,
     detailBreak, nextBreak, bestNote, equalStarts, overlaps, combined, leaveLeft,
