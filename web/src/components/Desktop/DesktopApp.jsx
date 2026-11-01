@@ -6,15 +6,15 @@ import { CalendarToolbar } from './CalendarToolbar'
 import { YearCalendar } from './YearCalendar'
 import { SidePanel } from './SidePanel'
 import { BreakDetailPanel } from './BreakDetailPanel'
-import { YearPlanPreview } from './YearPlanPreview'
+import { PlanPreview } from './PlanPreview'
 import { MyBreaksPanel } from './MyBreaksPanel'
 import { PreviewBanner } from './PreviewBanner'
-import { YearSwitch } from './YearSwitch'
 import { OverviewPage } from './Overview/OverviewPage'
 import { HolidaysList } from '../Features/HolidaysList'
 import { useSavedBreaks } from './useSavedBreaks'
-import { buildBreak, buildBreaksInRange, breakKey, hasGain } from '../../utils/breaks'
-import { computeQuickPicks } from '../../utils/quickPicks'
+import { buildBreak, buildBreaksInRange, breakKey, hasGain, toCalendarEvent } from '../../utils/breaks'
+import { computePlans } from '../../utils/plans'
+import { buildIcs, downloadIcs } from '../../utils/calendarExport'
 import { getColourForDaysOff, getColourForMultiplier, multiplierBucket } from '../../utils/colorScale'
 import { fmtDay } from '../../utils/dateFormat'
 
@@ -28,16 +28,6 @@ function localToday() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 const TODAY = localToday()
-
-// Plan years run from this year to the last full year the holiday data covers.
-const FIRST_YEAR = Number(TODAY.slice(0, 4))
-const LAST_YEAR = Number(LAST_DATE.slice(0, 4)) - 1
-const PLAN_YEARS = Array.from({ length: Math.max(1, LAST_YEAR - FIRST_YEAR + 1) }, (_, i) => FIRST_YEAR + i)
-  .map(y => ({ value: y, label: y === FIRST_YEAR ? `${y} (rest of year)` : String(y) }))
-// Leave resets each calendar year, so in Nov/Dec people plan the coming one.
-const DEFAULT_PLAN_YEAR = Number(TODAY.slice(5, 7)) >= 11 && FIRST_YEAR + 1 <= LAST_YEAR ? FIRST_YEAR + 1 : FIRST_YEAR
-
-const PICK_TITLES = { next: 'Next big break', max: 'Maximise leave', six: 'Next 6 months', year: 'Year plan' }
 
 function monthsBetween(from, to) {
   const result = []
@@ -55,8 +45,8 @@ function monthsBetween(from, to) {
 export function DesktopApp() {
   const [page, setPage] = useState('overview')
   const [leaveDays, setLeaveDays] = useState(3)
-  const [planYear, setPlanYear] = useState(DEFAULT_PLAN_YEAR)
   const [colourBy, setColourBy] = useState('daysOff')
+  // One date period, shared by Overview and Calendar.
   const [from, setFrom] = useState(TODAY)
   const [to, setTo] = useState(LAST_DATE)
   const [holidayFilter, setHolidayFilter] = useState([])
@@ -68,8 +58,12 @@ export function DesktopApp() {
   const [lastHoveredDate, setLastHoveredDate] = useState(null)
   // A saved break opened from Summary: { startDate, leaveDays } until the next hover.
   const [pinned, setPinned] = useState(null)
-  // Quick pick opened from Overview with "View on calendar": 'next' | 'max' | 'six' | 'year'.
-  const [previewId, setPreviewId] = useState(null)
+  // Overview: the plan in the details panel, and per plan the break start
+  // dates the user has unticked.
+  const [selectedPlanId, setSelectedPlanId] = useState(null)
+  const [unticked, setUnticked] = useState({})
+  // An Overview plan opened with "View on calendar": { title, breaks } (the ticked ones).
+  const [preview, setPreview] = useState(null)
   const [confirmDate, setConfirmDate] = useState(null)
   const [justAddedKey, setJustAddedKey] = useState(null)
   const { saved, add, remove } = useSavedBreaks()
@@ -80,10 +74,13 @@ export function DesktopApp() {
     () => buildBreaksInRange(from, to, leaveDays, { best: colourBy === 'multiplier' }),
     [from, to, leaveDays, colourBy]
   )
-  const picks = useMemo(
-    () => computeQuickPicks({ today: TODAY, lastDate: LAST_DATE, leaveDays, year: planYear, allowance: ALLOWANCE }),
-    [leaveDays, planYear]
-  )
+  const plans = useMemo(() => computePlans({ from, to }), [from, to])
+  const selectedPlan = plans.find(p => p.id === selectedPlanId) ?? plans[0] ?? null
+  const ticked = useMemo(() => {
+    if (!selectedPlan) return new Set()
+    const off = unticked[selectedPlan.id] ?? []
+    return new Set(selectedPlan.breaks.map(b => b.startDate).filter(d => !off.includes(d)))
+  }, [selectedPlan, unticked])
 
   const savedBreaks = useMemo(() => saved.map(s => buildBreak(s.startDate, s.leaveDays)).reverse(), [saved])
   const savedKeys = useMemo(() => new Set(saved.map(breakKey)), [saved])
@@ -93,24 +90,17 @@ export function DesktopApp() {
     return { savedDayTypes: types, savedStarts: new Set(savedBreaks.map(b => b.startDate)) }
   }, [savedBreaks])
 
-  const previewBreaks = useMemo(() => {
-    if (previewId === 'next') return picks.nextBig ? [picks.nextBig.brk] : []
-    if (previewId === 'max') return picks.maxLeave ? [picks.maxLeave] : []
-    if (previewId === 'six') return picks.sixMonths ? [picks.sixMonths] : []
-    if (previewId === 'year') return picks.yearPlan
-    return null
-  }, [previewId, picks])
-  const preview = useMemo(() => {
-    if (!previewBreaks) return { dayTypes: null, starts: null }
+  const previewDays = useMemo(() => {
+    if (!preview) return { dayTypes: null, starts: null }
     const dayTypes = new Map()
-    for (const b of previewBreaks) for (const d of b.days) dayTypes.set(d.date, d.type)
-    return { dayTypes, starts: new Set(previewBreaks.map(b => b.startDate)) }
-  }, [previewBreaks])
+    for (const b of preview.breaks) for (const d of b.days) dayTypes.set(d.date, d.type)
+    return { dayTypes, starts: new Set(preview.breaks.map(b => b.startDate)) }
+  }, [preview])
 
   // Details: the day under the mouse, else a pinned saved break, else the
-  // previewed quick pick, else the last day hovered.
-  const showYearPlan = previewId === 'year' && !hoveredDate && !pinned
-  const previewSingle = previewBreaks && previewId !== 'year' ? previewBreaks[0] ?? null : null
+  // previewed plan, else the last day hovered.
+  const showPlanPreview = !!preview && preview.breaks.length > 1 && !hoveredDate && !pinned
+  const previewSingle = preview && preview.breaks.length === 1 ? preview.breaks[0] : null
   const detailBreak = useMemo(() => {
     if (hoveredDate && breaks[hoveredDate]) return breaks[hoveredDate]
     if (pinned) return buildBreak(pinned.startDate, pinned.leaveDays)
@@ -122,7 +112,7 @@ export function DesktopApp() {
     () => (detailBreak && detailBreak.leaveDays < MAX_LEAVE ? buildBreak(detailBreak.startDate, detailBreak.leaveDays + 1) : null),
     [detailBreak]
   )
-  const bestNote = detailBreak && !pinned && detailBreak.leaveDays < leaveDays
+  const bestNote = colourBy === 'multiplier' && detailBreak && !pinned && !showingPreview && detailBreak.leaveDays < leaveDays
     ? `Best value: uses ${detailBreak.leaveDays} of your ${leaveDays} leave days`
     : null
 
@@ -147,7 +137,16 @@ export function DesktopApp() {
   }, [breaks, colourBy])
 
   const isSaved = brk => savedKeys.has(breakKey(brk))
-  const yearSwitch = <YearSwitch years={PLAN_YEARS} value={planYear} onChange={setPlanYear} />
+  const period = {
+    from,
+    to,
+    minDate: TODAY,
+    maxDate: LAST_DATE,
+    onFromChange: setFrom,
+    onToChange: setTo,
+    changed: from !== TODAY || to !== LAST_DATE,
+    onReset: () => { setFrom(TODAY); setTo(LAST_DATE) },
+  }
 
   function handleDayHover(date) {
     setHoveredDate(date)
@@ -166,7 +165,7 @@ export function DesktopApp() {
 
   function addFromCalendar(list) {
     addBreaks(list)
-    setPreviewId(null)
+    setPreview(null)
     setTab('summary')
   }
 
@@ -182,8 +181,22 @@ export function DesktopApp() {
     setConfirmDate(null)
   }
 
-  function viewOnCalendar(id) {
-    setPreviewId(id)
+  function toggleTick(startDate) {
+    const off = unticked[selectedPlan.id] ?? []
+    setUnticked({ ...unticked, [selectedPlan.id]: off.includes(startDate) ? off.filter(d => d !== startDate) : [...off, startDate] })
+  }
+
+  function toggleAllTicks() {
+    const allTicked = (unticked[selectedPlan.id] ?? []).length === 0
+    setUnticked({ ...unticked, [selectedPlan.id]: allTicked ? selectedPlan.breaks.map(b => b.startDate) : [] })
+  }
+
+  function exportBreaks(list) {
+    downloadIcs(buildIcs(list.map(toCalendarEvent)), `${selectedPlan.id}-leave.ics`)
+  }
+
+  function viewOnCalendar(list) {
+    setPreview({ title: selectedPlan.title, breaks: list })
     setPinned(null)
     setLastHoveredDate(null)
     setTab('details')
@@ -193,22 +206,20 @@ export function DesktopApp() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <DesktopHeader page={page} onPageChange={setPage} />
-      <main className="max-w-[1320px] mx-auto px-8 pt-7 pb-12 flex flex-col gap-4">
+      <main className="max-w-[1320px] mx-auto px-6 pt-6 pb-10 flex flex-col gap-4">
         {page === 'overview' && (
           <OverviewPage
-            picks={picks}
-            year={planYear}
-            years={PLAN_YEARS}
-            onYearChange={setPlanYear}
-            leaveDays={leaveDays}
-            maxLeave={MAX_LEAVE}
-            onLeaveDaysChange={setLeaveDays}
+            plans={plans}
+            selectedPlan={selectedPlan}
+            onSelect={setSelectedPlanId}
+            period={period}
+            ticked={ticked}
+            onToggle={toggleTick}
+            onToggleAll={toggleAllTicks}
             isSaved={isSaved}
             onAdd={addBreaks}
+            onExport={exportBreaks}
             onView={viewOnCalendar}
-            yearBreaks={savedBreaks.filter(b => b.startDate.startsWith(String(planYear)))}
-            allowance={ALLOWANCE}
-            onOpenCalendar={() => setPage('calendar')}
           />
         )}
 
@@ -234,8 +245,8 @@ export function DesktopApp() {
               maxDate={LAST_DATE}
               onFromChange={setFrom}
               onToChange={setTo}
-              rangeChanged={from !== TODAY || to !== LAST_DATE}
-              onResetRange={() => { setFrom(TODAY); setTo(LAST_DATE) }}
+              rangeChanged={period.changed}
+              onResetRange={period.onReset}
               holidayOptions={holidayOptions}
               holidayFilter={holidayFilter}
               onHolidayFilterChange={setHolidayFilter}
@@ -245,11 +256,11 @@ export function DesktopApp() {
               colourBy={colourBy}
             />
 
-            {previewId && (
+            {preview && (
               <PreviewBanner
-                title={PICK_TITLES[previewId]}
+                title={preview.title}
                 onBack={() => setPage('overview')}
-                onClear={() => setPreviewId(null)}
+                onClear={() => setPreview(null)}
               />
             )}
 
@@ -263,8 +274,8 @@ export function DesktopApp() {
                 savedDayTypes={savedDayTypes}
                 savedStarts={savedStarts}
                 isSaved={isSaved}
-                previewDayTypes={preview.dayTypes}
-                previewStarts={preview.starts}
+                previewDayTypes={previewDays.dayTypes}
+                previewStarts={previewDays.starts}
                 hoveredDate={hoveredDate}
                 confirmDate={confirmDate}
                 onDayHover={handleDayHover}
@@ -277,21 +288,19 @@ export function DesktopApp() {
                 tab={tab}
                 onTabChange={setTab}
                 savedCount={saved.length}
-                details={showYearPlan ? (
-                  <YearPlanPreview
-                    year={planYear}
-                    breaks={picks.yearPlan}
-                    yearSwitch={yearSwitch}
-                    allSaved={picks.yearPlan.length > 0 && picks.yearPlan.every(isSaved)}
-                    onAddAll={() => addFromCalendar(picks.yearPlan)}
+                details={showPlanPreview ? (
+                  <PlanPreview
+                    title={preview.title}
+                    breaks={preview.breaks}
+                    allSaved={preview.breaks.every(isSaved)}
+                    onAddAll={() => addFromCalendar(preview.breaks)}
                   />
                 ) : (
                   <BreakDetailPanel
                     brk={detailBreak}
                     nextBreak={nextBreak}
                     bestNote={bestNote}
-                    label={showingPreview ? PICK_TITLES[previewId] : null}
-                    topSlot={showingPreview && previewId === 'max' ? yearSwitch : null}
+                    label={showingPreview ? preview.title : null}
                     isSaved={detailBreak ? isSaved(detailBreak) : false}
                     onAdd={() => addFromCalendar([detailBreak])}
                     onRemove={() => removeBreak(detailBreak)}

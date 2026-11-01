@@ -1,7 +1,6 @@
 import { HolidayFilterMenu } from './HolidayFilterMenu'
 import { HoverKey } from './HoverKey'
-
-const dateInput = 'h-8 border border-slate-200 rounded-lg px-2 text-sm font-medium text-slate-900'
+import { PeriodPicker } from './PeriodPicker'
 
 /**
  * Props:
@@ -31,33 +30,17 @@ export function CalendarToolbar({
 }) {
   return (
     <section className="flex flex-wrap items-center gap-3">
-      <div role="group" aria-label="Date period" className="h-11 inline-flex items-center gap-2 pl-3.5 pr-1.5 rounded-xl bg-white border border-slate-300 shadow-sm text-sm">
-        <label htmlFor="period-from" className="font-semibold">From</label>
-        <input
-          id="period-from"
-          type="date"
-          min={minDate}
-          max={to}
-          value={from}
-          onChange={e => e.target.value && onFromChange(e.target.value)}
-          className={dateInput}
-        />
-        <label htmlFor="period-to" className="font-semibold">to</label>
-        <input
-          id="period-to"
-          type="date"
-          min={from}
-          max={maxDate}
-          value={to}
-          onChange={e => e.target.value && onToChange(e.target.value)}
-          className={dateInput}
-        />
-        {rangeChanged && (
-          <button type="button" onClick={onResetRange} className="h-8 px-2.5 rounded-lg bg-slate-100 text-sky-700 text-[13px] font-bold">
-            Reset
-          </button>
-        )}
-      </div>
+      <PeriodPicker
+        idPrefix="calendar-period"
+        from={from}
+        to={to}
+        minDate={minDate}
+        maxDate={maxDate}
+        onFromChange={onFromChange}
+        onToChange={onToChange}
+        changed={rangeChanged}
+        onReset={onResetRange}
+      />
 
       <HolidayFilterMenu options={holidayOptions} selected={holidayFilter} onChange={onHolidayFilterChange} />
 

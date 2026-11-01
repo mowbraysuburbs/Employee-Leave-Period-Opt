@@ -61,6 +61,16 @@ export function fmtShortRange(startDate, endDate) {
     : `${sd} ${SHORT_MONTH[sm - 1]} – ${ed} ${SHORT_MONTH[em - 1]}`
 }
 
+// "Sat 20 Mar 2027" for wide tables; "20 Mar '27" where space is tight.
+export function fmtDayYear(dateStr) {
+  return `${fmtDay(dateStr)} ${dateStr.slice(0, 4)}`
+}
+
+export function fmtShortYear(dateStr) {
+  const [y, m, d] = dateStr.split('-')
+  return `${Number(d)} ${SHORT_MONTH[Number(m) - 1]} '${y.slice(2)}`
+}
+
 // "Sat 20 – Mon 29 Mar 2027" style range; the year is only shown once, at the end.
 export function fmtDayRange(startDate, endDate) {
   return `${fmtDay(startDate)} – ${fmtDay(endDate)} ${endDate.slice(0, 4)}`

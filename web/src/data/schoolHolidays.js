@@ -394,6 +394,11 @@ function getYearData(year) {
   return HOLIDAYS_BY_YEAR[year] ?? HOLIDAYS_BY_YEAR[2026]
 }
 
+// One province's school breaks for a year ([] when the year isn't covered).
+export function getSchoolBreaksForYear(year, provinceCode) {
+  return HOLIDAYS_BY_YEAR[year]?.[provinceCode]?.breaks ?? []
+}
+
 export function isSchoolHoliday(dateStr, provinceCode, year) {
   const yearData = getYearData(year ?? parseInt(dateStr.slice(0, 4), 10))
   const province = yearData[provinceCode]
