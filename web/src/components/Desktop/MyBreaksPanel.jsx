@@ -22,8 +22,9 @@ function Total({ value, suffix, label, highlight }) {
  *   justAddedKey – breakKey of the break just added (highlighted + calendar prompt)
  *   onOpen, onRemove – (brk) => void
  *   onDismissAdded
+ *   mineOnly, onMineOnlyChange – same value as the rail's "Only my breaks"
  */
-export function MyBreaksPanel({ breaks, allowance, justAddedKey, onOpen, onRemove, onDismissAdded }) {
+export function MyBreaksPanel({ breaks, allowance, justAddedKey, onOpen, onRemove, onDismissAdded, mineOnly, onMineOnlyChange }) {
   const totals = summariseBreaks(breaks)
   const justAdded = breaks.find(b => breakKey(b) === justAddedKey)
   const usedPct = Math.min(100, Math.round((totals.leaveUsed / allowance) * 100))
@@ -42,6 +43,16 @@ export function MyBreaksPanel({ breaks, allowance, justAddedKey, onOpen, onRemov
       <div className="h-2 rounded bg-slate-200 overflow-hidden">
         <div className="h-2 bg-sky-700" style={{ width: `${usedPct}%` }} />
       </div>
+
+      <button
+        type="button"
+        aria-pressed={mineOnly}
+        disabled={breaks.length === 0}
+        onClick={() => onMineOnlyChange(!mineOnly)}
+        className={`h-10 rounded-xl border text-sm font-bold disabled:opacity-40 ${mineOnly ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-900 border-slate-300 hover:border-slate-400'}`}
+      >
+        {mineOnly ? '✓ Showing my leave only' : 'Show my leave only'}
+      </button>
 
       {justAdded && <AddedPrompt brk={justAdded} onDismiss={onDismissAdded} />}
 
