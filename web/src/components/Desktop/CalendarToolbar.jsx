@@ -1,4 +1,5 @@
 import { HolidayFilterMenu } from './HolidayFilterMenu'
+import { HoverKey } from './HoverKey'
 
 const dateInput = 'h-8 border border-slate-200 rounded-lg px-2 text-sm font-medium text-slate-900'
 
@@ -9,6 +10,7 @@ const dateInput = 'h-8 border border-slate-200 rounded-lg px-2 text-sm font-medi
  *   rangeChanged, onResetRange     – shows a Reset button once the period moves
  *   holidayOptions, holidayFilter, onHolidayFilterChange
  *   picksOnly, onPicksOnlyChange, savedCount
+ *   colourBy                       – orders the hover-card key to match the card
  */
 export function CalendarToolbar({
   from,
@@ -25,6 +27,7 @@ export function CalendarToolbar({
   picksOnly,
   onPicksOnlyChange,
   savedCount,
+  colourBy,
 }) {
   return (
     <section className="flex flex-wrap items-center gap-3">
@@ -70,7 +73,7 @@ export function CalendarToolbar({
         Only my breaks ({savedCount})
       </button>
 
-      <div className="flex-[1_1_200px] text-right text-[13px] text-slate-600">Hover to preview · click for details</div>
+      <HoverKey colourBy={colourBy} />
     </section>
   )
 }

@@ -51,6 +51,16 @@ export function fmtDay(dateStr) {
   return `${SHORT_WEEKDAY[d.getDay()]} ${d.getDate()} ${SHORT_MONTH[d.getMonth()]}`
 }
 
+// "20–29 Mar", or "30 Dec – 4 Jan" when the range crosses a month. Used by
+// the desktop hover card and Add prompt, where space is tight.
+export function fmtShortRange(startDate, endDate) {
+  const [, sm, sd] = startDate.split('-').map(Number)
+  const [, em, ed] = endDate.split('-').map(Number)
+  return sm === em
+    ? `${sd}–${ed} ${SHORT_MONTH[em - 1]}`
+    : `${sd} ${SHORT_MONTH[sm - 1]} – ${ed} ${SHORT_MONTH[em - 1]}`
+}
+
 // "Sat 20 – Mon 29 Mar 2027" style range; the year is only shown once, at the end.
 export function fmtDayRange(startDate, endDate) {
   return `${fmtDay(startDate)} – ${fmtDay(endDate)} ${endDate.slice(0, 4)}`
