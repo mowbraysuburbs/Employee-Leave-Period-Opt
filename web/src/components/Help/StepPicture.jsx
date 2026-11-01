@@ -2,21 +2,16 @@ import { getColourForDaysOff } from '../../utils/colorScale'
 
 const CHIPS = [4, 5, 6, 7, 8, 9, 10]
 const BAND_DAYS = [20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
-const EDGE = 'var(--color-slate-900, #0f172a)'
 
-// A joined band of squares for 23–27, like a tapped break on the calendar.
+// Joined squares for 23–27, like a tapped break on the calendar.
 function bandStyle(day) {
   if (day < 23 || day > 27) return {}
   const left = day === 23 || day === 27
   const right = day === 26 || day === 27
-  const shadows = [`0 -2px 0 ${EDGE}`, `0 2px 0 ${EDGE}`]
-  if (left) shadows.push(`-2px 0 0 ${EDGE}`)
-  if (right) shadows.push(`2px 0 0 ${EDGE}`)
   return {
     backgroundColor: getColourForDaysOff(5),
     color: '#0f172a',
     borderRadius: `${left ? 8 : 0}px ${right ? 8 : 0}px ${right ? 8 : 0}px ${left ? 8 : 0}px`,
-    boxShadow: shadows.join(', '),
   }
 }
 
