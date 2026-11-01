@@ -100,7 +100,7 @@ export function schoolBreaksFor(provinceCode, from, to) {
 /**
  * The ready-made plans on the Overview for the period [from, to].
  *
- * Returns [{ id, kind, title, rule, blurb, breaks }], skipping plans that
+ * Returns [{ id, kind, title, rule, blurb, summary, breaks }], skipping plans that
  * found nothing. kind: 'next' | 'three' | 'xmas' | 'easter' | 'school' | 'year' | 'trip'.
  */
 export function computePlans({ from, to, leave = OVERVIEW_LEAVE, provinceCode = 'GP' }) {
@@ -151,6 +151,7 @@ export function computePlans({ from, to, leave = OVERVIEW_LEAVE, provinceCode = 
       plans.push({
         id: 'next', kind: 'next', title: 'Up next', rule: 'best ×, ± 1 week', breaks: [best],
         blurb: `The best value break within a week either side of the next public holiday, ${holidays.get(nextHoliday)} on ${fmtDay(nextHoliday)}.`,
+        summary: `The best-value break around ${holidays.get(nextHoliday)}, ${fmtDay(nextHoliday).slice(4)}.`,
       })
     }
   }
@@ -160,6 +161,7 @@ export function computePlans({ from, to, leave = OVERVIEW_LEAVE, provinceCode = 
     id: 'three', kind: 'three', title: 'Next 3 months', rule: `${leave} days · any split`,
     breaks: bestSet(candidates(from, threeEnd, leave), leave),
     blurb: `Your ${leave} leave days spent around public holidays before ${fmtDay(threeEnd).slice(4)}, for the most days off. One long break or several short ones, whichever adds up to more.`,
+    summary: 'The most days off from your leave over the next three months.',
   })
 
   // Christmas special: the first Christmas in the period, about 15 Dec to 10 Jan.
@@ -171,6 +173,7 @@ export function computePlans({ from, to, leave = OVERVIEW_LEAVE, provinceCode = 
       id: `xmas-${y}`, kind: 'xmas', title: 'Christmas special', rule: `${leave} days · Dec–Jan`,
       breaks: bestSet(candidates(maxDate(from, `${y}-12-15`), minDate(end, `${y + 1}-01-11`), leave), leave),
       blurb: `The most days off over Christmas and New Year ${y}–${String(y + 1).slice(2)}, joining Day of Reconciliation, Christmas, the day after and New Year with the weekends.`,
+      summary: 'The most days off over Christmas and New Year.',
     })
     break
   }
@@ -182,6 +185,7 @@ export function computePlans({ from, to, leave = OVERVIEW_LEAVE, provinceCode = 
       id: `easter-${goodFriday.slice(0, 4)}`, kind: 'easter', title: 'Easter break', rule: `${leave} days · around Easter`,
       breaks: bestSet(candidates(maxDate(from, addDays(goodFriday, -10)), minDate(end, addDays(goodFriday, 14)), leave), leave),
       blurb: `The most days off around Easter ${goodFriday.slice(0, 4)}, using Good Friday and Family Day (and Human Rights Day when it falls close by).`,
+      summary: `The most days off around Easter ${goodFriday.slice(0, 4)}.`,
     })
   }
 
@@ -202,6 +206,7 @@ export function computePlans({ from, to, leave = OVERVIEW_LEAVE, provinceCode = 
     plans.push({
       id: 'school', kind: 'school', title: 'School run', rule: label, breaks: schoolBreaks,
       blurb: `${label} school holiday: ${nextSchool.label}, school closed ${fmtShortRange(a, nextSchool.end)}. These are your leave periods inside it, using up to ${leave} leave days, so you're home with the kids.`,
+      summary: `Leave inside the ${label} school holiday, so you're home with the kids.`,
     })
   }
 
@@ -219,6 +224,7 @@ export function computePlans({ from, to, leave = OVERVIEW_LEAVE, provinceCode = 
       id: `year-${y}`, kind: 'year', title, rule: `up to ${leave} · 1–2 per break`,
       breaks: bestSet(candidates(a, b, 2), leave),
       blurb: `The most effective leave in ${whole ? y : `this part of ${y}`}: short 1–2 day bridges that join public holidays to weekends, using up to ${leave} days.`,
+      summary: `Short bridges that join holidays to weekends across ${y}.`,
     })
   }
 
@@ -226,6 +232,7 @@ export function computePlans({ from, to, leave = OVERVIEW_LEAVE, provinceCode = 
   plans.push({
     id: 'trip', kind: 'trip', title: 'One big trip', rule: `${leave} days · one block`, breaks: trip ? [trip] : [],
     blurb: `All ${leave} leave days in one go: the longest single holiday in this period, for when you want to get properly away.`,
+    summary: 'All your leave in one go, for one long trip.',
   })
 
   return plans.filter(p => p.breaks.length > 0)
