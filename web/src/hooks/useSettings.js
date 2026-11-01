@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react'
 
 const STORAGE_KEY = 'stretchmyleave.settings'
-const DEFAULTS = { theme: 'light', calendarSize: 'large' }
+const DEFAULTS = { theme: 'light', calendarSize: 'compact' }
 
 function load() {
   try {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}')
     return {
       theme: parsed.theme === 'dark' ? 'dark' : DEFAULTS.theme,
-      calendarSize: parsed.calendarSize === 'compact' ? 'compact' : DEFAULTS.calendarSize,
+      calendarSize: parsed.calendarSize === 'large' ? 'large' : DEFAULTS.calendarSize,
     }
   } catch {
     return DEFAULTS
