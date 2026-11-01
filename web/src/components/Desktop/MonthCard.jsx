@@ -12,8 +12,9 @@ const WEEKDAY_HEADERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
  *                     school is { roundLeft, roundRight } on school-holiday days while that filter is on
  *   popoverFor   – (date) => node | null; the hover card to show on a day
  *   onDayClick, onDayHover
+ *   large        – bigger day cells for touch screens (the mobile calendar)
  */
-export function MonthCard({ year, month, days, popoverFor, onDayClick, onDayHover }) {
+export function MonthCard({ year, month, days, popoverFor, onDayClick, onDayHover, large = false }) {
   const leadingBlanks = new Date(year, month - 1, 1).getDay()
 
   return (
@@ -37,8 +38,10 @@ export function MonthCard({ year, month, days, popoverFor, onDayClick, onDayHove
               onMouseLeave={() => onDayHover(null)}
               onFocus={() => onDayHover(d.date)}
               onBlur={() => onDayHover(null)}
+              data-date={d.date}
               className={[
-                'relative w-full h-8 text-xs',
+                'relative w-full',
+                large ? 'h-10 text-sm' : 'h-8 text-xs',
                 d.shape ?? 'rounded-full',
                 d.isHoliday ? 'font-extrabold' : 'font-semibold',
                 d.disabled ? 'cursor-default' : 'cursor-pointer',
