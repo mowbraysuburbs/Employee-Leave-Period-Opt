@@ -1,8 +1,6 @@
 import { useState, useMemo } from 'react'
 import { DesktopHeader } from './DesktopHeader'
-import { LeaveDaysCard } from './LeaveDaysCard'
-import { ColourModeCard } from './ColourModeCard'
-import { CalendarToolbar } from './CalendarToolbar'
+import { ControlRail } from './Rail/ControlRail'
 import { YearCalendar } from './YearCalendar'
 import { SidePanel } from './SidePanel'
 import { BreakDetailPanel } from './BreakDetailPanel'
@@ -29,6 +27,17 @@ function localToday() {
 }
 const TODAY = localToday()
 
+const RAIL_KEY = 'stretchmyleave.railCollapsed'
+
+// Remembered between visits; on first visit, narrower windows start collapsed.
+function initialRailCollapsed() {
+  try {
+    const stored = localStorage.getItem(RAIL_KEY)
+    if (stored !== null) return stored === 'true'
+  } catch { /* storage unavailable — fall back to the window width */ }
+  return window.innerWidth < 1200
+}
+
 function monthsBetween(from, to) {
   const result = []
   let year = Number(from.slice(0, 4))
@@ -53,6 +62,7 @@ export function DesktopApp() {
   const [picksOnly, setPicksOnly] = useState(false)
   // Days-off values picked from the legend; only applies in Days off mode for now.
   const [daysOffFilter, setDaysOffFilter] = useState([])
+  const [railCollapsed, setRailCollapsed] = useState(initialRailCollapsed)
   const [tab, setTab] = useState('details')
   // The day under the mouse only drives the hover card and band; Details
   // changes when a day is clicked, so people can read it while moving around.
@@ -232,9 +242,114 @@ export function DesktopApp() {
     setPage('calendar')
   }
 
+  function toggleRail() {
+    const next = !railCollapsed
+    setRailCollapsed(next)
+    try {
+      localStorage.setItem(RAIL_KEY, String(next))
+    } catch { /* storage unavailable — just don't remember it */ }
+  }
+
+  const railControls = {
+    collapsed: railCollapsed,
+    onToggleCollapsed: toggleRail,
+    leaveDays,
+    maxLeave: MAX_LEAVE,
+    // The days-off values change with leave days, so a new amount clears the filter.
+    onLeaveDaysChange: v => { setLeaveDays(v); setDaysOffFilter([]) },
+    colourBy,
+    onColourByChange: setColourBy,
+    legend,
+    daysOffFilter,
+    onToggleDaysOff: v => setDaysOffFilter(f => (f.includes(v) ? f.filter(x => x !== v) : [...f, v])),
+    onClearDaysOff: () => setDaysOffFilter([]),
+    period,
+    holidayOptions,
+    holidayFilter,
+    onHolidayFilterChange: setHolidayFilter,
+    picksOnly,
+    onPicksOnlyChange: setPicksOnly,
+    savedCount: saved.length,
+    previewCount: preview?.breaks.length ?? 0,
+    previewOnly,
+    onPreviewOnlyChange: setPreviewOnly,
+    schoolOn,
+    onSchoolOnChange: setSchoolOn,
+    provinceName: provinceLabel(province),
+  }
+
+  // The calendar page is exactly one screen tall: only the months scroll, while
+  // the controls and the Details/Summary panel stay put. Other pages scroll normally.
+  const calendarPage = page === 'calendar'
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className={`bg-slate-50 text-slate-900 ${calendarPage ? 'h-screen flex flex-col overflow-hidden' : 'min-h-screen'}`}>
       <DesktopHeader page={page} onPageChange={setPage} />
+      {calendarPage && (
+        <main className="flex-1 min-h-0 w-full max-w-[1440px] mx-auto px-6 py-4 flex gap-5">
+          <ControlRail c={railControls} />
+
+          <div className="flex-1 min-w-0 min-h-0 flex flex-col gap-3">
+            {preview && (
+              <PreviewBanner
+                title={preview.title}
+                onBack={() => setPage('overview')}
+                onClear={() => setPreview(null)}
+              />
+            )}
+            <YearCalendar
+              months={months}
+              breaks={breaks}
+              colourBy={colourBy}
+              holidayFilter={holidayFilter}
+              picksOnly={picksOnly}
+              savedDayTypes={savedDayTypes}
+              savedStarts={savedStarts}
+              isSaved={isSaved}
+              previewDayTypes={previewOnly ? previewDays.dayTypes : null}
+              previewStarts={previewOnly ? previewDays.starts : null}
+              schoolDates={schoolDates}
+              daysOffFilter={activeDaysOff}
+              hoveredDate={hoveredDate}
+              confirmDate={confirmDate}
+              onDayHover={setHoveredDate}
+              onDayClick={handleDayClick}
+              onConfirm={handleConfirm}
+              onCancelConfirm={() => setConfirmDate(null)}
+            />
+          </div>
+
+          <SidePanel
+            tab={tab}
+            onTabChange={setTab}
+            savedCount={saved.length}
+            details={
+              <BreakDetailPanel
+                brk={detailBreak}
+                nextBreak={nextBreak}
+                bestNote={bestNote}
+                label={previewLabel}
+                shift={shift}
+                onShift={startDate => setPinned({ startDate, leaveDays: detailBreak.leaveDays })}
+                isSaved={detailBreak ? isSaved(detailBreak) : false}
+                onAdd={() => addFromCalendar([detailBreak])}
+                onRemove={() => removeBreak(detailBreak)}
+              />
+            }
+            summary={
+              <MyBreaksPanel
+                breaks={savedBreaks}
+                allowance={ALLOWANCE}
+                justAddedKey={justAddedKey}
+                onOpen={b => { setPinned({ startDate: b.startDate, leaveDays: b.leaveDays }); setTab('details') }}
+                onRemove={removeBreak}
+                onDismissAdded={() => setJustAddedKey(null)}
+              />
+            }
+          />
+        </main>
+      )}
+      {!calendarPage && (
       <main className="max-w-[1320px] mx-auto px-6 pt-6 pb-10 flex flex-col gap-4">
         {page === 'overview' && (
           <OverviewPage
@@ -258,110 +373,8 @@ export function DesktopApp() {
         {page === 'events' && <EventsComingSoon variant="page" />}
 
         {page === 'holidays' && <HolidaysList months={months} showSchoolHolidays={false} provinceCode="GP" />}
-
-        {page === 'calendar' && (
-          <>
-            <div className="flex flex-wrap gap-4 items-stretch">
-              {/* The days-off values change with leave days, so a new amount clears the filter. */}
-              <LeaveDaysCard value={leaveDays} min={1} max={MAX_LEAVE} onChange={v => { setLeaveDays(v); setDaysOffFilter([]) }} />
-              <ColourModeCard
-                colourBy={colourBy}
-                onColourByChange={setColourBy}
-                legend={legend}
-                daysOffFilter={daysOffFilter}
-                onToggleDaysOff={v => setDaysOffFilter(f => (f.includes(v) ? f.filter(x => x !== v) : [...f, v]))}
-                onClearDaysOff={() => setDaysOffFilter([])}
-                picksOnly={picksOnly}
-                leaveDays={leaveDays}
-              />
-            </div>
-
-            <CalendarToolbar
-              from={from}
-              to={to}
-              minDate={TODAY}
-              maxDate={LAST_DATE}
-              onFromChange={setFrom}
-              onToChange={setTo}
-              rangeChanged={period.changed}
-              onResetRange={period.onReset}
-              holidayOptions={holidayOptions}
-              holidayFilter={holidayFilter}
-              onHolidayFilterChange={setHolidayFilter}
-              picksOnly={picksOnly}
-              onPicksOnlyChange={setPicksOnly}
-              savedCount={saved.length}
-              colourBy={colourBy}
-              previewCount={preview?.breaks.length ?? 0}
-              previewOnly={previewOnly}
-              onPreviewOnlyChange={setPreviewOnly}
-              schoolOn={schoolOn}
-              onSchoolOnChange={setSchoolOn}
-              provinceName={provinceLabel(province)}
-            />
-
-            {preview && (
-              <PreviewBanner
-                title={preview.title}
-                onBack={() => setPage('overview')}
-                onClear={() => setPreview(null)}
-              />
-            )}
-
-            <div className="flex flex-wrap gap-6 items-start">
-              <YearCalendar
-                months={months}
-                breaks={breaks}
-                colourBy={colourBy}
-                holidayFilter={holidayFilter}
-                picksOnly={picksOnly}
-                savedDayTypes={savedDayTypes}
-                savedStarts={savedStarts}
-                isSaved={isSaved}
-                previewDayTypes={previewOnly ? previewDays.dayTypes : null}
-                previewStarts={previewOnly ? previewDays.starts : null}
-                schoolDates={schoolDates}
-                daysOffFilter={activeDaysOff}
-                hoveredDate={hoveredDate}
-                confirmDate={confirmDate}
-                onDayHover={setHoveredDate}
-                onDayClick={handleDayClick}
-                onConfirm={handleConfirm}
-                onCancelConfirm={() => setConfirmDate(null)}
-              />
-
-              <SidePanel
-                tab={tab}
-                onTabChange={setTab}
-                savedCount={saved.length}
-                details={
-                  <BreakDetailPanel
-                    brk={detailBreak}
-                    nextBreak={nextBreak}
-                    bestNote={bestNote}
-                    label={previewLabel}
-                    shift={shift}
-                    onShift={startDate => setPinned({ startDate, leaveDays: detailBreak.leaveDays })}
-                    isSaved={detailBreak ? isSaved(detailBreak) : false}
-                    onAdd={() => addFromCalendar([detailBreak])}
-                    onRemove={() => removeBreak(detailBreak)}
-                  />
-                }
-                summary={
-                  <MyBreaksPanel
-                    breaks={savedBreaks}
-                    allowance={ALLOWANCE}
-                    justAddedKey={justAddedKey}
-                    onOpen={b => { setPinned({ startDate: b.startDate, leaveDays: b.leaveDays }); setTab('details') }}
-                    onRemove={removeBreak}
-                    onDismissAdded={() => setJustAddedKey(null)}
-                  />
-                }
-              />
-            </div>
-          </>
-        )}
       </main>
+      )}
     </div>
   )
 }

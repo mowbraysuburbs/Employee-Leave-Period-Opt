@@ -182,7 +182,7 @@ export function YearCalendar({
   }
 
   return (
-    <section ref={gridRef} aria-label="Calendar" className="flex-[999_1_640px] min-w-0 grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4">
+    <section ref={gridRef} aria-label="Calendar" tabIndex={0} className="flex-1 min-h-0 overflow-y-auto pr-1.5 pb-4 content-start grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4">
       {visibleMonths.length === 0 && (
         <div className="col-span-full p-5 border-[1.5px] border-dashed border-slate-300 rounded-2xl text-sm text-slate-600 text-center">
           No start days give that many days off in this period. Pick other numbers or clear the filter.
