@@ -88,15 +88,15 @@ export function BottomPanel({
             <line x1="4" y1="6" x2="20" y2="6" /><line x1="7" y1="12" x2="17" y2="12" /><line x1="10" y1="18" x2="14" y2="18" />
           </svg>
         </button>
-        {/* Days off on top, leave days used underneath; "My breaks" until there are some. */}
+        {/* Compact for small phones: "leave → days off" as numbers, labels underneath. */}
         <button
           type="button"
-          aria-label={savedCount ? `My breaks: ${savedDaysOff} days off, ${savedLeave} leave days` : 'My breaks: none yet'}
+          aria-label={savedCount ? `My breaks: ${savedLeave} leave days give ${savedDaysOff} days off` : 'My breaks: none yet'}
           onClick={onOpenSummary}
-          className="shrink-0 h-[46px] px-3.5 rounded-full bg-slate-900 text-white flex flex-col items-start justify-center leading-tight"
+          className="shrink-0 h-[46px] px-3.5 rounded-full bg-slate-900 text-white flex flex-col items-center justify-center leading-tight"
         >
-          <span className="text-sm font-bold">{savedCount ? `${savedDaysOff} days off` : 'My breaks'}</span>
-          <span className="text-[11px] font-normal opacity-75">{savedCount ? `${savedLeave} leave days` : 'None yet'}</span>
+          <span className="text-base font-extrabold">{savedLeave} → {savedDaysOff}</span>
+          <span className="text-[10px] font-semibold uppercase tracking-wide opacity-75">{savedCount ? 'leave → off' : 'my breaks'}</span>
         </button>
       </div>
     </div>
