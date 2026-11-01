@@ -6,7 +6,6 @@ import { CalendarToolbar } from './CalendarToolbar'
 import { YearCalendar } from './YearCalendar'
 import { SidePanel } from './SidePanel'
 import { BreakDetailPanel } from './BreakDetailPanel'
-import { PlanPreview } from './PlanPreview'
 import { MyBreaksPanel } from './MyBreaksPanel'
 import { PreviewBanner } from './PreviewBanner'
 import { OverviewPage } from './Overview/OverviewPage'
@@ -52,18 +51,20 @@ export function DesktopApp() {
   const [holidayFilter, setHolidayFilter] = useState([])
   const [picksOnly, setPicksOnly] = useState(false)
   const [tab, setTab] = useState('details')
-  // Details follows the hovered day and keeps showing the last one, so the
-  // mouse can travel over to the panel without it going blank.
+  // The day under the mouse only drives the hover card and band; Details
+  // changes when a day is clicked, so people can read it while moving around.
   const [hoveredDate, setHoveredDate] = useState(null)
-  const [lastHoveredDate, setLastHoveredDate] = useState(null)
-  // A saved break opened from Summary: { startDate, leaveDays } until the next hover.
+  const [detailDate, setDetailDate] = useState(null)
+  // A saved break opened from Summary: { startDate, leaveDays } until the next click.
   const [pinned, setPinned] = useState(null)
   // Overview: the plan in the details panel, and per plan the break start
   // dates the user has unticked.
   const [selectedPlanId, setSelectedPlanId] = useState(null)
   const [unticked, setUnticked] = useState({})
-  // An Overview plan opened with "View on calendar": { title, breaks } (the ticked ones).
+  // An Overview plan opened with "View on calendar": { title, breaks } (the
+  // ticked ones), and whether the calendar is filtered to only those dates.
   const [preview, setPreview] = useState(null)
+  const [previewOnly, setPreviewOnly] = useState(true)
   const [confirmDate, setConfirmDate] = useState(null)
   const [justAddedKey, setJustAddedKey] = useState(null)
   const { saved, add, remove } = useSavedBreaks()
@@ -97,17 +98,18 @@ export function DesktopApp() {
     return { dayTypes, starts: new Set(preview.breaks.map(b => b.startDate)) }
   }, [preview])
 
-  // Details: the day under the mouse, else a pinned saved break, else the
-  // previewed plan, else the last day hovered.
-  const showPlanPreview = !!preview && preview.breaks.length > 1 && !hoveredDate && !pinned
-  const previewSingle = preview && preview.breaks.length === 1 ? preview.breaks[0] : null
+  // Details: a saved break opened from Summary, else the clicked day, else the
+  // earliest break of the previewed plan. Hovering never changes it.
+  const previewFirst = preview?.breaks[0] ?? null
   const detailBreak = useMemo(() => {
-    if (hoveredDate && breaks[hoveredDate]) return breaks[hoveredDate]
     if (pinned) return buildBreak(pinned.startDate, pinned.leaveDays)
-    if (previewSingle) return previewSingle
-    return (lastHoveredDate && breaks[lastHoveredDate]) || null
-  }, [hoveredDate, pinned, previewSingle, lastHoveredDate, breaks])
-  const showingPreview = !!previewSingle && detailBreak === previewSingle
+    if (detailDate && breaks[detailDate]) return breaks[detailDate]
+    return previewFirst
+  }, [pinned, detailDate, breaks, previewFirst])
+  const showingPreview = !!previewFirst && detailBreak === previewFirst
+  const previewLabel = showingPreview
+    ? (preview.breaks.length > 1 ? `${preview.title} · earliest of ${preview.breaks.length}` : preview.title)
+    : null
   const nextBreak = useMemo(
     () => (detailBreak && detailBreak.leaveDays < MAX_LEAVE ? buildBreak(detailBreak.startDate, detailBreak.leaveDays + 1) : null),
     [detailBreak]
@@ -148,12 +150,14 @@ export function DesktopApp() {
     onReset: () => { setFrom(TODAY); setTo(LAST_DATE) },
   }
 
-  function handleDayHover(date) {
-    setHoveredDate(date)
-    if (date) {
-      setLastHoveredDate(date)
-      setPinned(null)
-    }
+  // A click shows that day in Details (and opens its Add prompt).
+  function handleDayClick(date) {
+    setDetailDate(date)
+    setPinned(null)
+    setConfirmDate(date)
+    setHoveredDate(null)
+    setJustAddedKey(null)
+    setTab('details')
   }
 
   // Saves every break not already saved; each keeps its own leave amount.
@@ -163,9 +167,9 @@ export function DesktopApp() {
     if (fresh.length) setJustAddedKey(breakKey(fresh[fresh.length - 1]))
   }
 
+  // The preview filter stays as it is, so people can keep working through the plan.
   function addFromCalendar(list) {
     addBreaks(list)
-    setPreview(null)
     setTab('summary')
   }
 
@@ -195,10 +199,12 @@ export function DesktopApp() {
     downloadIcs(buildIcs(list.map(toCalendarEvent)), `${selectedPlan.id}-leave.ics`)
   }
 
+  // Opens the calendar filtered to the ticked breaks, with the earliest in Details.
   function viewOnCalendar(list) {
     setPreview({ title: selectedPlan.title, breaks: list })
+    setPreviewOnly(true)
     setPinned(null)
-    setLastHoveredDate(null)
+    setDetailDate(null)
     setTab('details')
     setPage('calendar')
   }
@@ -254,6 +260,9 @@ export function DesktopApp() {
               onPicksOnlyChange={setPicksOnly}
               savedCount={saved.length}
               colourBy={colourBy}
+              previewCount={preview?.breaks.length ?? 0}
+              previewOnly={previewOnly}
+              onPreviewOnlyChange={setPreviewOnly}
             />
 
             {preview && (
@@ -274,12 +283,12 @@ export function DesktopApp() {
                 savedDayTypes={savedDayTypes}
                 savedStarts={savedStarts}
                 isSaved={isSaved}
-                previewDayTypes={previewDays.dayTypes}
-                previewStarts={previewDays.starts}
+                previewDayTypes={previewOnly ? previewDays.dayTypes : null}
+                previewStarts={previewOnly ? previewDays.starts : null}
                 hoveredDate={hoveredDate}
                 confirmDate={confirmDate}
-                onDayHover={handleDayHover}
-                onDayClick={date => { setConfirmDate(date); setHoveredDate(null); setJustAddedKey(null) }}
+                onDayHover={setHoveredDate}
+                onDayClick={handleDayClick}
                 onConfirm={handleConfirm}
                 onCancelConfirm={() => setConfirmDate(null)}
               />
@@ -288,24 +297,17 @@ export function DesktopApp() {
                 tab={tab}
                 onTabChange={setTab}
                 savedCount={saved.length}
-                details={showPlanPreview ? (
-                  <PlanPreview
-                    title={preview.title}
-                    breaks={preview.breaks}
-                    allSaved={preview.breaks.every(isSaved)}
-                    onAddAll={() => addFromCalendar(preview.breaks)}
-                  />
-                ) : (
+                details={
                   <BreakDetailPanel
                     brk={detailBreak}
                     nextBreak={nextBreak}
                     bestNote={bestNote}
-                    label={showingPreview ? preview.title : null}
+                    label={previewLabel}
                     isSaved={detailBreak ? isSaved(detailBreak) : false}
                     onAdd={() => addFromCalendar([detailBreak])}
                     onRemove={() => removeBreak(detailBreak)}
                   />
-                )}
+                }
                 summary={
                   <MyBreaksPanel
                     breaks={savedBreaks}

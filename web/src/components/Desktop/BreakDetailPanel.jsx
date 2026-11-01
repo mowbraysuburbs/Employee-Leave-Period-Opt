@@ -27,7 +27,7 @@ export function BreakDetailPanel({ brk, nextBreak, bestNote, label, isSaved, onA
   if (!brk) {
     return (
       <div className="px-5 py-7 border-[1.5px] border-dashed border-slate-300 rounded-2xl text-sm text-slate-600 text-center">
-        Hover over a day on the calendar to see its details here.
+        Click a day on the calendar to see its details here.
       </div>
     )
   }
