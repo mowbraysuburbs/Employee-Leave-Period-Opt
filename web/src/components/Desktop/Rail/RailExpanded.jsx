@@ -37,7 +37,7 @@ export function RailExpanded({ c }) {
         « Collapse to icons
       </button>
 
-      <section className="bg-white border-2 border-sky-700 rounded-2xl px-3 py-2.5 flex flex-col gap-1.5">
+      <section data-tour="leave" className="bg-white border-2 border-sky-700 rounded-2xl px-3 py-2.5 flex flex-col gap-1.5">
         <div className="flex items-center justify-between gap-2">
           <label htmlFor="rail-leave-days" className="text-[13px] font-bold">Leave days</label>
           <div className="flex items-center gap-2">
@@ -57,7 +57,7 @@ export function RailExpanded({ c }) {
         />
       </section>
 
-      <section className={card}>
+      <section data-tour="colours" className={card}>
         <div className="text-[13px] font-bold">Colour by</div>
         <div role="group" aria-label="Colour by" className="flex p-[3px] rounded-[10px] bg-slate-100">
           {MODES.map(m => (

@@ -16,12 +16,13 @@ const WEEKDAY_HEADERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
  *   onDayClick, onDayHover
  *   large        – bigger day cells for touch screens (the mobile calendar)
  *   compact      – small cells so two months fit side by side on a phone
+ *   tour         – data-tour name, so the guided tour can spotlight this month
  */
-export function MonthCard({ year, month, days, popoverFor, onDayClick, onDayHover, large = false, compact = false }) {
+export function MonthCard({ year, month, days, popoverFor, onDayClick, onDayHover, large = false, compact = false, tour }) {
   const leadingBlanks = new Date(year, month - 1, 1).getDay()
 
   return (
-    <div className={`bg-white shadow-sm ${compact ? 'rounded-xl px-1.5 py-2' : 'rounded-2xl p-3.5'}`}>
+    <div data-tour={tour} className={`bg-white shadow-sm ${compact ? 'rounded-xl px-1.5 py-2' : 'rounded-2xl p-3.5'}`}>
       <h2 className={`m-0 font-bold ${compact ? 'mb-1 ml-1 text-xs' : 'mb-2 text-[15px]'}`}>{MONTH_NAMES[month - 1]} {year}</h2>
       {/* No column gap, so a hovered break's days touch and read as one band;
           normal days get a little padding instead to stay apart. */}

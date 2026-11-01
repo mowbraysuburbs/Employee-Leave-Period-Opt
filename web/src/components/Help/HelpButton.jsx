@@ -3,6 +3,7 @@ export function HelpButton({ onClick }) {
   return (
     <button
       type="button"
+      data-tour="help"
       aria-label="How it works"
       title="How it works"
       onClick={onClick}

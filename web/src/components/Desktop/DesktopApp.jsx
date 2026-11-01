@@ -4,7 +4,8 @@ import { CalendarKey } from './CalendarKey'
 import { ThemeToggle } from './ThemeToggle'
 import { HelpPanel } from './HelpPanel'
 import { HelpButton } from '../Help/HelpButton'
-import { WelcomeWalkthrough } from '../Help/WelcomeWalkthrough'
+import { GuidedTour } from '../Help/GuidedTour'
+import { tourSteps } from '../Help/tourSteps'
 import { useSettings } from '../../hooks/useSettings'
 import { useWelcome } from '../../hooks/useWelcome'
 import { ControlRail } from './Rail/ControlRail'
@@ -32,7 +33,7 @@ function initialRailCollapsed() {
 export function DesktopApp() {
   const {
     controls, period, colourBy, holidayFilter, picksOnly, setPicksOnly, activeDaysOff, province, setProvince, schoolDates,
-    months, breaks, plans, selectedPlan, setSelectedPlanId, eventsSelected, ticked, toggleTick, toggleAllTicks, exportBreaks,
+    months, breaks, demoDate, plans, selectedPlan, setSelectedPlanId, eventsSelected, ticked, toggleTick, toggleAllTicks, exportBreaks,
     preview, setPreview, previewOnly, previewDays, previewLabel, openPreview,
     saved, savedBreaks, savedDayTypes, savedStarts, isSaved, justAddedKey, setJustAddedKey,
     detailBreak, nextBreak, bestNote, equalStarts, overlaps, combined, leaveLeft,
@@ -41,7 +42,8 @@ export function DesktopApp() {
   const { theme, setTheme } = useSettings()
   const { showWelcome, closeWelcome, replayWelcome } = useWelcome()
   const [helpOpen, setHelpOpen] = useState(false)
-  const [page, setPage] = useState('overview')
+  // A first visit opens on the calendar so the tour can point at it.
+  const [page, setPage] = useState(showWelcome ? 'calendar' : 'overview')
   const [railCollapsed, setRailCollapsed] = useState(initialRailCollapsed)
   const [tab, setTab] = useState('details')
   // The day under the mouse only drives the hover card and band; Details
@@ -179,8 +181,17 @@ export function DesktopApp() {
         {page === 'holidays' && <HolidaysList months={months} showSchoolHolidays={false} provinceCode="GP" />}
       </main>
       )}
-      {helpOpen && <HelpPanel onClose={() => setHelpOpen(false)} onReplay={() => { setHelpOpen(false); replayWelcome() }} />}
-      {showWelcome && <WelcomeWalkthrough onClose={closeWelcome} />}
+      {helpOpen && <HelpPanel onClose={() => setHelpOpen(false)} onReplay={() => { setHelpOpen(false); setPage('calendar'); replayWelcome() }} />}
+      {showWelcome && calendarPage && (
+        <GuidedTour
+          steps={tourSteps(false, breaks[demoDate], {
+            reset: () => setTab('details'),
+            showDate: () => { selectDay(demoDate); setTab('details') },
+            showSummary: () => setTab('summary'),
+          })}
+          onClose={() => { closeWelcome(); setTab('details') }}
+        />
+      )}
     </div>
   )
 }

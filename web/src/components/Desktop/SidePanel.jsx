@@ -15,7 +15,7 @@ const TABS = [
 export function SidePanel({ tab, onTabChange, savedCount, details, summary }) {
   return (
     <aside className="w-[300px] xl:w-[340px] shrink-0 h-full overflow-y-auto bg-white rounded-[20px] p-[22px] shadow-sm">
-      <div role="tablist" aria-label="Side panel" className="flex p-1 rounded-xl bg-slate-100 mb-[18px]">
+      <div role="tablist" aria-label="Side panel" data-tour="breaks" className="flex p-1 rounded-xl bg-slate-100 mb-[18px]">
         {TABS.map(t => (
           <button
             key={t.id}

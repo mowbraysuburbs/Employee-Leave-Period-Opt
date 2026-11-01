@@ -48,8 +48,8 @@ export function AddBreakControls({ brk, isSaved, overlaps, combined, leaveLeft, 
         </div>
       )}
 
-      {overlaps.length === 0 && <button type="button" onClick={onAdd} className={primary}>+ Add to my breaks</button>}
-      {overlaps.length > 0 && !covered && <button type="button" onClick={onAdd} className={primary}>Combine into one break</button>}
+      {overlaps.length === 0 && <button type="button" data-tour="add" onClick={onAdd} className={primary}>+ Add to my breaks</button>}
+      {overlaps.length > 0 && !covered && <button type="button" data-tour="add" onClick={onAdd} className={primary}>Combine into one break</button>}
       {overlaps.length > 0 && (
         <button type="button" onClick={onReplace} className={secondary}>
           {covered ? 'Replace it with this shorter break' : 'Replace instead'}

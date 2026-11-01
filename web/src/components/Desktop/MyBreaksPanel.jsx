@@ -66,6 +66,7 @@ export function MyBreaksPanel({ breaks, allowance, justAddedKey, onOpen, onRemov
 
       <button
         type="button"
+        data-tour="export"
         disabled={breaks.length === 0}
         onClick={() => downloadIcs(buildIcs(breaks.map(toCalendarEvent)), 'my-leave-breaks.ics')}
         className="h-[50px] rounded-2xl bg-slate-900 text-white text-[15px] font-bold disabled:opacity-40"

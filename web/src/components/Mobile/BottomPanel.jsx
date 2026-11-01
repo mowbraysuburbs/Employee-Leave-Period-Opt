@@ -33,7 +33,7 @@ export function BottomPanel({
   return (
     <div className="shrink-0 px-3.5 pt-2.5 pb-2.5 bg-white border-t border-slate-200 shadow-[0_-4px_14px_rgba(15,23,42,0.06)] flex flex-col gap-2.5 [&>*]:w-full [&>*]:max-w-[520px] [&>*]:mx-auto">
       {/* py-1 leaves room for the ring on a picked chip inside the scrolling row */}
-      <div className="flex items-center gap-1.5 overflow-x-auto py-1 -my-1 [scrollbar-width:none]">
+      <div data-tour="colours" className="flex items-center gap-1.5 overflow-x-auto py-1 -my-1 [scrollbar-width:none]">
         <button
           type="button"
           aria-label={`Colouring by ${colourBy === 'multiplier' ? 'value' : 'total days off'}; tap to switch`}
@@ -70,7 +70,7 @@ export function BottomPanel({
       </div>
 
       <div className="flex items-center gap-2">
-        <div className="flex-1 min-w-0 h-[46px] pl-3 pr-1.5 rounded-full bg-slate-100 flex items-center justify-between">
+        <div data-tour="leave" className="flex-1 min-w-0 h-[46px] pl-3 pr-1.5 rounded-full bg-slate-100 flex items-center justify-between">
           <span className="text-[13px] font-bold">Leave</span>
           <div className="flex items-center gap-1.5">
             <button type="button" aria-label="Fewer leave days" disabled={leaveDays <= 1} onClick={() => onLeaveDaysChange(leaveDays - 1)} className="w-[34px] h-[34px] rounded-full bg-white shadow-sm text-lg font-semibold disabled:opacity-40">−</button>
@@ -91,6 +91,7 @@ export function BottomPanel({
         {/* Compact for small phones: "leave → days off" as numbers, labels underneath. */}
         <button
           type="button"
+          data-tour="breaks"
           aria-label={savedCount ? `My breaks: ${savedLeave} leave days give ${savedDaysOff} days off` : 'My breaks: none yet'}
           onClick={onOpenSummary}
           className="shrink-0 h-[46px] px-3.5 rounded-full bg-slate-900 text-white flex flex-col items-center justify-center leading-tight"
