@@ -164,6 +164,15 @@ export function withBreakMerged(saved, brk) {
   return [...kept, { startDate: merged.startDate, leaveDays: merged.leaveDays }]
 }
 
+/**
+ * Saved entries with any overlapping breaks combined, e.g. lists saved
+ * before adding a break started combining overlaps. Already-tidy lists come
+ * back unchanged (apart from order).
+ */
+export function mergeOverlapping(saved) {
+  return saved.reduce((acc, s) => withBreakMerged(acc, buildBreak(s.startDate, s.leaveDays)), [])
+}
+
 // Shape expected by utils/calendarExport (Google link and .ics builder).
 export function toCalendarEvent(brk) {
   return { title: `On leave · ${brk.daysOff} days off`, startDate: brk.startDate, endDate: brk.endDate }
