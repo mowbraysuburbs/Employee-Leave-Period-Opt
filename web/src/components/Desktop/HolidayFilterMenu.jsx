@@ -11,8 +11,9 @@ function label(selected) {
  *   options  – [{ name, when }] each public holiday in the date period, once
  *   selected – string[] of holiday names
  *   onChange – (string[]) => void
+ *   inline   – open the list in place (inside a scrolling column) instead of floating
  */
-export function HolidayFilterMenu({ options, selected, onChange }) {
+export function HolidayFilterMenu({ options, selected, onChange, inline = false }) {
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef(null)
 
@@ -40,7 +41,7 @@ export function HolidayFilterMenu({ options, selected, onChange }) {
         aria-expanded={open}
         onClick={() => setOpen(v => !v)}
         className={[
-          'h-11 px-4 rounded-xl inline-flex items-center gap-2 text-sm font-semibold border',
+          inline ? 'w-full min-h-9 px-3 py-1.5 rounded-lg flex items-center justify-between gap-2 text-[13px] font-semibold border' : 'h-11 px-4 rounded-xl inline-flex items-center gap-2 text-sm font-semibold border',
           active ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-900 border-slate-300 shadow-sm',
         ].join(' ')}
       >
@@ -49,7 +50,7 @@ export function HolidayFilterMenu({ options, selected, onChange }) {
       </button>
 
       {open && (
-        <div className="absolute z-40 top-13 left-0 w-[300px] bg-white border border-slate-200 rounded-2xl shadow-xl p-2">
+        <div className={inline ? 'mt-1.5 bg-white border border-slate-200 rounded-xl p-1.5' : 'absolute z-40 top-13 left-0 w-[300px] bg-white border border-slate-200 rounded-2xl shadow-xl p-2'}>
           <div className="px-2.5 pt-2 pb-1.5 text-xs font-bold text-slate-500 uppercase tracking-wider">Show breaks that include</div>
           <div className="max-h-[300px] overflow-y-auto">
             {options.map(o => (
