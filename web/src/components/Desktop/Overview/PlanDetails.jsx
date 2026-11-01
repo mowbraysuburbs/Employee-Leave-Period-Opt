@@ -23,8 +23,9 @@ const THEME_CLASSES = {
  *   onToggle, onToggleAll
  *   allSaved                – every ticked break is already in My breaks
  *   onAdd, onExport, onView – (tickedBreaks) => void
+ *   topSlot                 – optional controls under the description (School run's province)
  */
-export function PlanDetails({ plan, ticked, onToggle, onToggleAll, allSaved, onAdd, onExport, onView }) {
+export function PlanDetails({ plan, ticked, onToggle, onToggleAll, allSaved, onAdd, onExport, onView, topSlot }) {
   const chosen = plan.breaks.filter(b => ticked.has(b.startDate))
   const single = plan.breaks.length === 1
   const none = chosen.length === 0
@@ -43,6 +44,8 @@ export function PlanDetails({ plan, ticked, onToggle, onToggleAll, allSaved, onA
           </div>
           <p className="m-0 mt-1.5 text-sm text-slate-600 leading-relaxed max-w-[600px]">{plan.blurb}</p>
         </div>
+
+        {topSlot}
 
         <PlanStats breaks={chosen} total={plan.breaks.length} />
 

@@ -1,7 +1,7 @@
 import { buildBreak } from './breaks'
 import { getPublicHolidaysForYear } from '../data/publicHolidays'
 import { getSchoolBreaksForYear, PROVINCES } from '../data/schoolHolidays'
-import { addDays, fmtDay } from './dateFormat'
+import { addDays, fmtDay, fmtShortRange } from './dateFormat'
 
 // The Overview always plans with this many leave days; fine-tuning happens on the calendar.
 export const OVERVIEW_LEAVE = 10
@@ -76,24 +76,25 @@ function bestSet(candidates, budget) {
   return picked.reverse()
 }
 
+export function provinceLabel(provinceCode) {
+  return PROVINCES.find(p => p.code === provinceCode)?.label ?? provinceCode
+}
+
 /**
- * At most one break from each group (a group per school holiday), for the
- * most days off within the budget. Without the one-per-group rule every
- * Friday off would win.
+ * A province's school holidays that touch [from, to], as
+ * [{ start, end, label }]. Summer breaks split at New Year are joined back
+ * into one. Shared by School run and the calendar's school filter.
  */
-function bestOnePerGroup(groups, budget) {
-  let dp = Array.from({ length: budget + 1 }, () => ({ daysOff: 0, picks: [] }))
-  for (const group of groups) {
-    const next = dp.map(x => ({ ...x }))
-    for (const c of group) {
-      for (let b = c.leaveDays; b <= budget; b++) {
-        const daysOff = dp[b - c.leaveDays].daysOff + c.daysOff
-        if (daysOff > next[b].daysOff) next[b] = { daysOff, picks: [...dp[b - c.leaveDays].picks, c] }
-      }
+export function schoolBreaksFor(provinceCode, from, to) {
+  const joined = []
+  for (let y = Number(from.slice(0, 4)); y <= Number(to.slice(0, 4)); y++) {
+    for (const sb of getSchoolBreaksForYear(y, provinceCode)) {
+      const prev = joined[joined.length - 1]
+      if (prev && sb.start <= addDays(prev.end, 1)) prev.end = maxDate(prev.end, sb.end)
+      else joined.push({ ...sb, label: sb.label.replace(' Break', ' break') })
     }
-    dp = next
   }
-  return dp.reduce((best, x) => (x.daysOff > best.daysOff ? x : best), dp[0]).picks
+  return joined.filter(sb => sb.end >= from && sb.start <= to)
 }
 
 /**
@@ -184,24 +185,25 @@ export function computePlans({ from, to, leave = OVERVIEW_LEAVE, provinceCode = 
     })
   }
 
-  // School holidays: joined across New Year, clipped to the period, one break each.
-  const schoolBreaks = []
-  for (let y = firstYear; y <= lastYear; y++) {
-    for (const sb of getSchoolBreaksForYear(y, provinceCode)) {
-      const prev = schoolBreaks[schoolBreaks.length - 1]
-      if (prev && sb.start <= addDays(prev.end, 1)) prev.end = maxDate(prev.end, sb.end)
-      else schoolBreaks.push({ ...sb })
+  // School run: leave periods inside the next school holiday, the most days
+  // off from the budget bridging any public holidays in it; if it has none,
+  // the longest single block, so parents are home while school is closed.
+  const nextSchool = schoolBreaksFor(provinceCode, from, to)[0]
+  if (nextSchool) {
+    const a = maxDate(from, nextSchool.start)
+    const b = minDate(end, addDays(nextSchool.end, 1))
+    const inside = brk => brk.endDate <= nextSchool.end
+    let schoolBreaks = bestSet(candidates(a, b, leave).filter(inside), leave)
+    if (schoolBreaks.length === 0) {
+      const longest = candidates(a, b, leave, true).filter(inside).sort((x, y) => y.daysOff - x.daysOff)[0]
+      schoolBreaks = longest ? [longest] : []
     }
+    const label = provinceLabel(provinceCode)
+    plans.push({
+      id: 'school', kind: 'school', title: 'School run', rule: label, breaks: schoolBreaks,
+      blurb: `${label} school holiday: ${nextSchool.label}, school closed ${fmtShortRange(a, nextSchool.end)}. These are your leave periods inside it, using up to ${leave} leave days, so you're home with the kids.`,
+    })
   }
-  const groups = schoolBreaks
-    .map(sb => candidates(maxDate(from, sb.start), minDate(end, addDays(sb.end, 1)), leave, true).filter(b => b.endDate <= sb.end))
-    .filter(g => g.length > 0)
-  const provinceLabel = PROVINCES.find(p => p.code === provinceCode)?.label ?? provinceCode
-  plans.push({
-    id: 'school', kind: 'school', title: 'School holidays', rule: `${provinceLabel} · 1 per holiday`,
-    breaks: bestOnePerGroup(groups, leave).sort((a, b) => (a.startDate < b.startDate ? -1 : 1)),
-    blurb: `For parents: your ${leave} leave days spread over the ${provinceLabel} school holidays, at most one break per holiday, for the most days off with the kids.`,
-  })
 
   // Year plans: short 1–2 day bridges for each calendar year in the period.
   for (let y = firstYear; y <= lastYear; y++) {

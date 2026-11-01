@@ -12,6 +12,8 @@ import { PeriodPicker } from './PeriodPicker'
  *   colourBy                       – orders the hover-card key to match the card
  *   previewCount, previewOnly, onPreviewOnlyChange
  *                                  – "Only selected dates" filter while an Overview plan is open
+ *   schoolOn, onSchoolOnChange, provinceName
+ *                                  – school holidays filter (province is set on School run)
  */
 export function CalendarToolbar({
   from,
@@ -32,6 +34,9 @@ export function CalendarToolbar({
   previewCount,
   previewOnly,
   onPreviewOnlyChange,
+  schoolOn,
+  onSchoolOnChange,
+  provinceName,
 }) {
   const toggleClass = on => [
     'h-11 px-4 rounded-xl inline-flex items-center gap-2 text-sm font-semibold border',
@@ -63,6 +68,24 @@ export function CalendarToolbar({
       <button type="button" aria-pressed={picksOnly} onClick={() => onPicksOnlyChange(!picksOnly)} className={toggleClass(picksOnly)}>
         Only my breaks ({savedCount})
       </button>
+
+      <button
+        type="button"
+        aria-pressed={schoolOn}
+        onClick={() => onSchoolOnChange(!schoolOn)}
+        className={[
+          'h-11 px-4 rounded-xl inline-flex items-center gap-2 text-sm font-semibold border',
+          schoolOn ? 'bg-green-100 text-green-800 border-green-300' : 'bg-white text-slate-900 border-slate-300 shadow-sm',
+        ].join(' ')}
+      >
+        School holidays · {provinceName}
+      </button>
+      {schoolOn && (
+        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-green-800">
+          <span aria-hidden="true" className="w-[22px] h-1 rounded-sm bg-green-600" />
+          School holiday
+        </span>
+      )}
 
       <HoverKey colourBy={colourBy} />
     </section>
