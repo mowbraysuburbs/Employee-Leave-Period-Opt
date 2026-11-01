@@ -184,7 +184,7 @@ export function DesktopApp() {
       {helpOpen && <HelpPanel onClose={() => setHelpOpen(false)} onReplay={() => { setHelpOpen(false); setPage('calendar'); replayWelcome() }} />}
       {showWelcome && calendarPage && (
         <GuidedTour
-          steps={tourSteps(false, demoDate, {
+          steps={tourSteps(false, breaks[demoDate], {
             reset: () => setTab('details'),
             showDate: () => { selectDay(demoDate); setTab('details') },
             showSummary: () => setTab('summary'),

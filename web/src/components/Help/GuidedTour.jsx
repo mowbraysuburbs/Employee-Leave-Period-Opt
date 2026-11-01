@@ -10,13 +10,29 @@ function findTarget(step) {
   return [...document.querySelectorAll(selector)].find(el => el.getClientRects().length > 0) ?? null
 }
 
+// The area to spotlight: the target, or for a date step with `until`, every
+// day of that break together so the bubble never covers part of it.
+function targetRect(step) {
+  const el = findTarget(step)
+  if (!el) return null
+  if (!step.date || !step.until) return el.getBoundingClientRect()
+  const days = [...document.querySelectorAll('[data-date]')]
+    .filter(d => d.dataset.date >= step.date && d.dataset.date <= step.until && d.getClientRects().length > 0)
+    .map(d => d.getBoundingClientRect())
+  const left = Math.min(...days.map(r => r.left))
+  const top = Math.min(...days.map(r => r.top))
+  const right = Math.max(...days.map(r => r.right))
+  const bottom = Math.max(...days.map(r => r.bottom))
+  return { left, top, right, bottom, width: right - left, height: bottom - top }
+}
+
 /**
  * A guided tour over the real app: each step dims the page except one
  * control (found by its data-tour attribute) and explains it in a bubble
  * next to it. If a step's control isn't on screen the bubble is centred.
  *
  * Props:
- *   steps   – [{ target | date, title, text, enter? }]; enter() runs when the
+ *   steps   – [{ target | date (+ until), title, text, enter? }]; enter() runs when the
  *             step opens, e.g. to select a date or open Summary
  *   onClose – called on Skip, Escape or the last step's Done
  */
@@ -34,7 +50,7 @@ export function GuidedTour({ steps, onClose }) {
     let tries = 0
     function measure() {
       cancelAnimationFrame(frame)
-      frame = requestAnimationFrame(() => setRect(findTarget(step)?.getBoundingClientRect() ?? null))
+      frame = requestAnimationFrame(() => setRect(targetRect(step)))
     }
     function waitForTarget() {
       const el = findTarget(step)

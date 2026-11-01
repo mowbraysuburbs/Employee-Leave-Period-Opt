@@ -171,7 +171,7 @@ export function MobileApp() {
 
       {showWelcome && calendarPage && (
         <GuidedTour
-          steps={tourSteps(true, p.demoDate, {
+          steps={tourSteps(true, p.breaks[p.demoDate], {
             reset: () => setSheet(null),
             showDate: () => { p.selectDay(p.demoDate); setSheet('day') },
             showSummary: () => setSheet('summary'),

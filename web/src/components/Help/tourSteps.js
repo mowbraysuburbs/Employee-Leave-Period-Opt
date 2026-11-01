@@ -1,9 +1,9 @@
 // The guided tour's steps. `target` matches a data-tour attribute (or `date`
 // a calendar day); `enter` acts out the clicks so the right panel is open.
 //
-// actions: { reset, showDate, showSummary } from the app; demoDate is a good
-// date in the first month to tap for the example.
-export function tourSteps(phone, demoDate, { reset, showDate, showSummary }) {
+// actions: { reset, showDate, showSummary } from the app; demo is the example
+// break to tap ({ startDate, endDate }) so its whole band can be spotlit.
+export function tourSteps(phone, demo, { reset, showDate, showSummary }) {
   const act = phone ? 'Tap' : 'Click'
   return [
     {
@@ -19,7 +19,8 @@ export function tourSteps(phone, demoDate, { reset, showDate, showSummary }) {
       text: `Each colour is how many days off in a row you get if leave starts that day. ${act} a number to show only those dates, or switch to Value × for days off per leave day.`,
     },
     {
-      date: demoDate,
+      date: demo?.startDate,
+      until: demo?.endDate,
       target: 'calendar',
       enter: showDate,
       title: `${act} a date`,
