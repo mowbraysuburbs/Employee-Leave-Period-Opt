@@ -8,10 +8,12 @@ const dateInput = 'h-8 border border-slate-200 rounded-lg px-2 text-sm font-medi
  *   onFromChange, onToChange   – (YYYY-MM-DD) => void
  *   changed, onReset           – shows a Reset button once the period moves
  *   idPrefix                   – keeps label/input ids unique per page
+ *   bare                       – no outer box, for use inside a card (the calendar rail)
  */
-export function PeriodPicker({ from, to, minDate, maxDate, onFromChange, onToChange, changed, onReset, idPrefix }) {
+export function PeriodPicker({ from, to, minDate, maxDate, onFromChange, onToChange, changed, onReset, idPrefix, bare = false }) {
+  const box = bare ? 'gap-1.5' : 'min-h-11 gap-2 pl-3.5 pr-1.5 py-1 rounded-xl bg-white border border-slate-300 shadow-sm'
   return (
-    <div role="group" aria-label="Date period" className="min-h-11 flex flex-wrap items-center gap-2 pl-3.5 pr-1.5 py-1 rounded-xl bg-white border border-slate-300 shadow-sm text-sm">
+    <div role="group" aria-label="Date period" className={`flex flex-wrap items-center text-sm ${box}`}>
       <label htmlFor={`${idPrefix}-from`} className="font-semibold">From</label>
       <input
         id={`${idPrefix}-from`}
