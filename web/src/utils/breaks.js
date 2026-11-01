@@ -60,17 +60,22 @@ export function buildBreaksInRange(from, to, leaveDays, { best = false } = {}) {
 }
 
 /**
- * Every start date within `windowDays` either side of brk that gives exactly
- * the same result (same leave days and days off), so a break can be moved to
- * an equal alternative.
+ * The unbroken run of start dates next to brk that give exactly the same
+ * result (same leave days and days off), so a break can be moved to an equal
+ * alternative. Walks out a day at a time each way and stops at the first day
+ * that differs (at most `windowDays` each way).
  *
  * Returns the equal breaks in date order, including brk itself.
  */
 export function findEqualStarts(brk, windowDays = 7) {
-  const equal = []
-  for (let offset = -windowDays; offset <= windowDays; offset++) {
-    const other = offset === 0 ? brk : buildBreak(addDays(brk.startDate, offset), brk.leaveDays)
-    if (other.daysOff === brk.daysOff) equal.push(other)
+  const equal = [brk]
+  for (const step of [-1, 1]) {
+    for (let offset = step; Math.abs(offset) <= windowDays; offset += step) {
+      const other = buildBreak(addDays(brk.startDate, offset), brk.leaveDays)
+      if (other.daysOff !== brk.daysOff) break
+      if (step < 0) equal.unshift(other)
+      else equal.push(other)
+    }
   }
   return equal
 }
