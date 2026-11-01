@@ -13,22 +13,23 @@ const WEEKDAY_HEADERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
  *   popoverFor   – (date) => node | null; the hover card to show on a day
  *   onDayClick, onDayHover
  *   large        – bigger day cells for touch screens (the mobile calendar)
+ *   compact      – small cells so two months fit side by side on a phone
  */
-export function MonthCard({ year, month, days, popoverFor, onDayClick, onDayHover, large = false }) {
+export function MonthCard({ year, month, days, popoverFor, onDayClick, onDayHover, large = false, compact = false }) {
   const leadingBlanks = new Date(year, month - 1, 1).getDay()
 
   return (
-    <div className="bg-white rounded-2xl p-3.5 shadow-sm">
-      <h2 className="m-0 mb-2 text-[15px] font-bold">{MONTH_NAMES[month - 1]} {year}</h2>
+    <div className={`bg-white shadow-sm ${compact ? 'rounded-xl px-1.5 py-2' : 'rounded-2xl p-3.5'}`}>
+      <h2 className={`m-0 font-bold ${compact ? 'mb-1 ml-1 text-xs' : 'mb-2 text-[15px]'}`}>{MONTH_NAMES[month - 1]} {year}</h2>
       {/* No column gap, so a hovered break's days touch and read as one band;
           normal days get a little padding instead to stay apart. */}
-      <div className="grid grid-cols-7 gap-y-[3px] text-center">
+      <div className={`grid grid-cols-7 text-center ${compact ? 'gap-y-0.5' : 'gap-y-[3px]'}`}>
         {WEEKDAY_HEADERS.map((w, i) => (
-          <div key={i} className="text-[10px] font-bold text-slate-500 pb-0.5">{w}</div>
+          <div key={i} className={`font-bold text-slate-500 pb-0.5 ${compact ? 'text-[8px]' : 'text-[10px]'}`}>{w}</div>
         ))}
         {Array.from({ length: leadingBlanks }, (_, i) => <div key={`blank-${i}`} />)}
         {days.map(d => (
-          <div key={d.date} className={`relative ${d.inBand ? '' : 'px-[1.5px]'}`}>
+          <div key={d.date} className={`relative ${d.inBand ? '' : compact ? 'px-px' : 'px-[1.5px]'}`}>
             <button
               type="button"
               disabled={d.disabled}
@@ -41,7 +42,7 @@ export function MonthCard({ year, month, days, popoverFor, onDayClick, onDayHove
               data-date={d.date}
               className={[
                 'relative w-full',
-                large ? 'h-10 text-sm' : 'h-8 text-xs',
+                compact ? 'h-[22px] text-[10px]' : large ? 'h-10 text-sm' : 'h-8 text-xs',
                 d.shape ?? 'rounded-full',
                 d.isHoliday ? 'font-extrabold' : 'font-semibold',
                 d.disabled ? 'cursor-default' : 'cursor-pointer',
@@ -50,7 +51,7 @@ export function MonthCard({ year, month, days, popoverFor, onDayClick, onDayHove
             >
               {d.dayNumber}
               {d.isHoliday && (
-                <span className="absolute bottom-[3px] left-1/2 -ml-0.5 w-1 h-1 rounded-full" style={{ backgroundColor: d.look.fg }} />
+                <span className={`absolute left-1/2 rounded-full ${compact ? 'bottom-px -ml-[1.5px] w-[3px] h-[3px]' : 'bottom-[3px] -ml-0.5 w-1 h-1'}`} style={{ backgroundColor: d.look.fg }} />
               )}
             </button>
             {d.school && (
