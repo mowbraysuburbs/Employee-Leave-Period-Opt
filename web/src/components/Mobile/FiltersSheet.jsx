@@ -3,41 +3,19 @@ import { PeriodPicker } from '../Desktop/PeriodPicker'
 import { HolidayFilterMenu } from '../Desktop/HolidayFilterMenu'
 import { ProvincePicker } from '../Desktop/ProvincePicker'
 
-const MODES = [
-  { id: 'daysOff', label: 'Total days' },
-  { id: 'multiplier', label: 'Value ×' },
-]
-
 const toggle = on => [
   'w-full min-h-[42px] px-3 rounded-xl text-left text-sm font-semibold border',
   on ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-900 border-slate-300',
 ].join(' ')
 
 /**
- * Everything from the desktop control rail except leave days, which stays in
- * the bottom panel. Takes the same `c` object as ControlRail.
+ * Everything from the desktop control rail except leave days and Total days /
+ * Value ×, which live in the bottom panel. Takes the same `c` object as ControlRail.
  */
 export function FiltersSheet({ c, onClose }) {
   return (
     <BottomSheet label="Filters" title="Filters" backdrop onClose={onClose}>
       <div className="flex flex-col gap-4 pt-1">
-        <section className="flex flex-col gap-1.5">
-          <h3 className="m-0 text-[13px] font-bold">Colour by</h3>
-          <div role="group" aria-label="Colour by" className="flex p-[3px] rounded-[10px] bg-slate-100">
-            {MODES.map(m => (
-              <button
-                key={m.id}
-                type="button"
-                aria-pressed={c.colourBy === m.id}
-                onClick={() => c.onColourByChange(m.id)}
-                className={`flex-1 h-9 rounded-lg text-[13px] font-bold ${c.colourBy === m.id ? 'bg-white shadow' : 'text-slate-600'}`}
-              >
-                {m.label}
-              </button>
-            ))}
-          </div>
-        </section>
-
         <section className="flex flex-col gap-1.5">
           <h3 className="m-0 text-[13px] font-bold">Dates</h3>
           <PeriodPicker bare idPrefix="mobile-period" {...c.period} />
