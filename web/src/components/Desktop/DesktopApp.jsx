@@ -11,7 +11,7 @@ import { OverviewPage } from './Overview/OverviewPage'
 import { EventsComingSoon } from './EventsComingSoon'
 import { HolidaysList } from '../Features/HolidaysList'
 import { useSavedBreaks } from './useSavedBreaks'
-import { buildBreak, buildBreaksInRange, breakKey, hasGain, toCalendarEvent, findEqualShifts } from '../../utils/breaks'
+import { buildBreak, buildBreaksInRange, breakKey, hasGain, toCalendarEvent, findEqualStarts } from '../../utils/breaks'
 import { computePlans, schoolBreaksFor, provinceLabel } from '../../utils/plans'
 import { buildIcs, downloadIcs } from '../../utils/calendarExport'
 import { getColourForDaysOff, getColourForMultiplier, multiplierBucket } from '../../utils/colorScale'
@@ -137,8 +137,8 @@ export function DesktopApp() {
   const previewLabel = showingPreview
     ? (preview.breaks.length > 1 ? `${preview.title} · earliest of ${preview.breaks.length}` : preview.title)
     : null
-  // Equal alternatives a week either side, for the ◀ ▶ shift buttons.
-  const shift = useMemo(() => (detailBreak ? findEqualShifts(detailBreak) : null), [detailBreak])
+  // Equal alternatives a week either side, shown as day icons in Details.
+  const equalStarts = useMemo(() => (detailBreak ? findEqualStarts(detailBreak) : null), [detailBreak])
   const nextBreak = useMemo(
     () => (detailBreak && detailBreak.leaveDays < MAX_LEAVE ? buildBreak(detailBreak.startDate, detailBreak.leaveDays + 1) : null),
     [detailBreak]
@@ -332,8 +332,8 @@ export function DesktopApp() {
                 nextBreak={nextBreak}
                 bestNote={bestNote}
                 label={previewLabel}
-                shift={shift}
-                onShift={startDate => setPinned({ startDate, leaveDays: detailBreak.leaveDays })}
+                equalStarts={equalStarts}
+                onPickStart={startDate => setPinned({ startDate, leaveDays: detailBreak.leaveDays })}
                 isSaved={detailBreak ? isSaved(detailBreak) : false}
                 onAdd={() => addFromCalendar([detailBreak])}
                 onRemove={() => removeBreak(detailBreak)}
