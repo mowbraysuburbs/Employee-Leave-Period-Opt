@@ -7,7 +7,7 @@
  *   colourBy, onColourByChange – 'daysOff' (Total days) | 'multiplier' (Value ×)
  *   legend, filterable, daysOffFilter, onToggleDaysOff, onClearDaysOff
  *   leaveDays, maxLeave, onLeaveDaysChange
- *   savedCount, savedDaysOff
+ *   savedCount, savedDaysOff, savedLeave – totals for the My breaks button
  *   onOpenFilters, onOpenSummary
  */
 export function BottomPanel({
@@ -23,6 +23,7 @@ export function BottomPanel({
   onLeaveDaysChange,
   savedCount,
   savedDaysOff,
+  savedLeave,
   onOpenFilters,
   onOpenSummary,
 }) {
@@ -87,13 +88,15 @@ export function BottomPanel({
             <line x1="4" y1="6" x2="20" y2="6" /><line x1="7" y1="12" x2="17" y2="12" /><line x1="10" y1="18" x2="14" y2="18" />
           </svg>
         </button>
+        {/* Days off on top, leave days used underneath; "My breaks" until there are some. */}
         <button
           type="button"
+          aria-label={savedCount ? `My breaks: ${savedDaysOff} days off, ${savedLeave} leave days` : 'My breaks: none yet'}
           onClick={onOpenSummary}
-          className="shrink-0 h-[46px] px-3 rounded-full bg-slate-900 text-white flex flex-col items-center justify-center leading-tight"
+          className="shrink-0 h-[46px] px-3.5 rounded-full bg-slate-900 text-white flex flex-col items-start justify-center leading-tight"
         >
-          <span className="text-[13px] font-bold">My breaks</span>
-          <span className="text-[11px] font-semibold opacity-75">{savedCount} · {savedDaysOff} days off</span>
+          <span className="text-sm font-bold">{savedCount ? `${savedDaysOff} days off` : 'My breaks'}</span>
+          <span className="text-[11px] font-normal opacity-75">{savedCount ? `${savedLeave} leave days` : 'None yet'}</span>
         </button>
       </div>
     </div>
