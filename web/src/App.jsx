@@ -19,6 +19,7 @@ import { MyPlanPanel } from './components/Features/MyPlan/MyPlanPanel'
 import { summarisePlan } from './utils/planStats'
 import { DAY_TYPE_LEGEND } from './utils/dayTypes'
 import { DesktopApp } from './components/Desktop/DesktopApp'
+import { MobileApp } from './components/Mobile/MobileApp'
 
 const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 const MAX_LEAVE = 10
@@ -79,7 +80,17 @@ function SwapIcon({ className }) {
   )
 }
 
+// Phones get the new mobile layout; the previous mobile app stays reachable
+// at ?classic while the new one beds in.
+const CLASSIC = new URLSearchParams(window.location.search).has('classic')
+
 export default function App() {
+  const isDesktop = useIsDesktop()
+  if (isDesktop) return <DesktopApp />
+  return CLASSIC ? <ClassicMobileApp /> : <MobileApp />
+}
+
+function ClassicMobileApp() {
   const [activeTab, setActiveTab] = useState('heatmap')
   const [leaveDays, setLeaveDays] = useState(3)
   const [showSchoolHols, setShowSchoolHols] = useState(false)
