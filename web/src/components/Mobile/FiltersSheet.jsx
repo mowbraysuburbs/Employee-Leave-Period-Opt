@@ -4,8 +4,8 @@ import { HolidayFilterMenu } from '../Desktop/HolidayFilterMenu'
 import { ProvincePicker } from '../Desktop/ProvincePicker'
 
 const MODES = [
-  { id: 'daysOff', label: 'Days off' },
-  { id: 'multiplier', label: 'Multiplier' },
+  { id: 'daysOff', label: 'Total days' },
+  { id: 'multiplier', label: 'Value ×' },
 ]
 
 const toggle = on => [

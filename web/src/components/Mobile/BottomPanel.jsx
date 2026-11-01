@@ -1,14 +1,18 @@
 /**
  * The phone calendar's controls, kept at the bottom within thumb reach:
- * days-off chips (tap to filter), leave days, Filters and My breaks.
+ * a Total days / Value toggle with its chips (tap to filter), leave days,
+ * Filters and My breaks.
  *
  * Props:
+ *   colourBy, onColourByChange – 'daysOff' (Total days) | 'multiplier' (Value ×)
  *   legend, filterable, daysOffFilter, onToggleDaysOff, onClearDaysOff
  *   leaveDays, maxLeave, onLeaveDaysChange
  *   savedCount, savedDaysOff
  *   onOpenFilters, onOpenSummary
  */
 export function BottomPanel({
+  colourBy,
+  onColourByChange,
   legend,
   filterable,
   daysOffFilter,
@@ -27,8 +31,19 @@ export function BottomPanel({
 
   return (
     <div className="shrink-0 px-3.5 pt-2.5 pb-2.5 bg-white border-t border-slate-200 shadow-[0_-4px_14px_rgba(15,23,42,0.06)] flex flex-col gap-2.5 [&>*]:w-full [&>*]:max-w-[520px] [&>*]:mx-auto">
-      <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none]">
-        <span className="shrink-0 mr-0.5 text-[11px] font-semibold text-slate-500">Days off</span>
+      {/* py-1 leaves room for the ring on a picked chip inside the scrolling row */}
+      <div className="flex items-center gap-1.5 overflow-x-auto py-1 -my-1 [scrollbar-width:none]">
+        <button
+          type="button"
+          aria-label={`Colouring by ${colourBy === 'multiplier' ? 'value' : 'total days off'}; tap to switch`}
+          onClick={() => onColourByChange(colourBy === 'multiplier' ? 'daysOff' : 'multiplier')}
+          className="shrink-0 h-7 pl-2.5 pr-2 mr-0.5 rounded-full border border-slate-300 bg-white text-[11px] font-bold text-slate-700 inline-flex items-center gap-1"
+        >
+          {colourBy === 'multiplier' ? 'Value ×' : 'Total days'}
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7" />
+          </svg>
+        </button>
         {legend.map(l => {
           if (!filterable) return <span key={l.label} className={chip} style={{ backgroundColor: l.colour }}>{l.label}</span>
           const on = daysOffFilter.includes(l.value)

@@ -3,8 +3,8 @@ import { HolidayFilterMenu } from '../HolidayFilterMenu'
 import { ProvincePicker } from '../ProvincePicker'
 
 const MODES = [
-  { id: 'daysOff', label: 'Days off' },
-  { id: 'multiplier', label: 'Multiplier' },
+  { id: 'daysOff', label: 'Total days' },
+  { id: 'multiplier', label: 'Value ×' },
 ]
 
 const card = 'bg-white rounded-2xl p-3 shadow-sm flex flex-col gap-2'

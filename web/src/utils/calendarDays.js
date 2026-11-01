@@ -6,11 +6,12 @@ import { fmtDay, addDays } from './dateFormat'
 // Builds the coloured day cells for the calendar month grids, shared by the
 // desktop year calendar and the mobile calendar.
 
-const OUTSIDE = { bg: 'transparent', fg: '#cbd5e1' }
-const FADED = { bg: '#f1f5f9', fg: '#94a3b8' }
-const NO_GAIN = { bg: 'transparent', fg: '#64748b' }
-const START_RING = '0 0 0 3px #0f172a'
-const SAVED_RING = 'inset 0 0 0 2px #0f172a'
+// Palette variables (with light fallbacks) so these follow dark mode.
+const OUTSIDE = { bg: 'transparent', fg: 'var(--color-slate-300, #cbd5e1)' }
+const FADED = { bg: 'var(--color-slate-100, #f1f5f9)', fg: 'var(--color-slate-400, #94a3b8)' }
+const NO_GAIN = { bg: 'transparent', fg: 'var(--color-slate-500, #64748b)' }
+const START_RING = '0 0 0 3px var(--color-slate-900, #0f172a)'
+const SAVED_RING = 'inset 0 0 0 2px var(--color-slate-900, #0f172a)'
 
 function typeLook(type) {
   return { bg: DAY_TYPE_COLOUR[type], fg: type === 'weekend' ? '#ffffff' : '#0f172a' }
@@ -43,7 +44,7 @@ export function withBand(day, brk, selected = false) {
 
   // Zero spread on the top/bottom lines so neighbouring days don't overlap
   // into visible seams; only the capped ends draw a side edge.
-  const edge = selected ? '2px 0 0 #0f172a' : '1.5px 0 0 var(--range-border)'
+  const edge = selected ? '2px 0 0 var(--color-slate-900, #0f172a)' : '1.5px 0 0 var(--range-border)'
   const shadows = [`0 -${edge}`, `0 ${edge}`]
   if (leftCap) shadows.push(`-${edge}`)
   if (rightCap) shadows.push(edge)

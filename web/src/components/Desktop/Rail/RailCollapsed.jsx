@@ -61,7 +61,7 @@ export function RailCollapsed({ c }) {
       <RailIcon icon="leave" label={`Leave days: ${c.leaveDays}`} value={c.leaveDays} onClick={open} className="border-2 border-sky-700 text-sky-800" />
       <RailIcon
         icon="days"
-        label={`Colour by: ${multiplier ? 'Multiplier' : 'Total days off'}`}
+        label={`Colour by: ${multiplier ? 'Value' : 'Total days off'}`}
         value={multiplier ? '×' : 'days'}
         onClick={open}
         className={multiplier ? 'bg-amber-100 text-amber-800' : 'bg-indigo-100 text-indigo-800'}
