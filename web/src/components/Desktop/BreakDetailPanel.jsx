@@ -1,6 +1,6 @@
 import { BreakWeeks } from './BreakWeeks'
 import { BreakDaysTable } from './BreakDaysTable'
-import { ShiftControls } from './ShiftControls'
+import { StartDateChips } from './StartDateChips'
 import { fmtDayRange } from '../../utils/dateFormat'
 import { formatMultiplier } from '../../utils/breaks'
 
@@ -21,11 +21,11 @@ function Stat({ value, label, highlight }) {
  *   nextBreak  – the same start with one more leave day, or null at the cap
  *   bestNote   – explains a break using fewer leave days than set
  *   label      – Overview plan name while one is previewed, e.g. "Up next"
- *   shift, onShift – equal alternatives to slide to (see ShiftControls)
+ *   equalStarts, onPickStart – equal alternatives to move to (see StartDateChips)
  *   isSaved    – already in My breaks
  *   onAdd, onRemove
  */
-export function BreakDetailPanel({ brk, nextBreak, bestNote, label, shift, onShift, isSaved, onAdd, onRemove }) {
+export function BreakDetailPanel({ brk, nextBreak, bestNote, label, equalStarts, onPickStart, isSaved, onAdd, onRemove }) {
   if (!brk) {
     return (
       <div className="px-5 py-7 border-[1.5px] border-dashed border-slate-300 rounded-2xl text-sm text-slate-600 text-center">
@@ -46,7 +46,7 @@ export function BreakDetailPanel({ brk, nextBreak, bestNote, label, shift, onShi
         )}
       </div>
 
-      <ShiftControls shift={shift} onShift={onShift} />
+      <StartDateChips options={equalStarts} current={brk.startDate} onPick={onPickStart} />
 
       <div className="grid grid-cols-3 gap-2">
         <Stat value={brk.daysOff} label="days off" />

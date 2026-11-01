@@ -60,23 +60,19 @@ export function buildBreaksInRange(from, to, leaveDays, { best = false } = {}) {
 }
 
 /**
- * Other start dates within `windowDays` either side of brk that give exactly
- * the same result (same leave days and days off), so a break can be slid to
+ * Every start date within `windowDays` either side of brk that gives exactly
+ * the same result (same leave days and days off), so a break can be moved to
  * an equal alternative.
  *
- * Returns { earlier, later, count }: the nearest equal break before and after
- * (or null), and how many equal options there are including brk itself.
+ * Returns the equal breaks in date order, including brk itself.
  */
-export function findEqualShifts(brk, windowDays = 7) {
+export function findEqualStarts(brk, windowDays = 7) {
   const equal = []
   for (let offset = -windowDays; offset <= windowDays; offset++) {
-    if (offset === 0) continue
-    const other = buildBreak(addDays(brk.startDate, offset), brk.leaveDays)
-    if (other.daysOff === brk.daysOff) equal.push({ offset, brk: other })
+    const other = offset === 0 ? brk : buildBreak(addDays(brk.startDate, offset), brk.leaveDays)
+    if (other.daysOff === brk.daysOff) equal.push(other)
   }
-  const earlier = equal.filter(e => e.offset < 0).at(-1)?.brk ?? null
-  const later = equal.find(e => e.offset > 0)?.brk ?? null
-  return { earlier, later, count: equal.length + 1 }
+  return equal
 }
 
 // A break with no free days (days off = leave days) isn't worth highlighting.
