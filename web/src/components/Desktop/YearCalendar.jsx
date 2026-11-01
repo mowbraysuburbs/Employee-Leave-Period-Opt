@@ -65,6 +65,7 @@ function withBand(day, brk) {
  *   isSaved        – (break) => bool, to word the Add prompt as Add or Remove
  *   previewDayTypes, previewStarts – a quick pick being previewed from
  *                    Overview (Map date -> type, Set of start dates), or null
+ *   schoolDates    – Set of school-holiday dates to underline, or null when the filter is off
  *   hoveredDate    – day under the mouse (owned by the parent so Details can follow it)
  *   confirmDate    – day whose Add prompt is open, or null
  *   onDayHover, onDayClick, onConfirm, onCancelConfirm
@@ -80,6 +81,7 @@ export function YearCalendar({
   isSaved,
   previewDayTypes,
   previewStarts,
+  schoolDates,
   hoveredDate,
   confirmDate,
   onDayHover,
@@ -108,12 +110,22 @@ export function YearCalendar({
       return null
     }
 
+    function school(date) {
+      if (!schoolDates?.has(date)) return null
+      const weekday = new Date(date + 'T00:00:00').getDay()
+      return {
+        roundLeft: weekday === 0 || date.endsWith('-01') || !schoolDates.has(addDays(date, -1)),
+        roundRight: weekday === 6 || addDays(date, 1).slice(5, 7) !== date.slice(5, 7) || !schoolDates.has(addDays(date, 1)),
+      }
+    }
+
     return months.map(({ year, month }) => ({
       year,
       month,
       days: datesInMonth(year, month).map(date => {
         const brk = breaks[date]
         return {
+          school: school(date),
           date,
           dayNumber: Number(date.slice(8)),
           look: look(date, brk),
@@ -126,7 +138,7 @@ export function YearCalendar({
         }
       }),
     }))
-  }, [months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, previewStarts])
+  }, [months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, previewStarts, schoolDates])
 
   const hoverBreak = hoveredDate ? breaks[hoveredDate] : null
 

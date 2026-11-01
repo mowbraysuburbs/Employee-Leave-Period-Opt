@@ -8,7 +8,8 @@ const WEEKDAY_HEADERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
  * Props:
  *   year, month  – month is 1-based
  *   days         – [{ date, dayNumber, look: { bg, fg }, ring, isHoliday, disabled, ariaLabel,
- *                     inBand, shape, confirming }]  inBand/shape are set while the day is in a hovered break
+ *                     inBand, shape, confirming, school }]  inBand/shape are set while the day is in a hovered break;
+ *                     school is { roundLeft, roundRight } on school-holiday days while that filter is on
  *   popoverFor   – (date) => node | null; the hover card or Add prompt to show on a day
  *   onDayClick, onDayHover
  */
@@ -50,6 +51,18 @@ export function MonthCard({ year, month, days, popoverFor, onDayClick, onDayHove
                 <span className="absolute bottom-[3px] left-1/2 -ml-0.5 w-1 h-1 rounded-full" style={{ backgroundColor: d.look.fg }} />
               )}
             </button>
+            {d.school && (
+              // Green bar under school-holiday days; with no column gap the bars
+              // join into one line, rounded where a holiday or week row ends.
+              <span
+                aria-hidden="true"
+                className={[
+                  'absolute left-0 right-0 -bottom-[3px] h-[3px] bg-green-600',
+                  d.school.roundLeft ? 'rounded-l-sm' : '',
+                  d.school.roundRight ? 'rounded-r-sm' : '',
+                ].join(' ')}
+              />
+            )}
             {popoverFor(d.date)}
           </div>
         ))}

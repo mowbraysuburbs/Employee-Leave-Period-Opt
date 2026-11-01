@@ -1,6 +1,7 @@
 import { PlanList } from './PlanList'
 import { PlanDetails } from './PlanDetails'
 import { PeriodPicker } from '../PeriodPicker'
+import { ProvincePicker } from '../ProvincePicker'
 import { OVERVIEW_LEAVE } from '../../../utils/plans'
 
 /**
@@ -14,8 +15,9 @@ import { OVERVIEW_LEAVE } from '../../../utils/plans'
  *   ticked, onToggle, onToggleAll – tick boxes for the selected plan
  *   isSaved                      – (break) => bool
  *   onAdd, onExport, onView      – (breaks) => void
+ *   province, onProvinceChange   – school province, shown on School run
  */
-export function OverviewPage({ plans, selectedPlan, onSelect, period, ticked, onToggle, onToggleAll, isSaved, onAdd, onExport, onView }) {
+export function OverviewPage({ plans, selectedPlan, onSelect, period, ticked, onToggle, onToggleAll, isSaved, onAdd, onExport, onView, province, onProvinceChange }) {
   const chosen = selectedPlan ? selectedPlan.breaks.filter(b => ticked.has(b.startDate)) : []
 
   return (
@@ -47,6 +49,7 @@ export function OverviewPage({ plans, selectedPlan, onSelect, period, ticked, on
               onAdd={onAdd}
               onExport={onExport}
               onView={onView}
+              topSlot={selectedPlan.kind === 'school' ? <ProvincePicker value={province} onChange={onProvinceChange} /> : null}
             />
           )}
         </div>

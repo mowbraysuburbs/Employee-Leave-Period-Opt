@@ -12,10 +12,10 @@ import { OverviewPage } from './Overview/OverviewPage'
 import { HolidaysList } from '../Features/HolidaysList'
 import { useSavedBreaks } from './useSavedBreaks'
 import { buildBreak, buildBreaksInRange, breakKey, hasGain, toCalendarEvent } from '../../utils/breaks'
-import { computePlans } from '../../utils/plans'
+import { computePlans, schoolBreaksFor, provinceLabel } from '../../utils/plans'
 import { buildIcs, downloadIcs } from '../../utils/calendarExport'
 import { getColourForDaysOff, getColourForMultiplier, multiplierBucket } from '../../utils/colorScale'
-import { fmtDay } from '../../utils/dateFormat'
+import { fmtDay, addDays } from '../../utils/dateFormat'
 
 const MAX_LEAVE = 10
 // BCEA minimum: 21 consecutive days, i.e. 15 working days.
@@ -65,6 +65,9 @@ export function DesktopApp() {
   // ticked ones), and whether the calendar is filtered to only those dates.
   const [preview, setPreview] = useState(null)
   const [previewOnly, setPreviewOnly] = useState(true)
+  // One school province, shared by School run and the calendar's school filter.
+  const [province, setProvince] = useState('GP')
+  const [schoolOn, setSchoolOn] = useState(false)
   const [confirmDate, setConfirmDate] = useState(null)
   const [justAddedKey, setJustAddedKey] = useState(null)
   const { saved, add, remove } = useSavedBreaks()
@@ -75,7 +78,15 @@ export function DesktopApp() {
     () => buildBreaksInRange(from, to, leaveDays, { best: colourBy === 'multiplier' }),
     [from, to, leaveDays, colourBy]
   )
-  const plans = useMemo(() => computePlans({ from, to }), [from, to])
+  const plans = useMemo(() => computePlans({ from, to, provinceCode: province }), [from, to, province])
+  const schoolDates = useMemo(() => {
+    if (!schoolOn) return null
+    const dates = new Set()
+    for (const sb of schoolBreaksFor(province, from, to)) {
+      for (let d = sb.start; d <= sb.end; d = addDays(d, 1)) dates.add(d)
+    }
+    return dates
+  }, [schoolOn, province, from, to])
   const selectedPlan = plans.find(p => p.id === selectedPlanId) ?? plans[0] ?? null
   const ticked = useMemo(() => {
     if (!selectedPlan) return new Set()
@@ -226,6 +237,8 @@ export function DesktopApp() {
             onAdd={addBreaks}
             onExport={exportBreaks}
             onView={viewOnCalendar}
+            province={province}
+            onProvinceChange={setProvince}
           />
         )}
 
@@ -263,6 +276,9 @@ export function DesktopApp() {
               previewCount={preview?.breaks.length ?? 0}
               previewOnly={previewOnly}
               onPreviewOnlyChange={setPreviewOnly}
+              schoolOn={schoolOn}
+              onSchoolOnChange={setSchoolOn}
+              provinceName={provinceLabel(province)}
             />
 
             {preview && (
@@ -285,6 +301,7 @@ export function DesktopApp() {
                 isSaved={isSaved}
                 previewDayTypes={previewOnly ? previewDays.dayTypes : null}
                 previewStarts={previewOnly ? previewDays.starts : null}
+                schoolDates={schoolDates}
                 hoveredDate={hoveredDate}
                 confirmDate={confirmDate}
                 onDayHover={setHoveredDate}
