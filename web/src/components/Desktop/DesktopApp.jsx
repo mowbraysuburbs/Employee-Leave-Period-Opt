@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { DesktopHeader } from './DesktopHeader'
+import { CalendarKey } from './CalendarKey'
 import { ControlRail } from './Rail/ControlRail'
 import { YearCalendar } from './YearCalendar'
 import { SidePanel } from './SidePanel'
@@ -284,7 +285,7 @@ export function DesktopApp() {
 
   return (
     <div className={`bg-slate-50 text-slate-900 ${calendarPage ? 'h-screen flex flex-col overflow-hidden' : 'min-h-screen'}`}>
-      <DesktopHeader page={page} onPageChange={setPage} />
+      <DesktopHeader page={page} onPageChange={setPage} rightSlot={calendarPage ? <CalendarKey /> : null} />
       {calendarPage && (
         <main className="flex-1 min-h-0 w-full max-w-[1440px] mx-auto px-6 py-4 flex gap-5">
           <ControlRail c={railControls} />

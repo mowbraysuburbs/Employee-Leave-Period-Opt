@@ -5,7 +5,8 @@ const PAGES = [
   { id: 'events', label: 'Events', soon: true },
 ]
 
-export function DesktopHeader({ page, onPageChange }) {
+// rightSlot: optional controls for the header's right-hand end (the calendar's Key).
+export function DesktopHeader({ page, onPageChange, rightSlot }) {
   return (
     <header className="bg-white border-b border-slate-200">
       <div className="max-w-[1320px] mx-auto px-8 h-[68px] flex items-center gap-8">
@@ -29,6 +30,7 @@ export function DesktopHeader({ page, onPageChange }) {
             </button>
           ))}
         </nav>
+        {rightSlot && <div className="ml-auto">{rightSlot}</div>}
       </div>
     </header>
   )
