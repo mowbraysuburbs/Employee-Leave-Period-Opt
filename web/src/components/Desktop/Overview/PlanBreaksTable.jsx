@@ -37,10 +37,10 @@ export function PlanBreaksTable({ breaks, ticked, onToggle, onToggleAll }) {
           </span>
           <span role="columnheader" className="truncate">Start</span>
           <span role="columnheader" className="truncate">End</span>
+          <span role="columnheader" className="truncate">Days off</span>
           <span role="columnheader" className="truncate">Leave</span>
           <span role="columnheader" className="truncate">Holidays</span>
           <span role="columnheader" className="truncate">Weekend</span>
-          <span role="columnheader" className="truncate">Days off</span>
           <span role="columnheader" className="truncate">×</span>
         </div>
         {breaks.map(b => {
@@ -58,10 +58,10 @@ export function PlanBreaksTable({ breaks, ticked, onToggle, onToggleAll }) {
               </span>
               <DateCell date={b.startDate} className="font-semibold" />
               <DateCell date={b.endDate} className="text-slate-600" />
+              <span role="cell" className="truncate font-bold">{b.daysOff}</span>
               <span role="cell" className="truncate">{b.leaveDays}</span>
               <span role="cell" className="truncate text-orange-800">{countDays(b, 'public_holiday')}</span>
               <span role="cell" className="truncate text-slate-600">{countDays(b, 'weekend')}</span>
-              <span role="cell" className="truncate font-bold">{b.daysOff}</span>
               <span role="cell" className="truncate font-bold text-amber-800">{formatMultiplier(b.multiplier)}</span>
             </div>
           )
