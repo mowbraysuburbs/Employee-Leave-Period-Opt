@@ -5,7 +5,11 @@ import { BottomPanel } from './BottomPanel'
 import { BottomSheet } from './BottomSheet'
 import { FiltersSheet } from './FiltersSheet'
 import { SettingsSheet } from './SettingsSheet'
+import { HelpButton } from '../Help/HelpButton'
+import { HowItWorks } from '../Help/HowItWorks'
+import { WelcomeWalkthrough } from '../Help/WelcomeWalkthrough'
 import { useSettings } from '../../hooks/useSettings'
+import { useWelcome } from '../../hooks/useWelcome'
 import { CalendarKey } from '../Desktop/CalendarKey'
 import { BreakDetailPanel } from '../Desktop/BreakDetailPanel'
 import { MyBreaksPanel } from '../Desktop/MyBreaksPanel'
@@ -25,7 +29,8 @@ export function MobileApp() {
   const p = useLeavePlanner()
   const [page, setPage] = useState('calendar')
   const settings = useSettings()
-  // Which bottom sheet is open: 'day' | 'filters' | 'summary' | 'settings' | null.
+  const { showWelcome, closeWelcome, replayWelcome } = useWelcome()
+  // Which bottom sheet is open: 'day' | 'filters' | 'summary' | 'settings' | 'help' | null.
   const [sheet, setSheet] = useState(null)
   const closeSheet = () => setSheet(null)
   const calendarPage = page === 'calendar'
@@ -51,6 +56,7 @@ export function MobileApp() {
       <header className="shrink-0 h-14 px-4 bg-white border-b border-slate-200 flex items-center gap-2">
         <span className="text-lg font-extrabold tracking-tight">Stretch<span className="text-sky-700">My</span>Leave</span>
         <span className="flex-1" />
+        <HelpButton onClick={() => setSheet('help')} />
         {calendarPage && <CalendarKey />}
         <button
           type="button"
@@ -154,6 +160,14 @@ export function MobileApp() {
       )}
 
       {sheet === 'filters' && <FiltersSheet c={p.controls} onClose={closeSheet} />}
+
+      {sheet === 'help' && (
+        <BottomSheet label="How it works" title="How it works" backdrop onClose={closeSheet}>
+          <HowItWorks phone onReplay={() => { setSheet(null); replayWelcome() }} />
+        </BottomSheet>
+      )}
+
+      {showWelcome && <WelcomeWalkthrough phone onClose={closeWelcome} />}
 
       {sheet === 'settings' && (
         <SettingsSheet
