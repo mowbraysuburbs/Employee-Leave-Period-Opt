@@ -1,6 +1,5 @@
-import { SavedBreakRow } from './SavedBreakRow'
+import { SavedBreaksTable } from './SavedBreaksTable'
 import { AddedPrompt } from './AddedPrompt'
-import { DAY_TYPE_LEGEND } from '../../utils/dayTypes'
 import { summariseBreaks, formatMultiplier, toCalendarEvent, breakKey } from '../../utils/breaks'
 import { buildIcs, downloadIcs } from '../../utils/calendarExport'
 
@@ -51,27 +50,8 @@ export function MyBreaksPanel({ breaks, allowance, justAddedKey, onOpen, onRemov
           No breaks yet. Click any day to start.
         </div>
       ) : (
-        <div aria-label="Saved breaks" className="max-h-[440px] overflow-y-auto flex flex-col gap-2.5 pr-1.5">
-          {breaks.map(b => (
-            <SavedBreakRow
-              key={breakKey(b)}
-              brk={b}
-              highlighted={breakKey(b) === justAddedKey}
-              onOpen={() => onOpen(b)}
-              onRemove={() => onRemove(b)}
-            />
-          ))}
-        </div>
+        <SavedBreaksTable breaks={breaks} justAddedKey={justAddedKey} onOpen={onOpen} onRemove={onRemove} />
       )}
-
-      <div className="flex flex-wrap gap-3.5 text-xs text-slate-700">
-        {DAY_TYPE_LEGEND.map(l => (
-          <div key={l.type} className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: l.colour }} />
-            {l.label}
-          </div>
-        ))}
-      </div>
 
       <button
         type="button"
