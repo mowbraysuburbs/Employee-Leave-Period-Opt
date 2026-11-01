@@ -19,7 +19,7 @@ const THEME_CLASSES = {
  * plans get tick boxes, and the stats and buttons follow what's ticked.
  *
  * Props:
- *   plan                    – { kind, title, rule, blurb, breaks }
+ *   plan                    – { kind, title, rule, blurb, summary, breaks }
  *   ticked                  – Set of ticked break start dates
  *   onToggle, onToggleAll
  *   allSaved                – every ticked break is already in My breaks
@@ -42,9 +42,12 @@ export function PlanDetails({ plan, ticked, onToggle, onToggleAll, allSaved, onA
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="m-0 text-[22px] font-extrabold tracking-tight">{plan.title}</h2>
-            <span className="px-2.5 py-0.5 rounded-full bg-white/80 border border-slate-200 text-slate-600 text-xs font-bold whitespace-nowrap">{plan.rule}</span>
+            {!phone && <span className="px-2.5 py-0.5 rounded-full bg-white/80 border border-slate-200 text-slate-600 text-xs font-bold whitespace-nowrap">{plan.rule}</span>}
           </div>
-          {!phone && <p className="m-0 mt-1.5 text-sm text-slate-600 leading-relaxed max-w-[600px]">{plan.blurb}</p>}
+          {/* Phones get a one-sentence summary instead of the rule pill and longer blurb. */}
+          {phone
+            ? <p className="m-0 mt-1 text-[13px] text-slate-600 leading-snug">{plan.summary}</p>
+            : <p className="m-0 mt-1.5 text-sm text-slate-600 leading-relaxed max-w-[600px]">{plan.blurb}</p>}
         </div>
 
         {topSlot}
