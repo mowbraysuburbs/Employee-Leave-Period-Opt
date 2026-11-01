@@ -12,23 +12,21 @@ function Stat({ value, label, highlight }) {
 }
 
 /**
- * Details tab content while the Year plan quick pick is previewed.
+ * Calendar Details tab while a multi-break plan from Overview is previewed.
  *
  * Props:
- *   year, breaks
- *   yearSwitch – node for changing the plan year
+ *   title, breaks
  *   allSaved, onAddAll
  */
-export function YearPlanPreview({ year, breaks, yearSwitch, allSaved, onAddAll }) {
+export function PlanPreview({ title, breaks, allSaved, onAddAll }) {
   const totals = summariseBreaks(breaks)
 
   return (
     <div className="flex flex-col gap-3.5">
-      <div className="flex flex-col gap-2.5">
-        <span className="self-start px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 text-xs font-bold">Quick pick · Year plan</span>
-        {yearSwitch}
+      <div className="flex flex-col gap-2">
+        <span className="self-start px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 text-xs font-bold">Overview plan · {title}</span>
         <h2 className="m-0 text-xl font-extrabold tracking-tight">
-          {year}: {breaks.length} breaks · {totals.leaveUsed} leave days
+          {breaks.length} breaks · {totals.leaveUsed} leave days
         </h2>
       </div>
       <div className="grid grid-cols-3 gap-2">
@@ -40,7 +38,7 @@ export function YearPlanPreview({ year, breaks, yearSwitch, allSaved, onAddAll }
         {breaks.map(b => (
           <div key={breakKey(b)} role="row" className="flex flex-col gap-1.5 px-1 py-2.5 border-t border-slate-100">
             <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2.5 items-center">
-              <span role="cell" className="font-bold">{fmtDayRange(b.startDate, b.endDate)}</span>
+              <span role="cell" className="font-bold truncate">{fmtDayRange(b.startDate, b.endDate)}</span>
               <span role="cell" className="text-xs text-slate-600 whitespace-nowrap">
                 {b.leaveDays} leave → {b.daysOff} off · <strong className="text-amber-800">{formatMultiplier(b.multiplier)}</strong>
               </span>

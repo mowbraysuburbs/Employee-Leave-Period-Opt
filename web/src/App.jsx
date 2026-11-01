@@ -40,13 +40,16 @@ function fmtPill(dateStr) {
   return `${d} ${MONTH_SHORT[+m - 1]} ${y.slice(2)}`
 }
 
-// Desktop's Calendar/Planner panes are a genuinely different shape than mobile's
-// single active tab (a resizable split vs one full-width view), so we mount
-// exactly one of the two content trees rather than CSS-hiding both.
+// Desktop and mobile are genuinely different layouts, so we mount exactly one
+// of the two content trees rather than CSS-hiding both. 640px (not 768) keeps
+// a laptop window snapped to half the screen on the desktop layout; phones
+// sit well below it.
+const DESKTOP_QUERY = '(min-width: 640px)'
+
 function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(() => window.matchMedia('(min-width: 768px)').matches)
+  const [isDesktop, setIsDesktop] = useState(() => window.matchMedia(DESKTOP_QUERY).matches)
   useEffect(() => {
-    const mq = window.matchMedia('(min-width: 768px)')
+    const mq = window.matchMedia(DESKTOP_QUERY)
     const handler = (e) => setIsDesktop(e.matches)
     mq.addEventListener('change', handler)
     return () => mq.removeEventListener('change', handler)
