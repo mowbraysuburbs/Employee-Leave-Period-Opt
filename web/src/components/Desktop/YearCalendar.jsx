@@ -1,7 +1,6 @@
 import { useMemo, useRef, useState, useEffect } from 'react'
 import { MonthCard } from './MonthCard'
 import { HoverCard } from './HoverCard'
-import { AddPrompt } from './AddPrompt'
 import { getColourForDaysOff, getColourForMultiplier } from '../../utils/colorScale'
 import { DAY_TYPE_COLOUR } from '../../utils/dayTypes'
 import { holidayNamesIn, formatMultiplier, hasGain } from '../../utils/breaks'
@@ -24,11 +23,12 @@ function datesInMonth(year, month) {
 }
 
 /**
- * Hovering a day draws its whole break as one joined band, like the mobile
- * calendar: corners only round off where the band starts or ends a run (the
- * break's first/last day, a week row edge, or a month edge).
+ * Draws a break as one joined band of squares: corners only round off where
+ * the band starts or ends a run (the break's first/last day, a week row edge,
+ * or a month edge). The hovered break gets a soft outline; the clicked
+ * (selected) break a solid dark one that stays until another day is clicked.
  */
-function withBand(day, brk) {
+function withBand(day, brk, selected = false) {
   if (!brk || day.date < brk.startDate || day.date > brk.endDate) return day
   const weekday = new Date(day.date + 'T00:00:00').getDay()
   const isStart = day.date === brk.startDate
@@ -43,11 +43,12 @@ function withBand(day, brk) {
 
   // Zero spread on the top/bottom lines so neighbouring days don't overlap
   // into visible seams; only the capped ends draw a side edge.
-  const shadows = ['0 -1.5px 0 0 var(--range-border)', '0 1.5px 0 0 var(--range-border)']
-  if (leftCap) shadows.push('-1.5px 0 0 0 var(--range-border)')
-  if (rightCap) shadows.push('1.5px 0 0 0 var(--range-border)')
-  if (isStart) shadows.push('-3px 0 8px 0 var(--range-glow)')
-  if (isEnd) shadows.push('3px 0 8px 0 var(--range-glow)')
+  const edge = selected ? '2px 0 0 #0f172a' : '1.5px 0 0 var(--range-border)'
+  const shadows = [`0 -${edge}`, `0 ${edge}`]
+  if (leftCap) shadows.push(`-${edge}`)
+  if (rightCap) shadows.push(edge)
+  if (!selected && isStart) shadows.push('-3px 0 8px 0 var(--range-glow)')
+  if (!selected && isEnd) shadows.push('3px 0 8px 0 var(--range-glow)')
   if (day.ring) shadows.push(day.ring)
 
   return { ...day, inBand: true, shape, ring: shadows.join(', ') }
@@ -62,15 +63,14 @@ function withBand(day, brk) {
  *   picksOnly      – show saved breaks by day type instead of the heatmap
  *   savedDayTypes  – Map(date -> type) across every saved break
  *   savedStarts    – Set of saved break start dates
- *   isSaved        – (break) => bool, to word the Add prompt as Add or Remove
  *   previewDayTypes, previewStarts – a quick pick being previewed from
  *                    Overview (Map date -> type, Set of start dates), or null
  *   schoolDates    – Set of school-holiday dates to underline, or null when the filter is off
  *   daysOffFilter  – Set of days-off values to keep coloured, or null; months without a
  *                    match are hidden, but any row with a match is kept whole
  *   hoveredDate    – day under the mouse (owned by the parent so Details can follow it)
- *   confirmDate    – day whose Add prompt is open, or null
- *   onDayHover, onDayClick, onConfirm, onCancelConfirm
+ *   selectedBreak  – the clicked break, drawn as a solid band of squares, or null
+ *   onDayHover, onDayClick
  */
 export function YearCalendar({
   months,
@@ -80,17 +80,14 @@ export function YearCalendar({
   picksOnly,
   savedDayTypes,
   savedStarts,
-  isSaved,
   previewDayTypes,
   previewStarts,
   schoolDates,
   daysOffFilter,
   hoveredDate,
-  confirmDate,
+  selectedBreak,
   onDayHover,
   onDayClick,
-  onConfirm,
-  onCancelConfirm,
 }) {
   // Colours depend on everything except the hover, so hovering stays cheap.
   const monthDays = useMemo(() => {
@@ -172,13 +169,8 @@ export function YearCalendar({
 
   const hoverBreak = hoveredDate ? breaks[hoveredDate] : null
 
-  // The Add prompt wins over the hover card on the same day.
   function popoverFor(date) {
-    if (date === confirmDate && breaks[date]) {
-      return <AddPrompt brk={breaks[date]} isSaved={isSaved(breaks[date])} onConfirm={onConfirm} onCancel={onCancelConfirm} />
-    }
-    if (date === hoveredDate && hoverBreak) return <HoverCard brk={hoverBreak} colourBy={colourBy} />
-    return null
+    return date === hoveredDate && hoverBreak ? <HoverCard brk={hoverBreak} colourBy={colourBy} /> : null
   }
 
   return (
@@ -194,8 +186,8 @@ export function YearCalendar({
           year={m.year}
           month={m.month}
           days={m.days.map(d => {
-            const banded = hoverBreak ? withBand(d, hoverBreak) : d
-            return d.date === confirmDate ? { ...banded, confirming: true } : banded
+            const selected = selectedBreak ? withBand(d, selectedBreak, true) : d
+            return hoverBreak ? withBand(selected, hoverBreak) : selected
           })}
           popoverFor={popoverFor}
           onDayClick={onDayClick}

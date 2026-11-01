@@ -82,7 +82,6 @@ export function DesktopApp() {
   // One school province, shared by School run and the calendar's school filter.
   const [province, setProvince] = useState('GP')
   const [schoolOn, setSchoolOn] = useState(false)
-  const [confirmDate, setConfirmDate] = useState(null)
   const [justAddedKey, setJustAddedKey] = useState(null)
   const { saved, add, remove } = useSavedBreaks()
 
@@ -184,11 +183,10 @@ export function DesktopApp() {
     onReset: () => { setFrom(TODAY); setTo(LAST_DATE) },
   }
 
-  // A click shows that day in Details (and opens its Add prompt).
+  // A click selects that day: its break is banded on the calendar and shown in Details.
   function handleDayClick(date) {
     setDetailDate(date)
     setPinned(null)
-    setConfirmDate(date)
     setHoveredDate(null)
     setJustAddedKey(null)
     setTab('details')
@@ -210,13 +208,6 @@ export function DesktopApp() {
   function removeBreak(entry) {
     remove(entry)
     if (breakKey(entry) === justAddedKey) setJustAddedKey(null)
-  }
-
-  function handleConfirm() {
-    const brk = breaks[confirmDate]
-    if (isSaved(brk)) removeBreak(brk)
-    else addFromCalendar([brk])
-    setConfirmDate(null)
   }
 
   function toggleTick(startDate) {
@@ -308,17 +299,14 @@ export function DesktopApp() {
               picksOnly={picksOnly}
               savedDayTypes={savedDayTypes}
               savedStarts={savedStarts}
-              isSaved={isSaved}
               previewDayTypes={previewOnly ? previewDays.dayTypes : null}
               previewStarts={previewOnly ? previewDays.starts : null}
               schoolDates={schoolDates}
               daysOffFilter={activeDaysOff}
               hoveredDate={hoveredDate}
-              confirmDate={confirmDate}
+              selectedBreak={detailBreak}
               onDayHover={setHoveredDate}
               onDayClick={handleDayClick}
-              onConfirm={handleConfirm}
-              onCancelConfirm={() => setConfirmDate(null)}
             />
           </div>
 

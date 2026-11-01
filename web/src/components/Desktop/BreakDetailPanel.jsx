@@ -46,6 +46,16 @@ export function BreakDetailPanel({ brk, nextBreak, bestNote, label, equalStarts,
         )}
       </div>
 
+      {isSaved ? (
+        <button type="button" onClick={onRemove} className="h-11 rounded-xl bg-white text-red-700 border border-red-300 text-[15px] font-bold">
+          Remove from my breaks
+        </button>
+      ) : (
+        <button type="button" onClick={onAdd} className="h-11 rounded-xl bg-sky-700 text-white text-[15px] font-bold">
+          + Add to my breaks
+        </button>
+      )}
+
       <StartDateChips options={equalStarts} current={brk.startDate} onPick={onPickStart} />
 
       <div className="grid grid-cols-3 gap-2">
@@ -61,16 +71,6 @@ export function BreakDetailPanel({ brk, nextBreak, bestNote, label, equalStarts,
         <p className="m-0 text-[13px] text-slate-600">
           +1 leave day → {nextBreak.daysOff} days off ({formatMultiplier(nextBreak.multiplier)})
         </p>
-      )}
-
-      {isSaved ? (
-        <button type="button" onClick={onRemove} className="h-[52px] rounded-2xl bg-white text-red-700 border border-red-300 text-base font-bold">
-          Remove from my breaks
-        </button>
-      ) : (
-        <button type="button" onClick={onAdd} className="h-[52px] rounded-2xl bg-sky-700 text-white text-base font-bold">
-          Add to my breaks
-        </button>
       )}
     </div>
   )
