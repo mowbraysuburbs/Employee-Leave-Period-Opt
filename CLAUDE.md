@@ -30,18 +30,23 @@ A mobile-first React web app for South African employees to find optimal leave p
 ```
 src/
   components/
-    Calendar/     # DayCell, MonthGrid, CalendarHeatmap
-    Layout/       # BottomTabBar (mobile), Sidebar (desktop), AppShell
-    Features/     # LeaveSelector, BestPeriodsTable, HolidaysList, PlanTab
-    Desktop/      # Desktop-only layout: year calendar, hover card, break details, My breaks
-      Overview/   # Desktop landing page: plan list (left) + themed plan details with tick boxes (right)
+    Desktop/      # Desktop layout (≥640px): year calendar, hover card, break details, My breaks
+      Overview/   # Landing page: plan list (left) + themed plan details with tick boxes (right)
+      Rail/       # Calendar control rail (expanded / collapsed to icons)
+    Mobile/       # Phone layout (<640px): calendar, bottom panel, day / Filters / My breaks sheets
+    Features/     # HolidaysList (used by both layouts)
+  hooks/
+    useLeavePlanner.js  # Planning state shared by DesktopApp and MobileApp
   data/
     publicHolidays.js   # Hardcoded SA public holidays 2025–2026
     schoolHolidays.js   # SA school term breaks by province
   utils/
     leaveCalculator.js  # Core algorithm — JS port of the Python notebook
+    breaks.js           # Break building, equal starts, combining overlaps
+    calendarDays.js     # Day cells (colours, bands) for both calendars
     colorScale.js       # Maps days-off count → distinct colour
-  App.jsx
+    shareCard.js        # Canvas share image + Web Share (kept for the parked Share feature)
+  App.jsx               # Picks DesktopApp or MobileApp by screen width
   main.jsx
   index.css
 ```
@@ -103,6 +108,6 @@ Returns an array of 365/366 scores, one per calendar day.
 ## Design Decisions
 
 - **No external heatmap library** — custom cell rendering gives full control over colours, dots, tooltips, and mobile layout
-- **Vertical month scroll on mobile** — one month per row, 7-column grid
+- **Vertical month scroll on mobile** — one month per row, 7-column grid; controls in a bottom panel, details in bottom sheets
 - **White bold text on holiday cells** — makes public holidays immediately visible without a separate legend
-- **Bottom tab bar on mobile, sidebar on desktop** — standard mobile-first navigation pattern
+- **Bottom tab bar on mobile, top tabs + control rail on desktop**
