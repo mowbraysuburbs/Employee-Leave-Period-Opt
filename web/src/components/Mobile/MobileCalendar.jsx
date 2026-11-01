@@ -35,7 +35,7 @@ export function MobileCalendar({ selectedBreak, onDayClick, ...options }) {
   }, [startDate])
 
   return (
-    <section ref={scrollRef} aria-label="Calendar" className="flex-1 min-h-0 overflow-y-auto px-3 pt-3 pb-4 flex flex-col gap-2.5">
+    <section ref={scrollRef} aria-label="Calendar" className="flex-1 min-h-0 overflow-y-auto px-3 pt-3 pb-4 flex flex-col gap-2.5 [&>*]:w-full [&>*]:max-w-[520px] [&>*]:mx-auto">
       {visibleMonths.length === 0 && (
         <div className="p-5 border-[1.5px] border-dashed border-slate-300 rounded-2xl text-sm text-slate-600 text-center">
           No start days give that many days off in this period. Pick other numbers or clear the filter.
