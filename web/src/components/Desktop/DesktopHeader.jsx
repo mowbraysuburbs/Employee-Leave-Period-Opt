@@ -1,4 +1,5 @@
 const PAGES = [
+  { id: 'overview', label: 'Overview' },
   { id: 'calendar', label: 'Calendar' },
   { id: 'holidays', label: 'Public holidays' },
 ]

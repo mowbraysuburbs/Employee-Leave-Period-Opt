@@ -34,6 +34,7 @@ src/
     Layout/       # BottomTabBar (mobile), Sidebar (desktop), AppShell
     Features/     # LeaveSelector, BestPeriodsTable, HolidaysList, PlanTab
     Desktop/      # Desktop-only layout: year calendar, hover card, break details, My breaks
+      Overview/   # Desktop landing page: Up next card, More options table, year summary
   data/
     publicHolidays.js   # Hardcoded SA public holidays 2025–2026
     schoolHolidays.js   # SA school term breaks by province

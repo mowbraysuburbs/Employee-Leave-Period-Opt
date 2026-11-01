@@ -63,6 +63,8 @@ function withBand(day, brk) {
  *   savedDayTypes  – Map(date -> type) across every saved break
  *   savedStarts    – Set of saved break start dates
  *   isSaved        – (break) => bool, to word the Add prompt as Add or Remove
+ *   previewDayTypes, previewStarts – a quick pick being previewed from
+ *                    Overview (Map date -> type, Set of start dates), or null
  *   hoveredDate    – day under the mouse (owned by the parent so Details can follow it)
  *   confirmDate    – day whose Add prompt is open, or null
  *   onDayHover, onDayClick, onConfirm, onCancelConfirm
@@ -76,6 +78,8 @@ export function YearCalendar({
   savedDayTypes,
   savedStarts,
   isSaved,
+  previewDayTypes,
+  previewStarts,
   hoveredDate,
   confirmDate,
   onDayHover,
@@ -89,6 +93,7 @@ export function YearCalendar({
 
     function look(date, brk) {
       if (!brk) return OUTSIDE
+      if (previewDayTypes) return previewDayTypes.has(date) ? typeLook(previewDayTypes.get(date)) : FADED
       if (picksOnly) return savedDayTypes.has(date) ? typeLook(savedDayTypes.get(date)) : FADED
       if (!hasGain(brk)) return NO_GAIN
       if (!passesFilter(brk)) return FADED
@@ -97,6 +102,7 @@ export function YearCalendar({
     }
 
     function ring(date) {
+      if (previewStarts) return previewStarts.has(date) ? START_RING : null
       if (savedStarts.has(date)) return START_RING
       if (!picksOnly && savedDayTypes.has(date)) return SAVED_RING
       return null
@@ -120,7 +126,7 @@ export function YearCalendar({
         }
       }),
     }))
-  }, [months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts])
+  }, [months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, previewStarts])
 
   const hoverBreak = hoveredDate ? breaks[hoveredDate] : null
 
