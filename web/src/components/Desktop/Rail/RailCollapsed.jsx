@@ -22,10 +22,11 @@ const ICONS = {
 }
 
 // One icon button in the strip; every one opens the rail back up.
-function RailIcon({ icon, label, value, className, onClick }) {
+function RailIcon({ icon, label, value, className, onClick, tour }) {
   return (
     <button
       type="button"
+      data-tour={tour}
       title={label}
       aria-label={label}
       onClick={onClick}
@@ -58,8 +59,9 @@ export function RailCollapsed({ c }) {
     <aside aria-label="Calendar controls (collapsed)" className="w-[60px] shrink-0 h-full overflow-y-auto flex flex-col items-center gap-1.5 py-2 bg-white rounded-2xl shadow-sm">
       <button type="button" onClick={open} aria-label="Expand calendar controls" title="Expand controls" className="w-10 h-9 rounded-[10px] bg-slate-900 text-white text-[15px] font-bold">»</button>
       <span aria-hidden="true" className="w-8 h-px bg-slate-200 my-0.5" />
-      <RailIcon icon="leave" label={`Leave days: ${c.leaveDays}`} value={c.leaveDays} onClick={open} className="border-2 border-sky-700 text-sky-800" />
+      <RailIcon tour="leave" icon="leave" label={`Leave days: ${c.leaveDays}`} value={c.leaveDays} onClick={open} className="border-2 border-sky-700 text-sky-800" />
       <RailIcon
+        tour="colours"
         icon="days"
         label={`Colour by: ${multiplier ? 'Value' : 'Total days off'}`}
         value={multiplier ? '×' : 'days'}

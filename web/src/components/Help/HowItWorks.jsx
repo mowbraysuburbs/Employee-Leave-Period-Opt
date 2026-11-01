@@ -4,7 +4,7 @@ const heading = 'm-0 text-[13px] font-extrabold text-slate-900 uppercase trackin
 
 /**
  * The How it works guide: the idea, the four steps, the two colour modes,
- * tips, and a button to replay the walkthrough. Shown in a bottom sheet on
+ * tips, and a button to replay the guided tour. Shown in a bottom sheet on
  * phones and a side panel on desktop.
  *
  * Props: phone (bool, picks the device-specific tip), onReplay
@@ -57,7 +57,7 @@ export function HowItWorks({ phone = false, onReplay }) {
       </section>
 
       <button type="button" onClick={onReplay} className="h-11 rounded-xl border border-slate-300 bg-white text-sm font-bold text-slate-900">
-        ▶ Show the walkthrough again
+        ▶ Take the tour again
       </button>
     </div>
   )

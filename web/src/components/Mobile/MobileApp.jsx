@@ -7,7 +7,8 @@ import { FiltersSheet } from './FiltersSheet'
 import { SettingsSheet } from './SettingsSheet'
 import { HelpButton } from '../Help/HelpButton'
 import { HowItWorks } from '../Help/HowItWorks'
-import { WelcomeWalkthrough } from '../Help/WelcomeWalkthrough'
+import { GuidedTour } from '../Help/GuidedTour'
+import { tourSteps } from '../Help/tourSteps'
 import { useSettings } from '../../hooks/useSettings'
 import { useWelcome } from '../../hooks/useWelcome'
 import { CalendarKey } from '../Desktop/CalendarKey'
@@ -164,11 +165,11 @@ export function MobileApp() {
 
       {sheet === 'help' && (
         <BottomSheet label="How it works" title="How it works" backdrop onClose={closeSheet}>
-          <HowItWorks phone onReplay={() => { setSheet(null); replayWelcome() }} />
+          <HowItWorks phone onReplay={() => { setSheet(null); setPage('calendar'); replayWelcome() }} />
         </BottomSheet>
       )}
 
-      {showWelcome && <WelcomeWalkthrough phone onClose={closeWelcome} />}
+      {showWelcome && calendarPage && !sheet && <GuidedTour steps={tourSteps(true)} onClose={closeWelcome} />}
 
       {sheet === 'settings' && (
         <SettingsSheet

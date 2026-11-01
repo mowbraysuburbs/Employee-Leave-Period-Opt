@@ -44,8 +44,9 @@ export function MobileCalendar({ selectedBreak, onDayClick, compact = false, ...
             No start days give that many days off in this period. Pick other numbers or clear the filter.
           </div>
         )}
-        {visibleMonths.map(m => (
+        {visibleMonths.map((m, i) => (
           <MonthCard
+            tour={i === 0 ? 'calendar' : undefined}
             key={`${m.year}-${m.month}`}
             large={!compact}
             compact={compact}
