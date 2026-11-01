@@ -14,6 +14,7 @@ import { RailCollapsed } from './RailCollapsed'
  *   picksOnly, onPicksOnlyChange, savedCount
  *   previewCount, previewOnly, onPreviewOnlyChange
  *   schoolOn, onSchoolOnChange, provinceName
+ *   province, onProvinceChange    – shared with School run on the Overview
  */
 export function ControlRail({ c }) {
   return c.collapsed ? <RailCollapsed c={c} /> : <RailExpanded c={c} />

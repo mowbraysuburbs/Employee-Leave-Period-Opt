@@ -277,6 +277,8 @@ export function DesktopApp() {
     schoolOn,
     onSchoolOnChange: setSchoolOn,
     provinceName: provinceLabel(province),
+    province,
+    onProvinceChange: setProvince,
   }
 
   // The calendar page is exactly one screen tall: only the months scroll, while

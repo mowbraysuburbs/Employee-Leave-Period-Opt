@@ -1,5 +1,6 @@
 import { PeriodPicker } from '../PeriodPicker'
 import { HolidayFilterMenu } from '../HolidayFilterMenu'
+import { ProvincePicker } from '../ProvincePicker'
 
 const MODES = [
   { id: 'daysOff', label: 'Days off' },
@@ -121,6 +122,7 @@ export function RailExpanded({ c }) {
         >
           School holidays · {c.provinceName}
         </button>
+        <ProvincePicker compact id="rail-province" value={c.province} onChange={c.onProvinceChange} />
       </section>
     </aside>
   )
