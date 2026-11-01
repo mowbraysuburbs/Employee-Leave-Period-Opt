@@ -25,10 +25,12 @@ function whenLabel(breaks) {
  *
  * Props:
  *   plans       – computePlans() result
- *   selectedId  – id of the plan shown in the details panel
+ *   selectedId  – id of the plan shown in the details panel ('events' for the Events row)
  *   onSelect    – (id) => void
  */
 export function PlanList({ plans, selectedId, onSelect }) {
+  const eventsSelected = selectedId === 'events'
+
   return (
     <nav aria-label="Plans" className="flex-[1_1_340px] max-w-[420px] min-w-0 flex flex-col gap-1.5">
       {plans.map(plan => {
@@ -66,6 +68,23 @@ export function PlanList({ plans, selectedId, onSelect }) {
         <span className="min-w-[30px] text-center">off</span>
         <span className="min-w-[40px] text-center">avg ×</span>
       </div>
+
+      <button
+        type="button"
+        aria-current={eventsSelected ? 'true' : undefined}
+        onClick={() => onSelect('events')}
+        className={[
+          'mt-1.5 w-full flex items-center gap-2.5 px-3 py-2.5 rounded-2xl text-left border-2',
+          eventsSelected ? 'bg-teal-50 border-teal-600' : 'bg-white border-dashed border-slate-300 hover:border-slate-400',
+        ].join(' ')}
+      >
+        <PlanIcon kind="events" />
+        <span className="flex-1 min-w-0 flex flex-col gap-0.5">
+          <span className="text-sm font-extrabold truncate">Events</span>
+          <span className="text-xs text-slate-600 truncate">What's on during your breaks</span>
+        </span>
+        <span className="shrink-0 px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[11px] font-bold">Coming soon</span>
+      </button>
     </nav>
   )
 }

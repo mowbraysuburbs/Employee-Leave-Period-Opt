@@ -51,6 +51,13 @@ const PATHS = {
       <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
     </>
   ),
+  // A ticket, for the planned events feature.
+  events: (
+    <>
+      <path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4z" />
+      <path d="M14 6v12" strokeDasharray="2 2" />
+    </>
+  ),
 }
 
 const COLOURS = {
@@ -61,6 +68,7 @@ const COLOURS = {
   school: 'bg-sky-100 text-sky-800',
   year: 'bg-indigo-100 text-indigo-800',
   trip: 'bg-amber-100 text-amber-800',
+  events: 'bg-teal-100 text-teal-800',
 }
 
 // The coloured square icon that identifies each kind of plan.
