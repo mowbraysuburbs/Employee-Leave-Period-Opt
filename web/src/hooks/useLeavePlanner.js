@@ -15,7 +15,8 @@ function localToday() {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
-const TODAY = localToday()
+// Today's date (YYYY-MM-DD, local time); also marks today on the calendars.
+export const TODAY = localToday()
 
 function monthsBetween(from, to) {
   const result = []
