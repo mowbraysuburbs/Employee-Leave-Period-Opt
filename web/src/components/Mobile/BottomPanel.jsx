@@ -26,7 +26,7 @@ export function BottomPanel({
   const chip = 'shrink-0 min-w-[28px] h-7 px-1.5 rounded-full inline-flex items-center justify-center text-xs font-bold text-slate-900'
 
   return (
-    <div className="shrink-0 px-3.5 pt-2.5 pb-2.5 bg-white border-t border-slate-200 shadow-[0_-4px_14px_rgba(15,23,42,0.06)] flex flex-col gap-2.5">
+    <div className="shrink-0 px-3.5 pt-2.5 pb-2.5 bg-white border-t border-slate-200 shadow-[0_-4px_14px_rgba(15,23,42,0.06)] flex flex-col gap-2.5 [&>*]:w-full [&>*]:max-w-[520px] [&>*]:mx-auto">
       <div className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none]">
         <span className="shrink-0 mr-0.5 text-[11px] font-semibold text-slate-500">Days off</span>
         {legend.map(l => {
