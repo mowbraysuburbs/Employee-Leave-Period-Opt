@@ -11,7 +11,7 @@ import { OverviewPage } from './Overview/OverviewPage'
 import { EventsComingSoon } from './EventsComingSoon'
 import { HolidaysList } from '../Features/HolidaysList'
 import { useSavedBreaks } from './useSavedBreaks'
-import { buildBreak, buildBreaksInRange, breakKey, hasGain, toCalendarEvent, findEqualStarts } from '../../utils/breaks'
+import { buildBreak, buildBreaksInRange, breakKey, hasGain, toCalendarEvent, findEqualStarts, breaksOverlap, combineBreaks, withBreakMerged, summariseBreaks } from '../../utils/breaks'
 import { computePlans, schoolBreaksFor, provinceLabel } from '../../utils/plans'
 import { buildIcs, downloadIcs } from '../../utils/calendarExport'
 import { getColourForDaysOff, getColourForMultiplier, multiplierBucket } from '../../utils/colorScale'
@@ -83,7 +83,7 @@ export function DesktopApp() {
   const [province, setProvince] = useState('GP')
   const [schoolOn, setSchoolOn] = useState(false)
   const [justAddedKey, setJustAddedKey] = useState(null)
-  const { saved, add, remove } = useSavedBreaks()
+  const { saved, remove, replaceAll } = useSavedBreaks()
 
   const months = useMemo(() => monthsBetween(from, to), [from, to])
   // Multiplier mode colours each day by its best deal using up to leaveDays.
@@ -172,6 +172,13 @@ export function DesktopApp() {
   )
 
   const isSaved = brk => savedKeys.has(breakKey(brk))
+  // Saved breaks the Details break runs into; adding it combines them.
+  const overlaps = useMemo(
+    () => (detailBreak && !savedKeys.has(breakKey(detailBreak)) ? savedBreaks.filter(b => breaksOverlap(b, detailBreak)) : []),
+    [detailBreak, savedBreaks, savedKeys]
+  )
+  const combined = useMemo(() => (overlaps.length ? combineBreaks([...overlaps, detailBreak]) : null), [overlaps, detailBreak])
+  const leaveLeft = ALLOWANCE - summariseBreaks(savedBreaks).leaveUsed
   const period = {
     from,
     to,
@@ -192,16 +199,32 @@ export function DesktopApp() {
     setTab('details')
   }
 
-  // Saves every break not already saved; each keeps its own leave amount.
+  // Saves every break not already saved, combining any that overlap so the
+  // totals never count a day twice. Returns the last entry added, or null.
   function addBreaks(list) {
     const fresh = list.filter(b => !isSaved(b))
-    for (const b of fresh) add({ startDate: b.startDate, leaveDays: b.leaveDays })
-    if (fresh.length) setJustAddedKey(breakKey(fresh[fresh.length - 1]))
+    if (!fresh.length) return null
+    const next = fresh.reduce(withBreakMerged, saved)
+    replaceAll(next)
+    setJustAddedKey(breakKey(next.at(-1)))
+    return next.at(-1)
   }
 
   // The preview filter stays as it is, so people can keep working through the plan.
+  // Details then shows what was saved (the combined break, if it merged).
   function addFromCalendar(list) {
-    addBreaks(list)
+    const last = addBreaks(list)
+    if (last) setPinned(last)
+    setTab('summary')
+  }
+
+  // Swaps the overlapping saved breaks for the Details break.
+  function replaceOverlaps(brk) {
+    const keys = new Set(overlaps.map(breakKey))
+    const entry = { startDate: brk.startDate, leaveDays: brk.leaveDays }
+    replaceAll([...saved.filter(s => !keys.has(breakKey(s))), entry])
+    setJustAddedKey(breakKey(entry))
+    setPinned(entry)
     setTab('summary')
   }
 
@@ -324,6 +347,11 @@ export function DesktopApp() {
                 onPickStart={startDate => setPinned({ startDate, leaveDays: detailBreak.leaveDays })}
                 isSaved={detailBreak ? isSaved(detailBreak) : false}
                 onAdd={() => addFromCalendar([detailBreak])}
+                overlaps={overlaps}
+                combined={combined}
+                onReplace={() => replaceOverlaps(detailBreak)}
+                leaveLeft={leaveLeft}
+                allowance={ALLOWANCE}
                 onRemove={() => removeBreak(detailBreak)}
               />
             }

@@ -130,6 +130,35 @@ export function breakKey({ startDate, leaveDays }) {
   return `${startDate}-${leaveDays}`
 }
 
+// Two breaks overlap when they share at least one day.
+export function breaksOverlap(a, b) {
+  return a.startDate <= b.endDate && b.startDate <= a.endDate
+}
+
+/**
+ * One break covering every day of `list` (breaks that overlap into one run):
+ * it starts on the earliest day and spends a leave day on each working day
+ * inside, so it ends exactly where the last of them ends.
+ */
+export function combineBreaks(list) {
+  const startDate = list.reduce((min, b) => (b.startDate < min ? b.startDate : min), list[0].startDate)
+  const leaveDates = new Set(list.flatMap(b => b.days.filter(d => d.type === 'leave').map(d => d.date)))
+  return buildBreak(startDate, leaveDates.size)
+}
+
+/**
+ * Adds brk to saved entries ([{ startDate, leaveDays }]) so that no two
+ * breaks overlap: any saved break it touches is combined with it.
+ * Returns a new array with the added (or combined) entry last.
+ */
+export function withBreakMerged(saved, brk) {
+  const built = saved.map(s => buildBreak(s.startDate, s.leaveDays))
+  const touching = built.filter(b => breaksOverlap(b, brk))
+  const merged = touching.length ? combineBreaks([...touching, brk]) : brk
+  const kept = saved.filter((_, i) => !touching.includes(built[i]))
+  return [...kept, { startDate: merged.startDate, leaveDays: merged.leaveDays }]
+}
+
 // Shape expected by utils/calendarExport (Google link and .ics builder).
 export function toCalendarEvent(brk) {
   return { title: `On leave · ${brk.daysOff} days off`, startDate: brk.startDate, endDate: brk.endDate }
