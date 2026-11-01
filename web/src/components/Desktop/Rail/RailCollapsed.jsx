@@ -38,6 +38,34 @@ function RailIcon({ icon, label, value, className, onClick, tour }) {
   )
 }
 
+/**
+ * The days-off filter as coloured chips, two per row: every value when no
+ * filter is set (so it doubles as the colour key), only the picked ones once
+ * some are. Clicking opens the rail to change the picks.
+ */
+function DaysOffKey({ legend, picked, onClick }) {
+  const filtering = picked.length > 0
+  const shown = filtering ? legend.filter(l => picked.includes(l.value)) : legend
+  return (
+    <button
+      type="button"
+      title={filtering ? `Days off filter: ${picked.join(', ')}` : 'Days off colour key'}
+      aria-label={filtering ? `Days off filter: ${picked.join(', ')}` : `Days off colour key: ${legend.map(l => l.label).join(', ')}`}
+      onClick={onClick}
+      className={`w-11 py-1.5 rounded-[10px] flex flex-col items-center gap-1 ${filtering ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}
+    >
+      <svg {...svgProps} width={16} height={16}>{ICONS.filter}</svg>
+      <span className="grid grid-cols-2 gap-[3px]">
+        {shown.map(l => (
+          <span key={l.value} className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-extrabold" style={{ backgroundColor: l.colour, color: '#0f172a' }}>
+            {l.label}
+          </span>
+        ))}
+      </span>
+    </button>
+  )
+}
+
 function monthsInPeriod(from, to) {
   const count = (Number(to.slice(0, 4)) - Number(from.slice(0, 4))) * 12 + Number(to.slice(5, 7)) - Number(from.slice(5, 7)) + 1
   return `${count} mo`
@@ -50,7 +78,8 @@ function monthsInPeriod(from, to) {
  */
 export function RailCollapsed({ c }) {
   const open = c.onToggleCollapsed
-  const filtering = c.colourBy === 'daysOff' && !c.picksOnly && c.daysOffFilter.length > 0
+  // The days-off filter (and so the colour key) only applies in Total days mode.
+  const filterable = c.colourBy === 'daysOff' && !c.picksOnly
   const multiplier = c.colourBy === 'multiplier'
   const picked = [...c.daysOffFilter].sort((a, b) => a - b)
   const off = 'bg-transparent text-slate-400 hover:bg-slate-100'
@@ -68,13 +97,11 @@ export function RailCollapsed({ c }) {
         onClick={open}
         className={multiplier ? 'bg-amber-100 text-amber-800' : 'bg-indigo-100 text-indigo-800'}
       />
-      <RailIcon
-        icon="filter"
-        label={filtering ? `Days off filter: ${picked.join(', ')}` : 'Days off filter: off'}
-        value={filtering ? picked.join('·') : null}
-        onClick={open}
-        className={filtering ? 'bg-slate-900 text-white' : off}
-      />
+      {filterable ? (
+        <DaysOffKey legend={c.legend} picked={picked} onClick={open} />
+      ) : (
+        <RailIcon icon="filter" label="Days off filter: off" onClick={open} className={off} />
+      )}
       <RailIcon
         icon="dates"
         label={`Dates: ${c.period.from} to ${c.period.to}`}
