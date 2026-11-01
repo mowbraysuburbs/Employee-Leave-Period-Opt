@@ -2,7 +2,11 @@ import { useState } from 'react'
 import { DesktopHeader } from './DesktopHeader'
 import { CalendarKey } from './CalendarKey'
 import { ThemeToggle } from './ThemeToggle'
+import { HelpPanel } from './HelpPanel'
+import { HelpButton } from '../Help/HelpButton'
+import { WelcomeWalkthrough } from '../Help/WelcomeWalkthrough'
 import { useSettings } from '../../hooks/useSettings'
+import { useWelcome } from '../../hooks/useWelcome'
 import { ControlRail } from './Rail/ControlRail'
 import { YearCalendar } from './YearCalendar'
 import { SidePanel } from './SidePanel'
@@ -35,6 +39,8 @@ export function DesktopApp() {
     selectDay, openBreak, addBreaks, addDetailBreak, replaceOverlaps, removeBreak,
   } = useLeavePlanner()
   const { theme, setTheme } = useSettings()
+  const { showWelcome, closeWelcome, replayWelcome } = useWelcome()
+  const [helpOpen, setHelpOpen] = useState(false)
   const [page, setPage] = useState('overview')
   const [railCollapsed, setRailCollapsed] = useState(initialRailCollapsed)
   const [tab, setTab] = useState('details')
@@ -73,6 +79,7 @@ export function DesktopApp() {
     <div className={`bg-slate-50 text-slate-900 ${calendarPage ? 'h-screen flex flex-col overflow-hidden' : 'min-h-screen'}`}>
       <DesktopHeader page={page} onPageChange={setPage} rightSlot={
           <div className="flex items-center gap-2">
+            <HelpButton onClick={() => setHelpOpen(true)} />
             {calendarPage && <CalendarKey />}
             <ThemeToggle theme={theme} onChange={setTheme} />
           </div>
@@ -172,6 +179,8 @@ export function DesktopApp() {
         {page === 'holidays' && <HolidaysList months={months} showSchoolHolidays={false} provinceCode="GP" />}
       </main>
       )}
+      {helpOpen && <HelpPanel onClose={() => setHelpOpen(false)} onReplay={() => { setHelpOpen(false); replayWelcome() }} />}
+      {showWelcome && <WelcomeWalkthrough onClose={closeWelcome} />}
     </div>
   )
 }
