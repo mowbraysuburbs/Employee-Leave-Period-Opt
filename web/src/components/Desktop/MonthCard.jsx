@@ -1,3 +1,5 @@
+import { TODAY } from '../../hooks/useLeavePlanner'
+
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
@@ -33,7 +35,8 @@ export function MonthCard({ year, month, days, popoverFor, onDayClick, onDayHove
             <button
               type="button"
               disabled={d.disabled}
-              aria-label={d.ariaLabel}
+              aria-label={d.date === TODAY ? `Today, ${d.ariaLabel}` : d.ariaLabel}
+              aria-current={d.date === TODAY ? 'date' : undefined}
               onClick={() => onDayClick(d.date)}
               onMouseEnter={() => onDayHover(d.date)}
               onMouseLeave={() => onDayHover(null)}
@@ -46,6 +49,8 @@ export function MonthCard({ year, month, days, popoverFor, onDayClick, onDayHove
                 d.shape ?? 'rounded-full',
                 d.isHoliday ? 'font-extrabold' : 'font-semibold',
                 d.disabled ? 'cursor-default' : 'cursor-pointer',
+                // Today: a blue outline just outside the cell, separate from the box-shadow rings.
+                d.date === TODAY ? `outline-2 outline-sky-600 z-10 ${compact ? 'outline-offset-1' : 'outline-offset-2'}` : '',
               ].join(' ')}
               style={{ backgroundColor: d.look.bg, color: d.look.fg, boxShadow: d.ring ?? undefined }}
             >

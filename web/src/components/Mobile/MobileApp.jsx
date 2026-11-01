@@ -107,6 +107,7 @@ export function MobileApp() {
             onLeaveDaysChange={p.changeLeaveDays}
             savedCount={p.saved.length}
             savedDaysOff={summariseBreaks(p.savedBreaks).daysOff}
+            savedLeave={summariseBreaks(p.savedBreaks).leaveUsed}
             onOpenFilters={() => setSheet('filters')}
             onOpenSummary={() => setSheet('summary')}
           />

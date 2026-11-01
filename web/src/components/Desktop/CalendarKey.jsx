@@ -70,6 +70,7 @@ export function CalendarKey() {
             <ul className="m-0 p-0 list-none flex flex-col gap-1.5">
               <Row marker={<span className="relative w-6 h-6 rounded-full bg-amber-500"><span className="absolute bottom-0.5 left-1/2 -ml-0.5 w-1 h-1 rounded-full bg-slate-900" /></span>}>Public holiday (dot)</Row>
               <Row marker={<span className="w-6 h-6 rounded-full bg-transparent text-slate-500 text-xs font-semibold flex items-center justify-center">4</span>}>No free days (not coloured)</Row>
+              <Row marker={<span className="w-6 h-6 rounded-full bg-teal-500 outline-2 outline-offset-2 outline-sky-600" />}>Today</Row>
               <Row marker={<span className="w-6 h-6 rounded-full bg-teal-500 shadow-[0_0_0_3px_#0f172a]" />}>Start of a saved break</Row>
               <Row marker={<span className="w-[26px] h-1 rounded-sm bg-green-600" />}>School holiday (when that filter is on)</Row>
             </ul>
