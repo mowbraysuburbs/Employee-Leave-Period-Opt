@@ -14,6 +14,7 @@ import { SidePanel } from './SidePanel'
 import { BreakDetailPanel } from './BreakDetailPanel'
 import { MyBreaksPanel } from './MyBreaksPanel'
 import { PreviewBanner } from './PreviewBanner'
+import { ActiveFiltersBar } from './ActiveFiltersBar'
 import { OverviewPage } from './Overview/OverviewPage'
 import { EventsComingSoon } from './EventsComingSoon'
 import { HolidaysList } from '../Features/HolidaysList'
@@ -32,7 +33,7 @@ function initialRailCollapsed() {
 
 export function DesktopApp() {
   const {
-    controls, period, colourBy, holidayFilter, picksOnly, setPicksOnly, activeDaysOff, province, setProvince, schoolDates,
+    controls, activeFilters, clearAllFilters, period, colourBy, holidayFilter, picksOnly, setPicksOnly, activeDaysOff, province, setProvince, schoolDates,
     months, breaks, demoDate, plans, selectedPlan, setSelectedPlanId, eventsSelected, ticked, toggleTick, toggleAllTicks, exportBreaks,
     preview, setPreview, previewOnly, previewDays, previewLabel, openPreview,
     saved, savedBreaks, savedDayTypes, savedStarts, isSaved, justAddedKey, setJustAddedKey,
@@ -99,6 +100,7 @@ export function DesktopApp() {
                 onClear={() => setPreview(null)}
               />
             )}
+            <ActiveFiltersBar filters={activeFilters} onClearAll={clearAllFilters} />
             <YearCalendar
               months={months}
               breaks={breaks}

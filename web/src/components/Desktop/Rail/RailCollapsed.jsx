@@ -21,8 +21,13 @@ const ICONS = {
   school: <><path d="M2 9l10-5 10 5-10 5z" /><path d="M6 11v5c0 1.5 2.7 3 6 3s6-1.5 6-3v-5" /></>,
 }
 
+// The blue dot on an icon whose filter is on.
+function ActiveDot() {
+  return <span aria-hidden="true" className="absolute -top-1 -right-1 w-[11px] h-[11px] rounded-full bg-sky-500 border-2 border-white" />
+}
+
 // One icon button in the strip; every one opens the rail back up.
-function RailIcon({ icon, label, value, className, onClick, tour }) {
+function RailIcon({ icon, label, value, className, onClick, tour, dot = false }) {
   return (
     <button
       type="button"
@@ -30,10 +35,11 @@ function RailIcon({ icon, label, value, className, onClick, tour }) {
       title={label}
       aria-label={label}
       onClick={onClick}
-      className={`w-11 min-h-10 py-1.5 rounded-[10px] flex flex-col items-center justify-center gap-0.5 ${className}`}
+      className={`relative w-11 min-h-10 py-1.5 rounded-[10px] flex flex-col items-center justify-center gap-0.5 ${className}`}
     >
       <svg {...svgProps}>{ICONS[icon]}</svg>
       {value != null && <span className="text-[11px] font-extrabold leading-none">{value}</span>}
+      {dot && <ActiveDot />}
     </button>
   )
 }
@@ -52,8 +58,9 @@ function DaysOffKey({ legend, picked, onClick }) {
       title={filtering ? `Days off filter: ${picked.join(', ')}` : 'Days off colour key'}
       aria-label={filtering ? `Days off filter: ${picked.join(', ')}` : `Days off colour key: ${legend.map(l => l.label).join(', ')}`}
       onClick={onClick}
-      className={`w-11 py-1.5 rounded-[10px] flex flex-col items-center gap-1 ${filtering ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}
+      className={`relative w-11 py-1.5 rounded-[10px] flex flex-col items-center gap-1 ${filtering ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}
     >
+      {filtering && <ActiveDot />}
       <svg {...svgProps} width={16} height={16}>{ICONS.filter}</svg>
       <span className="grid grid-cols-2 gap-[3px]">
         {shown.map(l => (
@@ -108,6 +115,7 @@ export function RailCollapsed({ c }) {
         value={monthsInPeriod(c.period.from, c.period.to)}
         onClick={open}
         className={c.period.changed ? 'bg-sky-100 text-sky-800' : 'bg-slate-100 text-slate-700'}
+        dot={c.period.changed}
       />
       <RailIcon
         icon="flag"
@@ -115,6 +123,7 @@ export function RailCollapsed({ c }) {
         value={c.holidayFilter.length || null}
         onClick={open}
         className={c.holidayFilter.length ? 'bg-slate-900 text-white' : off}
+        dot={c.holidayFilter.length > 0}
       />
       {c.previewCount > 0 && (
         <RailIcon
@@ -125,12 +134,13 @@ export function RailCollapsed({ c }) {
           className={c.previewOnly ? 'bg-slate-900 text-white' : off}
         />
       )}
-      <RailIcon icon="eye" label={`Only my breaks: ${c.picksOnly ? 'on' : 'off'}`} onClick={open} className={c.picksOnly ? 'bg-slate-900 text-white' : off} />
+      <RailIcon icon="eye" label={`Only my breaks: ${c.picksOnly ? 'on' : 'off'}`} onClick={open} className={c.picksOnly ? 'bg-slate-900 text-white' : off} dot={c.picksOnly} />
       <RailIcon
         icon="school"
         label={`School holidays: ${c.schoolOn ? 'on' : 'off'} (${c.provinceName})`}
         onClick={open}
         className={c.schoolOn ? 'bg-green-100 text-green-800' : off}
+        dot={c.schoolOn}
       />
     </aside>
   )

@@ -126,6 +126,7 @@ export function MobileApp() {
             savedLeave={summariseBreaks(p.savedBreaks).leaveUsed}
             onOpenFilters={() => setSheet('filters')}
             onOpenSummary={() => setSheet('summary')}
+            activeCount={p.activeFilters.length}
           />
         </main>
       ) : (
