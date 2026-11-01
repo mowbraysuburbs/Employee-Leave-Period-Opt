@@ -18,11 +18,13 @@ function Stat({ value, label, highlight }) {
  * Props:
  *   brk        – the break (follows the hovered day)
  *   nextBreak  – the same start with one more leave day, or null at the cap
- *   bestNote   – Multiplier mode only: explains a break using fewer leave days than set
+ *   bestNote   – explains a break using fewer leave days than set
+ *   label      – quick pick name while one is previewed, e.g. "Next big break"
+ *   topSlot    – optional node above the title (the Maximise leave year switch)
  *   isSaved    – already in My breaks
  *   onAdd, onRemove
  */
-export function BreakDetailPanel({ brk, nextBreak, bestNote, isSaved, onAdd, onRemove }) {
+export function BreakDetailPanel({ brk, nextBreak, bestNote, label, topSlot, isSaved, onAdd, onRemove }) {
   if (!brk) {
     return (
       <div className="px-5 py-7 border-[1.5px] border-dashed border-slate-300 rounded-2xl text-sm text-slate-600 text-center">
@@ -34,6 +36,10 @@ export function BreakDetailPanel({ brk, nextBreak, bestNote, isSaved, onAdd, onR
   return (
     <div className="flex flex-col gap-4">
       <div>
+        {label && (
+          <div className="mb-2 inline-block px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 text-xs font-bold">Quick pick · {label}</div>
+        )}
+        {topSlot && <div className="mb-2.5">{topSlot}</div>}
         <h2 className="m-0 text-xl font-extrabold tracking-tight">{fmtDayRange(brk.startDate, brk.endDate)}</h2>
         {bestNote && (
           <div className="mt-1.5 inline-block px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold">{bestNote}</div>
