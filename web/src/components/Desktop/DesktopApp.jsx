@@ -335,6 +335,8 @@ export function DesktopApp() {
                 onOpen={b => { setPinned({ startDate: b.startDate, leaveDays: b.leaveDays }); setTab('details') }}
                 onRemove={removeBreak}
                 onDismissAdded={() => setJustAddedKey(null)}
+                mineOnly={picksOnly}
+                onMineOnlyChange={setPicksOnly}
               />
             }
           />
