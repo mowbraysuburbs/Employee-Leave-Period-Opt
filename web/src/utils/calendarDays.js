@@ -27,7 +27,7 @@ function datesInMonth(year, month) {
  * Draws a break as one joined band of squares: corners only round off where
  * the band starts or ends a run (the break's first/last day, a week row edge,
  * or a month edge). The hovered break gets a soft outline; the clicked
- * (selected) break a solid dark one that stays until another day is clicked.
+ * (selected) break is just the joined squares, no outline, until another day is clicked.
  */
 export function withBand(day, brk, selected = false) {
   if (!brk || day.date < brk.startDate || day.date > brk.endDate) return day
@@ -42,14 +42,21 @@ export function withBand(day, brk, selected = false) {
   else if (leftCap) shape = 'rounded-l-md'
   else if (rightCap) shape = 'rounded-r-md'
 
+  // No outline on the selected break: uncoloured days inside it get a light
+  // fill instead, so the band still reads as one block.
+  if (selected) {
+    const look = day.look.bg === 'transparent' ? { ...day.look, bg: 'var(--color-slate-200, #e2e8f0)' } : day.look
+    return { ...day, inBand: true, shape, look }
+  }
+
   // Zero spread on the top/bottom lines so neighbouring days don't overlap
   // into visible seams; only the capped ends draw a side edge.
-  const edge = selected ? '2px 0 0 var(--color-slate-900, #0f172a)' : '1.5px 0 0 var(--range-border)'
+  const edge = '1.5px 0 0 var(--range-border)'
   const shadows = [`0 -${edge}`, `0 ${edge}`]
   if (leftCap) shadows.push(`-${edge}`)
   if (rightCap) shadows.push(edge)
-  if (!selected && isStart) shadows.push('-3px 0 8px 0 var(--range-glow)')
-  if (!selected && isEnd) shadows.push('3px 0 8px 0 var(--range-glow)')
+  if (isStart) shadows.push('-3px 0 8px 0 var(--range-glow)')
+  if (isEnd) shadows.push('3px 0 8px 0 var(--range-glow)')
   if (day.ring) shadows.push(day.ring)
 
   return { ...day, inBand: true, shape, ring: shadows.join(', ') }
