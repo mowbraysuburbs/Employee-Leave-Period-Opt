@@ -9,6 +9,7 @@
  *   leaveDays, maxLeave, onLeaveDaysChange
  *   savedCount, savedDaysOff, savedLeave – totals for the My breaks button
  *   onOpenFilters, onOpenSummary
+ *   activeCount  – how many filters are on (badge on the Filters button)
  */
 export function BottomPanel({
   colourBy,
@@ -26,6 +27,7 @@ export function BottomPanel({
   savedLeave,
   onOpenFilters,
   onOpenSummary,
+  activeCount = 0,
 }) {
   const filtering = filterable && daysOffFilter.length > 0
   const chip = 'shrink-0 min-w-[28px] h-7 px-1.5 rounded-full inline-flex items-center justify-center text-xs font-bold text-slate-900'
@@ -80,10 +82,15 @@ export function BottomPanel({
         </div>
         <button
           type="button"
-          aria-label="Filters"
+          aria-label={activeCount ? `Filters, ${activeCount} on` : 'Filters'}
           onClick={onOpenFilters}
-          className="shrink-0 w-[46px] h-[46px] rounded-full border border-slate-300 bg-white flex items-center justify-center"
+          className={`relative shrink-0 w-[46px] h-[46px] rounded-full border flex items-center justify-center ${activeCount ? 'bg-slate-900 border-slate-900 text-white' : 'bg-white border-slate-300'}`}
         >
+          {activeCount > 0 && (
+            <span aria-hidden="true" className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-sky-500 text-white border-2 border-white text-[11px] font-extrabold flex items-center justify-center">
+              {activeCount}
+            </span>
+          )}
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true">
             <line x1="4" y1="6" x2="20" y2="6" /><line x1="7" y1="12" x2="17" y2="12" /><line x1="10" y1="18" x2="14" y2="18" />
           </svg>

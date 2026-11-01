@@ -4,7 +4,7 @@ import { buildBreak, buildBreaksInRange, breakKey, hasGain, toCalendarEvent, fin
 import { computePlans, schoolBreaksFor, provinceLabel } from '../utils/plans'
 import { buildIcs, downloadIcs } from '../utils/calendarExport'
 import { getColourForDaysOff, getColourForMultiplier, multiplierBucket } from '../utils/colorScale'
-import { fmtDay, addDays } from '../utils/dateFormat'
+import { fmtDay, fmtShortYear, addDays } from '../utils/dateFormat'
 
 export const MAX_LEAVE = 10
 // BCEA minimum: 21 consecutive days, i.e. 15 working days.
@@ -255,6 +255,20 @@ export function useLeavePlanner() {
     setDetailDate(null)
   }
 
+  // Every filter that's narrowing the calendar right now, with how to clear it:
+  // chips on desktop, a count on the phone's Filters button.
+  const activeFilters = [
+    activeDaysOff && { key: 'daysOff', label: 'Days off', value: [...daysOffFilter].sort((a, b) => a - b).join(', '), clear: () => setDaysOffFilter([]) },
+    period.changed && { key: 'dates', label: 'Dates', value: `${fmtShortYear(from)} – ${fmtShortYear(to)}`, clear: period.onReset },
+    holidayFilter.length > 0 && { key: 'holidays', label: 'Holidays', value: holidayFilter.length === 1 ? holidayFilter[0] : `${holidayFilter.length} picked`, clear: () => setHolidayFilter([]) },
+    picksOnly && { key: 'mine', label: 'Only my breaks', value: '', clear: () => setPicksOnly(false) },
+    schoolOn && { key: 'school', label: 'School holidays', value: provinceLabel(province), clear: () => setSchoolOn(false) },
+  ].filter(Boolean)
+
+  function clearAllFilters() {
+    activeFilters.forEach(f => f.clear())
+  }
+
   // The calendar controls as one object, for the desktop rail and the mobile Filters sheet.
   const controls = {
     leaveDays,
@@ -284,7 +298,7 @@ export function useLeavePlanner() {
   }
 
   return {
-    controls,
+    controls, activeFilters, clearAllFilters,
     leaveDays, changeLeaveDays, colourBy, setColourBy, period,
     holidayFilter, setHolidayFilter, holidayOptions, picksOnly, setPicksOnly,
     daysOffFilter, toggleDaysOff, clearDaysOff: () => setDaysOffFilter([]), activeDaysOff, legend,
