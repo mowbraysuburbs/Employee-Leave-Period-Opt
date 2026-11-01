@@ -1,5 +1,6 @@
 import { BreakWeeks } from './BreakWeeks'
 import { BreakDaysTable } from './BreakDaysTable'
+import { ShiftControls } from './ShiftControls'
 import { fmtDayRange } from '../../utils/dateFormat'
 import { formatMultiplier } from '../../utils/breaks'
 
@@ -16,14 +17,15 @@ function Stat({ value, label, highlight }) {
  * Details tab content for one break.
  *
  * Props:
- *   brk        – the break (follows the hovered day)
+ *   brk        – the break (the clicked day, a saved break, or a previewed plan's earliest)
  *   nextBreak  – the same start with one more leave day, or null at the cap
  *   bestNote   – explains a break using fewer leave days than set
  *   label      – Overview plan name while one is previewed, e.g. "Up next"
+ *   shift, onShift – equal alternatives to slide to (see ShiftControls)
  *   isSaved    – already in My breaks
  *   onAdd, onRemove
  */
-export function BreakDetailPanel({ brk, nextBreak, bestNote, label, isSaved, onAdd, onRemove }) {
+export function BreakDetailPanel({ brk, nextBreak, bestNote, label, shift, onShift, isSaved, onAdd, onRemove }) {
   if (!brk) {
     return (
       <div className="px-5 py-7 border-[1.5px] border-dashed border-slate-300 rounded-2xl text-sm text-slate-600 text-center">
@@ -43,6 +45,8 @@ export function BreakDetailPanel({ brk, nextBreak, bestNote, label, isSaved, onA
           <div className="mt-1.5 inline-block px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold">{bestNote}</div>
         )}
       </div>
+
+      <ShiftControls shift={shift} onShift={onShift} />
 
       <div className="grid grid-cols-3 gap-2">
         <Stat value={brk.daysOff} label="days off" />
