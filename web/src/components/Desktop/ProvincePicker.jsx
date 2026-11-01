@@ -6,7 +6,7 @@ import { PROVINCES } from '../../data/schoolHolidays'
  *
  * Props:
  *   value, onChange – province code
- *   compact         – slim version for the calendar's control rail
+ *   compact         – slim version for the calendar's control rail (label hidden visually)
  *   id              – keeps the label/select pair unique on each page
  */
 export function ProvincePicker({ value, onChange, compact = false, id = 'school-province' }) {
@@ -15,7 +15,7 @@ export function ProvincePicker({ value, onChange, compact = false, id = 'school-
       id={id}
       value={value}
       onChange={e => onChange(e.target.value)}
-      className={`border border-slate-300 bg-white font-semibold ${compact ? 'w-full h-8 rounded-lg px-2 text-[13px]' : 'h-[38px] min-w-[220px] rounded-[10px] px-2.5 text-sm'}`}
+      className={`border border-slate-300 bg-white font-semibold ${compact ? 'w-full h-9 rounded-lg px-1.5 text-[13px]' : 'h-[38px] min-w-[220px] rounded-[10px] px-2.5 text-sm'}`}
     >
       {PROVINCES.map(p => <option key={p.code} value={p.code}>{p.label}</option>)}
     </select>
@@ -24,7 +24,7 @@ export function ProvincePicker({ value, onChange, compact = false, id = 'school-
   if (compact) {
     return (
       <div className="flex flex-col gap-1">
-        <label htmlFor={id} className="text-xs font-semibold text-slate-600">School province</label>
+        <label htmlFor={id} className="sr-only">School province</label>
         {select}
       </div>
     )

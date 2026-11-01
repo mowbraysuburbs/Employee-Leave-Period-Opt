@@ -7,7 +7,7 @@ const MODES = [
   { id: 'multiplier', label: 'Multiplier' },
 ]
 
-const card = 'bg-white rounded-2xl p-3.5 shadow-sm flex flex-col gap-2.5'
+const card = 'bg-white rounded-2xl p-3 shadow-sm flex flex-col gap-2'
 const toggle = on => [
   'w-full min-h-9 px-3 py-1.5 rounded-lg text-left text-[13px] font-semibold border',
   on ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-900 border-slate-300',
@@ -28,21 +28,23 @@ export function RailExpanded({ c }) {
   const filtering = filterable && c.daysOffFilter.length > 0
 
   return (
-    <aside aria-label="Calendar controls" className="w-[236px] shrink-0 h-full overflow-y-auto flex flex-col gap-3 pr-1">
+    <aside aria-label="Calendar controls" className="w-[236px] shrink-0 h-full overflow-y-auto flex flex-col gap-2 pr-1">
       <button
         type="button"
         onClick={c.onToggleCollapsed}
-        className="shrink-0 h-[34px] rounded-[10px] border border-slate-300 bg-white text-slate-700 text-[13px] font-bold"
+        className="shrink-0 h-7 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs font-bold"
       >
         « Collapse to icons
       </button>
 
-      <section className="bg-white border-2 border-sky-700 rounded-2xl p-3.5 flex flex-col gap-2">
-        <label htmlFor="rail-leave-days" className="text-[13px] font-bold">Your leave days</label>
-        <div className="flex items-center justify-between">
-          <button type="button" aria-label="Fewer leave days" disabled={c.leaveDays <= 1} onClick={() => c.onLeaveDaysChange(c.leaveDays - 1)} className="w-9 h-9 rounded-full bg-slate-200 text-xl font-semibold disabled:opacity-40">−</button>
-          <span className="text-3xl font-extrabold">{c.leaveDays}</span>
-          <button type="button" aria-label="More leave days" disabled={c.leaveDays >= c.maxLeave} onClick={() => c.onLeaveDaysChange(c.leaveDays + 1)} className="w-9 h-9 rounded-full bg-sky-700 text-white text-xl font-semibold disabled:opacity-40">+</button>
+      <section className="bg-white border-2 border-sky-700 rounded-2xl px-3 py-2.5 flex flex-col gap-1.5">
+        <div className="flex items-center justify-between gap-2">
+          <label htmlFor="rail-leave-days" className="text-[13px] font-bold">Leave days</label>
+          <div className="flex items-center gap-2">
+            <button type="button" aria-label="Fewer leave days" disabled={c.leaveDays <= 1} onClick={() => c.onLeaveDaysChange(c.leaveDays - 1)} className="w-7 h-7 rounded-full bg-slate-200 text-base font-semibold disabled:opacity-40">−</button>
+            <span className="w-7 text-center text-2xl font-extrabold">{c.leaveDays}</span>
+            <button type="button" aria-label="More leave days" disabled={c.leaveDays >= c.maxLeave} onClick={() => c.onLeaveDaysChange(c.leaveDays + 1)} className="w-7 h-7 rounded-full bg-sky-700 text-white text-base font-semibold disabled:opacity-40">+</button>
+          </div>
         </div>
         <input
           id="rail-leave-days"
@@ -100,7 +102,7 @@ export function RailExpanded({ c }) {
 
       <section className={card}>
         <div className="text-[13px] font-bold">Dates</div>
-        <PeriodPicker idPrefix="rail-period" {...c.period} />
+        <PeriodPicker bare idPrefix="rail-period" {...c.period} />
       </section>
 
       <section className={card}>
@@ -114,15 +116,20 @@ export function RailExpanded({ c }) {
         <button type="button" aria-pressed={c.picksOnly} onClick={() => c.onPicksOnlyChange(!c.picksOnly)} className={toggle(c.picksOnly)}>
           Only my breaks ({c.savedCount})
         </button>
-        <button
-          type="button"
-          aria-pressed={c.schoolOn}
-          onClick={() => c.onSchoolOnChange(!c.schoolOn)}
-          className={`w-full min-h-9 px-3 py-1.5 rounded-lg text-left text-[13px] font-semibold border ${c.schoolOn ? 'bg-green-100 text-green-800 border-green-300' : 'bg-white border-slate-300'}`}
-        >
-          School holidays · {c.provinceName}
-        </button>
-        <ProvincePicker compact id="rail-province" value={c.province} onChange={c.onProvinceChange} />
+        <div className="flex gap-1.5">
+          <button
+            type="button"
+            aria-pressed={c.schoolOn}
+            aria-label={`School holidays · ${c.provinceName}`}
+            onClick={() => c.onSchoolOnChange(!c.schoolOn)}
+            className={`flex-1 min-w-0 h-9 px-2.5 rounded-lg text-left text-xs font-semibold whitespace-nowrap border ${c.schoolOn ? 'bg-green-100 text-green-800 border-green-300' : 'bg-white border-slate-300'}`}
+          >
+            School holidays
+          </button>
+          <div className="w-[86px] shrink-0">
+            <ProvincePicker compact id="rail-province" value={c.province} onChange={c.onProvinceChange} />
+          </div>
+        </div>
       </section>
     </aside>
   )
