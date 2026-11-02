@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { buildBreak } from '../utils/breaks'
-import { MAX_LEAVE, planPeriods, planAllChoices, workdaysIn, schoolHolidaysIn, equalStartsWithin, monthsIn } from '../utils/planner'
+import { MAX_LEAVE, GOAL_BREAKS, planPeriods, planLeave, planAllChoices, planGoals, summarise, workdaysIn, schoolHolidaysIn, equalStartsWithin, monthsIn } from '../utils/planner'
 import { addDays } from '../utils/dateFormat'
 
 
@@ -16,8 +16,8 @@ export function usePlanner({ today, province }) {
   const [periodId, setPeriodId] = useState('next')
   const [custom, setCustom] = useState({ from: addDays(today, 1), to: addDays(today, 28) })
   const [leave, setLeave] = useState(MAX_LEAVE)
-  // Break choice per period, so each keeps its own default until changed.
-  const [breakChoice, setBreakChoice] = useState({})
+  // "What matters most?" per period ('max' | 'mix' | 'long'), so each keeps its own default until changed.
+  const [goalChoice, setGoalChoice] = useState({})
   // 'YYYY-MM' → 'avoid' | 'include'.
   const [monthMarks, setMonthMarks] = useState({})
   const [matchSchool, setMatchSchool] = useState(false)
@@ -26,7 +26,7 @@ export function usePlanner({ today, province }) {
   const [unticked, setUnticked] = useState([])
 
   const period = periodId === 'custom'
-    ? { id: 'custom', kind: 'custom', title: 'Custom', subtitle: 'Your own dates', defaultBreaks: 3, ...custom }
+    ? { id: 'custom', kind: 'custom', title: 'Custom', subtitle: 'Your own dates', defaultGoal: 'mix', ...custom }
     : periods.find(p => p.id === periodId) ?? periods[0]
 
   // Never more than 10, and never more than the workdays in the period.
@@ -47,13 +47,23 @@ export function usePlanner({ today, province }) {
     [period.from, period.to, leaveUsed, avoidMonths, includeMonths, within],
   )
 
-  // The chosen break count, stepped down to the largest one that changes the plan.
-  // null means "as many as possible", so check for a saved choice rather than using ??.
-  const wanted = period.id in breakChoice ? breakChoice[period.id] : period.defaultBreaks
-  let chosenIndex = choices.findIndex(c => c.choice === wanted)
-  if (chosenIndex < 0) chosenIndex = choices.length - 1
-  while (chosenIndex > 0 && choices[chosenIndex].same) chosenIndex--
-  const chosen = choices[chosenIndex]
+  // The chosen goal, stepped back (Maximise → Mix → Longest) while it adds nothing.
+  const goals = useMemo(() => planGoals(choices), [choices])
+  let goal = goalChoice[period.id] ?? period.defaultGoal
+  if (goal === 'max' && goals.max.same) goal = 'mix'
+  if (goal === 'mix' && goals.mix.same) goal = 'long'
+  const chosen = goals[goal]
+
+  // Each period card's quick summary: its plan with the current leave, goal and months.
+  const cardStats = useMemo(() => {
+    const stats = {}
+    for (const p of periods) {
+      const cap = Math.min(leave, MAX_LEAVE)
+      const g = goalChoice[p.id] ?? p.defaultGoal
+      stats[p.id] = summarise(planLeave({ from: p.from, to: p.to, leave: cap, maxBreaks: GOAL_BREAKS[g], avoidMonths, includeMonths }))
+    }
+    return stats
+  }, [periods, leave, goalChoice, avoidMonths, includeMonths])
 
   // Apply any start-date swaps (only to equal options, so the totals stay the same).
   const breaks = useMemo(() => chosen.breaks.map(b => {
@@ -85,9 +95,10 @@ export function usePlanner({ today, province }) {
     leave: leaveUsed,
     maxLeave,
     setLeave: reset(n => setLeave(Math.max(1, Math.min(n, maxLeave)))),
-    choices,
-    breakChoice: chosen.choice,
-    setBreakChoice: reset(choice => setBreakChoice(prev => ({ ...prev, [period.id]: choice }))),
+    goals,
+    goal,
+    setGoal: reset(g => setGoalChoice(prev => ({ ...prev, [period.id]: g }))),
+    cardStats,
     periodMonths,
     monthMarks,
     // Tap order: none → avoid → include → none.

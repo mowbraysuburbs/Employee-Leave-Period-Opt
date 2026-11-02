@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { PeriodList } from './PeriodList'
 import { LeaveControl } from './LeaveControl'
-import { BreakChoice } from './BreakChoice'
+import { GoalChoice } from './GoalChoice'
+import { PlanMonths } from './PlanMonths'
 import { MoreOptions } from './MoreOptions'
 import { PlannerResults } from './PlannerResults'
 import { CustomDates } from './CustomDates'
@@ -23,10 +24,13 @@ import { EventsComingSoon } from '../EventsComingSoon'
 export function OverviewPage({ planner, isSaved, onAdd, onExport, onView, province, onProvinceChange }) {
   const [showEvents, setShowEvents] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
+  // First month in the calendar column ('YYYY-MM'); null = the first break's month.
+  const [calMonth, setCalMonth] = useState(null)
   const { period } = planner
 
   function select(id) {
     setShowEvents(id === 'events')
+    setCalMonth(null)
     if (id !== 'events') planner.selectPeriod(id)
   }
 
@@ -38,14 +42,14 @@ export function OverviewPage({ planner, isSaved, onAdd, onExport, onView, provin
       </section>
 
       <div className="flex flex-wrap gap-[18px] items-start">
-        <PeriodList periods={planner.periods} selectedId={showEvents ? 'events' : period.id} onSelect={select} />
+        <PeriodList periods={planner.periods} cardStats={planner.cardStats} selectedId={showEvents ? 'events' : period.id} onSelect={select} />
         {showEvents ? <EventsComingSoon /> : (
           <article aria-label={`Plan: ${period.title}`} className="relative overflow-hidden flex-[999_1_520px] min-w-0 rounded-[20px] shadow-sm bg-white">
             <div className={`relative px-[22px] py-4 flex flex-wrap items-start gap-x-8 gap-y-4 border-b border-slate-100 ${STRIP_THEMES[period.kind]}`}>
               <PlanTheme kind={period.kind} />
               {period.id === 'custom' && <CustomDates value={planner.custom} onChange={planner.setCustom} />}
               <div className="relative z-10"><LeaveControl value={planner.leave} max={planner.maxLeave} onChange={planner.setLeave} idPrefix="planner" /></div>
-              <div className="relative z-10"><BreakChoice choices={planner.choices} value={planner.breakChoice} onChange={planner.setBreakChoice} /></div>
+              <div className="relative z-10 flex-[1_1_420px]"><GoalChoice goals={planner.goals} value={planner.goal} onChange={planner.setGoal} /></div>
               <button
                 type="button"
                 aria-expanded={moreOpen}
@@ -58,9 +62,12 @@ export function OverviewPage({ planner, isSaved, onAdd, onExport, onView, provin
             </div>
             {moreOpen && <MoreOptions planner={planner} province={province} onProvinceChange={onProvinceChange} />}
             <div className="px-[22px] py-5">
-              <PlannerResults planner={planner} isSaved={isSaved} onAdd={onAdd} onExport={onExport} onView={onView} />
+              <PlannerResults planner={planner} isSaved={isSaved} onAdd={onAdd} onExport={onExport} onView={onView} onPick={b => setCalMonth(b.startDate.slice(0, 7))} />
             </div>
           </article>
+        )}
+        {!showEvents && planner.breaks.length > 0 && (
+          <PlanMonths period={period} breaks={planner.breaks} ticked={planner.ticked} month={calMonth} onMonth={setCalMonth} />
         )}
       </div>
     </>

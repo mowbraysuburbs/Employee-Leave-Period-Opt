@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { PlanIcon } from '../Desktop/Overview/PlanIcon'
 import { LeaveControl } from '../Desktop/Overview/LeaveControl'
-import { BreakChoice } from '../Desktop/Overview/BreakChoice'
+import { GoalChoice } from '../Desktop/Overview/GoalChoice'
+import { PlanMonths } from '../Desktop/Overview/PlanMonths'
 import { MoreOptions } from '../Desktop/Overview/MoreOptions'
 import { PlannerResults } from '../Desktop/Overview/PlannerResults'
 import { CustomDates } from '../Desktop/Overview/CustomDates'
@@ -20,6 +21,7 @@ const SHORT = { custom: 'Custom', next: 'Up next', xmas: 'Christmas', easter: 'E
  */
 export function MobileOverview({ planner, isSaved, onAdd, onExport, onView, province, onProvinceChange }) {
   const [moreOpen, setMoreOpen] = useState(false)
+  const [calMonth, setCalMonth] = useState(null)
   const { period } = planner
   const strip = [{ id: 'custom', kind: 'custom', title: 'Custom' }, ...planner.periods]
 
@@ -35,11 +37,19 @@ export function MobileOverview({ planner, isSaved, onAdd, onExport, onView, prov
           </div>
           {period.id === 'custom' && <CustomDates phone value={planner.custom} onChange={planner.setCustom} />}
           <LeaveControl phone value={planner.leave} max={planner.maxLeave} onChange={planner.setLeave} idPrefix="phone-planner" />
-          <BreakChoice phone choices={planner.choices} value={planner.breakChoice} onChange={planner.setBreakChoice} />
+          <GoalChoice phone goals={planner.goals} value={planner.goal} onChange={planner.setGoal} />
         </section>
 
         <section aria-label="Your plan" className="flex-1 min-h-0 rounded-2xl bg-white shadow-sm p-3 flex flex-col">
-          <PlannerResults phone planner={planner} isSaved={isSaved} onAdd={onAdd} onExport={onExport} onView={onView} />
+          <PlannerResults
+            phone
+            planner={planner}
+            isSaved={isSaved}
+            onAdd={onAdd}
+            onExport={onExport}
+            onView={onView}
+            calendar={<PlanMonths phone period={period} breaks={planner.breaks} ticked={planner.ticked} month={calMonth} onMonth={setCalMonth} />}
+          />
         </section>
       </main>
 
