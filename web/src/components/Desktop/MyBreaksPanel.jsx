@@ -21,7 +21,7 @@ function Total({ value, suffix, label, highlight }) {
  *   justAddedKey – breakKey of the break just added (highlighted + calendar prompt)
  *   onOpen, onRemove – (brk) => void
  *   onDismissAdded
- *   mineOnly, onMineOnlyChange – same value as the rail's "Only my breaks"
+ *   mineOnly, onMineOnlyChange – same value as the rail's "Only selected breaks"
  */
 export function MyBreaksPanel({ breaks, justAddedKey, onOpen, onRemove, onDismissAdded, mineOnly, onMineOnlyChange }) {
   const totals = summariseBreaks(breaks)

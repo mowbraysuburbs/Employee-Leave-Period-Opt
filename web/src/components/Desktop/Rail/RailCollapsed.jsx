@@ -129,13 +129,13 @@ export function RailCollapsed({ c }) {
       {c.previewCount > 0 && (
         <RailIcon
           icon="target"
-          label={`Only selected dates: ${c.previewOnly ? 'on' : 'off'}`}
+          label={`Only plan dates: ${c.previewOnly ? 'on' : 'off'}`}
           value={c.previewCount}
           onClick={open}
           className={c.previewOnly ? 'bg-slate-900 text-white' : off}
         />
       )}
-      <RailIcon icon="eye" label={`Only my breaks: ${c.picksOnly ? 'on' : 'off'}`} onClick={open} className={c.picksOnly ? 'bg-slate-900 text-white' : off} dot={c.picksOnly} />
+      <RailIcon icon="eye" label={`Only selected breaks: ${c.picksOnly ? 'on' : 'off'}`} onClick={open} className={c.picksOnly ? 'bg-slate-900 text-white' : off} dot={c.picksOnly} />
       <RailIcon
         icon="school"
         label={`School holidays: ${c.schoolOn ? 'on' : 'off'} (${c.provinceName})`}
