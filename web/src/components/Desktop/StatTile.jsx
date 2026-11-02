@@ -60,12 +60,24 @@ const KINDS = {
 
 /**
  * Props:
- *   kind  – 'leave' | 'free' | 'total' | 'multiplier'
- *   value – shown in the tile (number or text)
- *   label – optional text after the value (used by the key, not the card)
+ *   kind    – 'leave' | 'free' | 'total' | 'multiplier'
+ *   value   – shown in the tile (number or text)
+ *   label   – optional text after the value (used by the key, not the card)
+ *   caption – optional word under the value (the Details stats)
  */
-export function StatTile({ kind, value, label }) {
+export function StatTile({ kind, value, label, caption }) {
   const { className, Icon, small } = KINDS[kind]
+  if (caption) {
+    return (
+      <div className={`flex flex-col items-center gap-px rounded-[10px] px-2 py-1.5 ${className}`}>
+        <span className="flex items-center gap-1 text-base font-extrabold">
+          <Icon size={14} />
+          {value}
+        </span>
+        <span className="text-[11px] font-semibold opacity-85">{caption}</span>
+      </div>
+    )
+  }
   return (
     <span
       className={[
