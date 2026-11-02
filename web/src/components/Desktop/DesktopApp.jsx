@@ -33,6 +33,7 @@ function initialRailCollapsed() {
 }
 
 export function DesktopApp() {
+  const { theme, setTheme, leaveTotal, setLeaveTotal } = useSettings()
   const {
     controls, activeFilters, clearAllFilters, colourBy, holidayFilter, picksOnly, setPicksOnly, activeDaysOff, province, setProvince, schoolDates,
     months, breaks, demoDate, planner, exportBreaks,
@@ -40,8 +41,7 @@ export function DesktopApp() {
     saved, savedBreaks, savedDayTypes, savedStarts, isSaved, justAddedKey,
     detailBreak, bestNote, equalStarts, overlaps, combined,
     selectDay, openBreak, addBreaks, addDetailBreak, replaceOverlaps, removeBreak,
-  } = useLeavePlanner()
-  const { theme, setTheme, leaveTotal, setLeaveTotal } = useSettings()
+  } = useLeavePlanner({ leaveLimit: leaveTotal, onLeaveLimitChange: setLeaveTotal })
   const { showWelcome, closeWelcome, replayWelcome } = useWelcome()
   const [helpOpen, setHelpOpen] = useState(false)
   // A first visit opens on the calendar so the tour can point at it.

@@ -5,11 +5,11 @@ function TotalInput({ total, onChange, onDone }) {
     <input
       type="number"
       min={1}
-      max={99}
+      max={10}
       autoFocus
-      aria-label="Leave days per year"
+      aria-label="Your leave limit"
       defaultValue={total}
-      onBlur={e => { const n = parseInt(e.target.value, 10); if (n > 0 && n < 100) onChange(n); onDone() }}
+      onBlur={e => { const n = parseInt(e.target.value, 10); if (n > 0 && n <= 10) onChange(n); onDone() }}
       onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') e.currentTarget.blur() }}
       className="w-12 h-6 px-1 border border-slate-300 rounded-md bg-white text-xs font-bold text-slate-900"
     />
@@ -22,7 +22,7 @@ function TotalInput({ total, onChange, onDone }) {
  * Props:
  *   used     – leave days in the saved breaks
  *   adding   – extra leave days if the Details break were added (0 if none)
- *   total    – yearly leave days; click it to change
+ *   total    – your leave limit (1–10); click it to change
  *   onTotalChange
  */
 export function LeaveBar({ used, adding, total, onTotalChange }) {
