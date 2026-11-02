@@ -18,7 +18,7 @@ import { PreviewBanner } from '../Desktop/PreviewBanner'
 import { MobileOverview } from './MobileOverview'
 import { EventsComingSoon } from '../Desktop/EventsComingSoon'
 import { HolidaysList } from '../Features/HolidaysList'
-import { useLeavePlanner, MAX_LEAVE, ALLOWANCE } from '../../hooks/useLeavePlanner'
+import { useLeavePlanner, MAX_LEAVE } from '../../hooks/useLeavePlanner'
 import { summariseBreaks } from '../../utils/breaks'
 
 /**
@@ -153,8 +153,6 @@ export function MobileApp() {
             overlaps={p.overlaps}
             combined={p.combined}
             onReplace={p.replaceOverlaps}
-            leaveLeft={p.leaveLeft}
-            allowance={ALLOWANCE}
           />
         </BottomSheet>
       )}
@@ -192,7 +190,6 @@ export function MobileApp() {
         <BottomSheet label="My breaks" backdrop onClose={closeSheet}>
           <MyBreaksPanel
             breaks={p.savedBreaks}
-            allowance={ALLOWANCE}
             justAddedKey={p.justAddedKey}
             onOpen={b => { p.openBreak(b); setPage('calendar'); setSheet('day') }}
             onRemove={p.removeBreak}
