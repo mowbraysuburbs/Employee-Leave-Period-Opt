@@ -13,7 +13,6 @@ import { YearCalendar } from './YearCalendar'
 import { SidePanel } from './SidePanel'
 import { BreakDetailPanel } from './BreakDetailPanel'
 import { BreakDetailHead } from './BreakDetailHead'
-import { LeaveBar } from './LeaveBar'
 import { MyBreaksPanel } from './MyBreaksPanel'
 import { PreviewBanner } from './PreviewBanner'
 import { OverviewPage } from './Overview/OverviewPage'
@@ -75,21 +74,14 @@ export function DesktopApp() {
 
   const railControls = { ...controls, collapsed: railCollapsed, onToggleCollapsed: toggleRail, activeCount: activeFilters.length, onClearAll: clearAllFilters }
 
-  // The calendar page is exactly one screen tall: only the months scroll, while
-  // the controls and the Details/Summary panel stay put. Other pages scroll normally.
-  // Leave bar: leave in saved breaks, plus what adding the Details break would
-  // cost (a combine only costs the days beyond the breaks it absorbs).
-  const leaveUsed = saved.reduce((sum, s) => sum + s.leaveDays, 0)
-  const leaveAdding = !detailBreak || isSaved(detailBreak)
-    ? 0
-    : combined
-      ? Math.max(0, combined.leaveDays - overlaps.reduce((sum, b) => sum + b.leaveDays, 0))
-      : detailBreak.leaveDays
-
+  // The calendar is one screen tall: only the months scroll, while the controls
+  // and the Details/Summary panel stay put. Other pages scroll normally.
   const calendarPage = page === 'calendar'
+  // The calendar and the Overview are one screen tall, with the same layout and side panel.
+  const fullScreen = calendarPage || page === 'overview'
 
   return (
-    <div className={`bg-slate-50 text-slate-900 ${calendarPage ? 'h-screen flex flex-col overflow-hidden' : 'min-h-screen'}`}>
+    <div className={`bg-slate-50 text-slate-900 ${fullScreen ? 'h-screen flex flex-col overflow-hidden' : 'min-h-screen'}`}>
       <DesktopHeader page={page} onPageChange={setPage} rightSlot={
           <div className="flex items-center gap-2">
             <HelpButton onClick={() => setHelpOpen(true)} />
@@ -143,7 +135,6 @@ export function DesktopApp() {
                 onRemove={() => removeBreak(detailBreak)}
               />
             )}
-            footer={<LeaveBar used={leaveUsed} adding={tab === 'details' ? leaveAdding : 0} total={leaveTotal} onTotalChange={setLeaveTotal} />}
             details={
               <BreakDetailPanel
                 brk={detailBreak}
@@ -166,20 +157,32 @@ export function DesktopApp() {
           />
         </main>
       )}
-      {!calendarPage && (
+      {page === 'overview' && (
+        <main className="flex-1 min-h-0 w-full max-w-[1440px] mx-auto px-6 py-4 overflow-y-auto lg:overflow-hidden">
+            <OverviewPage
+              planner={planner}
+              isSaved={isSaved}
+              onAdd={addBreaks}
+              onExport={exportBreaks}
+              onView={viewOnCalendar}
+              province={province}
+              onProvinceChange={setProvince}
+              savedCount={saved.length}
+              summary={
+                <MyBreaksPanel
+                  breaks={savedBreaks}
+                  justAddedKey={justAddedKey}
+                  onOpen={b => { openBreak(b); setTab('details'); setPage('calendar') }}
+                  onRemove={removeBreak}
+                  mineOnly={picksOnly}
+                  onMineOnlyChange={setPicksOnly}
+                />
+              }
+            />
+        </main>
+      )}
+      {!fullScreen && (
       <main className="max-w-[1320px] mx-auto px-6 pt-6 pb-10 flex flex-col gap-4">
-        {page === 'overview' && (
-          <OverviewPage
-            planner={planner}
-            isSaved={isSaved}
-            onAdd={addBreaks}
-            onExport={exportBreaks}
-            onView={viewOnCalendar}
-            province={province}
-            onProvinceChange={setProvince}
-          />
-        )}
-
         {page === 'events' && <EventsComingSoon variant="page" />}
 
         {page === 'holidays' && <HolidaysList months={months} showSchoolHolidays={false} provinceCode="GP" />}

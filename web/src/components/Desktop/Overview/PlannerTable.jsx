@@ -2,7 +2,7 @@ import { aroundLabel } from '../../../utils/planner'
 import { formatMultiplier } from '../../../utils/breaks'
 import { fmtDay } from '../../../utils/dateFormat'
 
-const COLUMNS = 'grid grid-cols-[22px_118px_92px_minmax(0,1fr)_60px_44px_46px] gap-2 items-center'
+const COLUMNS = 'grid grid-cols-[22px_112px_86px_minmax(0,1fr)_56px_40px_42px] gap-2 items-center'
 const PHONE_COLUMNS = 'grid grid-cols-[22px_minmax(0,1.3fr)_minmax(0,1fr)_32px_38px] gap-1.5 items-center'
 
 // The start date, or a dropdown of other start dates that give the same days off.
@@ -65,7 +65,7 @@ export function PlannerTable({ breaks, startOptions, ticked, onToggle, onSwap, o
               {phone && around && <span className="block truncate text-[10.5px] text-orange-800">{around}</span>}
             </span>
             <span role="cell" className={phone ? 'text-[12.5px]' : ''}>{phone ? fmtDay(b.endDate).slice(4) : fmtDay(b.endDate)}</span>
-            {!phone && <span role="cell" className="min-w-0 break-words text-orange-800 leading-tight">{around}</span>}
+            {!phone && <span role="cell" className="min-w-0 text-orange-800 leading-tight [overflow-wrap:normal] hyphens-auto" lang="en">{around}</span>}
             <b role="cell">{b.daysOff}</b>
             {!phone && <span role="cell">{b.leaveDays}</span>}
             <span role="cell" className="font-bold text-amber-800">{formatMultiplier(b.multiplier)}</span>
