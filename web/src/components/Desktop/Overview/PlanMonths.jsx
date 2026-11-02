@@ -35,8 +35,9 @@ function Month({ monthKey, dayInfo, highlight }) {
           const weekday = i % 7
           const left = info.first || weekday === 0 || n === 1
           const right = info.last || weekday === 6 || n === count
-          // While a table row is hovered, its break stands out and the rest fade back.
-          const dim = !info.ticked || (highlight && highlight !== info.start)
+          // Unticked breaks fade; the break whose table row is hovered glows (nothing else changes).
+          const dim = !info.ticked
+          const glow = highlight === info.start
           return (
             <span
               key={date}
@@ -47,6 +48,7 @@ function Month({ monthKey, dayInfo, highlight }) {
                 left ? 'rounded-l-md' : '',
                 right ? 'rounded-r-md' : '',
                 dim ? 'opacity-30' : '',
+                glow ? 'z-10 shadow-[0_0_10px_3px_rgba(14,165,233,0.85)]' : '',
                 info.holiday ? 'cursor-help' : '',
               ].join(' ')}
               style={{ backgroundColor: DAY_TYPE_COLOUR[info.type], color: info.type === 'weekend' ? '#ffffff' : '#0f172a' }}
@@ -80,7 +82,7 @@ function Key() {
  * Right-hand column of the Overview: the plan on a calendar, so you can see how
  * the breaks are spread. The heading and key stay put; every month with a break
  * scrolls underneath, showing only the weeks that matter. Hovering a row in the
- * results highlights that break here and scrolls it into view.
+ * results makes that break glow here and scrolls it into view.
  *
  * Props:
  *   period          – { from, to }
