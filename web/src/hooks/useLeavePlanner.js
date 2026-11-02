@@ -258,7 +258,7 @@ export function useLeavePlanner() {
     activeDaysOff && { key: 'daysOff', label: 'Days off', value: [...daysOffFilter].sort((a, b) => a - b).join(', '), clear: () => setDaysOffFilter([]) },
     period.changed && { key: 'dates', label: 'Dates', value: `${fmtShortYear(from)} – ${fmtShortYear(to)}`, clear: period.onReset },
     holidayFilter.length > 0 && { key: 'holidays', label: 'Holidays', value: holidayFilter.length === 1 ? holidayFilter[0] : `${holidayFilter.length} picked`, clear: () => setHolidayFilter([]) },
-    picksOnly && { key: 'mine', label: 'Only selected breaks', value: '', clear: () => setPicksOnly(false) },
+    picksOnly && { key: 'mine', label: 'Selected', value: '', clear: () => setPicksOnly(false) },
     schoolOn && { key: 'school', label: 'School holidays', value: provinceLabel(province), clear: () => setSchoolOn(false) },
   ].filter(Boolean)
 

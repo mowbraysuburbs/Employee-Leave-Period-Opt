@@ -135,7 +135,7 @@ export function RailCollapsed({ c }) {
           className={c.previewOnly ? 'bg-slate-900 text-white' : off}
         />
       )}
-      <RailIcon icon="eye" label={`Only selected breaks: ${c.picksOnly ? 'on' : 'off'}`} onClick={open} className={c.picksOnly ? 'bg-slate-900 text-white' : off} dot={c.picksOnly} />
+      <RailIcon icon="eye" label={`Selected breaks only: ${c.picksOnly ? 'on' : 'off'}`} onClick={open} className={c.picksOnly ? 'bg-slate-900 text-white' : off} dot={c.picksOnly} />
       <RailIcon
         icon="school"
         label={`School holidays: ${c.schoolOn ? 'on' : 'off'} (${c.provinceName})`}

@@ -114,7 +114,7 @@ export function RailExpanded({ c }) {
           </button>
         )}
         <button type="button" aria-pressed={c.picksOnly} onClick={() => c.onPicksOnlyChange(!c.picksOnly)} className={toggle(c.picksOnly)}>
-          Only selected breaks ({c.savedCount})
+          Selected ({c.savedCount})
         </button>
         <div className="flex gap-1.5">
           <button
