@@ -93,7 +93,7 @@ export function DesktopApp() {
       <DesktopHeader page={page} onPageChange={setPage} rightSlot={
           <div className="flex items-center gap-2">
             <HelpButton onClick={() => setHelpOpen(true)} />
-            {calendarPage && <CalendarKey />}
+            {(calendarPage || page === 'overview') && <CalendarKey />}
             <ThemeToggle theme={theme} onChange={setTheme} />
           </div>
         }

@@ -59,7 +59,7 @@ export function MobileApp() {
         <span className="text-lg font-extrabold tracking-tight">Stretch<span className="text-sky-700">My</span>Leave</span>
         <span className="flex-1" />
         <HelpButton onClick={() => setSheet('help')} />
-        {calendarPage && <CalendarKey />}
+        {(calendarPage || page === 'overview') && <CalendarKey />}
         <button
           type="button"
           aria-label="Settings"
