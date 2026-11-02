@@ -51,13 +51,21 @@ export function LeaveBar({ used, adding, total, onTotalChange }) {
           used
         </span>
       </div>
-      <div className="h-2 rounded bg-slate-200 overflow-hidden flex">
+      <div className="h-4 rounded-md bg-slate-200 overflow-hidden flex">
         <span className={fill} style={{ width: `${usedPct}%` }} />
-        <span className="bg-sky-300" style={{ width: `${addPct}%` }} />
+        {addPct > 0 && (
+          <span
+            title={`This break would use ${adding} more`}
+            className="bg-sky-300 text-sky-950 text-[10px] font-bold leading-4 whitespace-nowrap overflow-hidden text-center"
+            style={{ width: `${addPct}%` }}
+          >
+            +{adding}
+          </span>
+        )}
+        {addPct > 0 && usedPct + addPct <= 70 && (
+          <span className="pl-1 text-[10px] font-bold leading-4 text-slate-600 whitespace-nowrap">this break</span>
+        )}
       </div>
-      {adding > 0 && (
-        <span className="text-[11px] text-slate-600">Light blue = this break, if you add it (→ {left - adding} left)</span>
-      )}
     </div>
   )
 }
