@@ -6,16 +6,16 @@ const short = date => fmtDay(date).slice(4)
 
 const NUM = 'w-[50px] shrink-0 flex items-center justify-center'
 
-// Same order as the stat tiles above it: days off, leave used, value.
+// Same order as the stat tiles above it: days off, leave used, multiplier.
 const COLUMNS = [
   { label: 'Days off', value: b => b.daysOff, className: 'text-[15px] font-extrabold text-indigo-800' },
   { label: 'Leave', value: b => b.leaveDays, className: 'text-[15px] font-semibold text-sky-800' },
-  { label: 'Value', value: b => formatMultiplier(b.multiplier), className: 'text-[15px] font-extrabold text-amber-800' },
+  { label: 'Mult.', value: b => formatMultiplier(b.multiplier), className: 'text-[15px] font-extrabold text-amber-800' },
 ]
 
 /**
  * The phone version of PlanBreaksTable: tick box and dates, then the three
- * numbers that match the stat tiles (days off, leave used, value). Holidays
+ * numbers that match the stat tiles (days off, leave used, multiplier). Holidays
  * and weekend counts are left out so everything fits without scrolling.
  *
  * Props: the same as PlanBreaksTable.

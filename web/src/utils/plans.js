@@ -149,7 +149,7 @@ export function computePlans({ from, to, leave = OVERVIEW_LEAVE, provinceCode = 
     }
     if (best) {
       plans.push({
-        id: 'next', kind: 'next', title: 'Up next', rule: 'best ×, ± 1 week', breaks: [best],
+        id: 'next', kind: 'next', title: 'Up next', rule: 'best multiplier, ± 1 week', breaks: [best],
         blurb: `The best value break within a week either side of the next public holiday, ${holidays.get(nextHoliday)} on ${fmtDay(nextHoliday)}.`,
         summary: `The best-value break around ${holidays.get(nextHoliday)}, ${fmtDay(nextHoliday).slice(4)}.`,
       })

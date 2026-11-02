@@ -126,7 +126,7 @@ export function holidayNamesIn(brk) {
 }
 
 export function formatMultiplier(multiplier) {
-  return `${multiplier.toFixed(1)}×`
+  return multiplier.toFixed(2)
 }
 
 // Identifies a saved break: the same start date with a different leave

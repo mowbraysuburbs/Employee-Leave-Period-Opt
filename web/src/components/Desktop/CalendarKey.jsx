@@ -51,7 +51,7 @@ export function CalendarKey() {
             <div className="flex flex-wrap gap-1.5">
               <StatTile kind="leave" label="leave" />
               <StatTile kind="free" label="free days" />
-              <StatTile kind="multiplier" value="×" label="multiplier" />
+              <StatTile kind="multiplier" value="2.50" label="multiplier" />
               <StatTile kind="total" label="total off" />
             </div>
           </section>

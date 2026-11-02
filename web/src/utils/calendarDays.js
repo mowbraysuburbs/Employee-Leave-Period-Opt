@@ -113,7 +113,7 @@ export function buildMonthDays({ months, breaks, colourBy, holidayFilter, picksO
         isHoliday: brk?.days[0].type === 'public_holiday',
         disabled: !brk,
         ariaLabel: brk
-          ? `${fmtDay(date)}: ${brk.daysOff} days off, ${formatMultiplier(brk.multiplier)}`
+          ? `${fmtDay(date)}: ${brk.daysOff} days off, ${formatMultiplier(brk.multiplier)} multiplier`
           : fmtDay(date),
       }
     }),

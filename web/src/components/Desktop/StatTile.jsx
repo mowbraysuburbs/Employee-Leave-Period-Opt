@@ -40,7 +40,7 @@ function CalendarIcon({ size }) {
 }
 
 // One colour + icon per stat, shared by the hover card and its key so the
-// two can never drift apart. The multiplier's "×" is part of its value.
+// two can never drift apart. The multiplier is shown as a plain number (e.g. 2.50).
 const KINDS = {
   leave: { className: 'bg-sky-100 text-sky-800', Icon: BriefcaseIcon },
   free: { className: 'bg-green-100 text-green-800', Icon: GiftIcon },

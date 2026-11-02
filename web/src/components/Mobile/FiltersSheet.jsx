@@ -10,7 +10,7 @@ const toggle = on => [
 
 /**
  * Everything from the desktop control rail except leave days and Total days /
- * Value ×, which live in the bottom panel. Takes the same `c` object as ControlRail.
+ * Multiplier, which live in the bottom panel. Takes the same `c` object as ControlRail.
  */
 export function FiltersSheet({ c, onClose }) {
   return (
