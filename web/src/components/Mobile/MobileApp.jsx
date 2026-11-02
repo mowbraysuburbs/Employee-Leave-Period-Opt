@@ -13,6 +13,7 @@ import { useSettings } from '../../hooks/useSettings'
 import { useWelcome } from '../../hooks/useWelcome'
 import { CalendarKey } from '../Desktop/CalendarKey'
 import { BreakDetailPanel } from '../Desktop/BreakDetailPanel'
+import { BreakDetailHead } from '../Desktop/BreakDetailHead'
 import { MyBreaksPanel } from '../Desktop/MyBreaksPanel'
 import { PreviewBanner } from '../Desktop/PreviewBanner'
 import { MobileOverview } from './MobileOverview'
@@ -140,20 +141,25 @@ export function MobileApp() {
 
       {sheet === 'day' && p.detailBreak && (
         <BottomSheet label="Day details" onClose={closeSheet} maxHeight="max-h-[58dvh]">
-          <BreakDetailPanel
-            brk={p.detailBreak}
-            nextBreak={p.nextBreak}
-            bestNote={p.bestNote}
-            label={p.previewLabel}
-            equalStarts={p.equalStarts}
-            onPickStart={startDate => p.openBreak({ startDate, leaveDays: p.detailBreak.leaveDays })}
-            isSaved={p.isSaved(p.detailBreak)}
-            onAdd={p.addDetailBreak}
-            onRemove={() => p.removeBreak(p.detailBreak)}
-            overlaps={p.overlaps}
-            combined={p.combined}
-            onReplace={p.replaceOverlaps}
-          />
+          <div className="flex flex-col gap-4">
+            <BreakDetailHead
+              brk={p.detailBreak}
+              isSaved={p.isSaved(p.detailBreak)}
+              onAdd={p.addDetailBreak}
+              onRemove={() => p.removeBreak(p.detailBreak)}
+              overlaps={p.overlaps}
+              combined={p.combined}
+              onReplace={p.replaceOverlaps}
+            />
+            <BreakDetailPanel
+              brk={p.detailBreak}
+              nextBreak={p.nextBreak}
+              bestNote={p.bestNote}
+              label={p.previewLabel}
+              equalStarts={p.equalStarts}
+              onPickStart={startDate => p.openBreak({ startDate, leaveDays: p.detailBreak.leaveDays })}
+            />
+          </div>
         </BottomSheet>
       )}
 

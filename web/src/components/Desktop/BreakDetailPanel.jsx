@@ -1,8 +1,6 @@
 import { BreakWeeks } from './BreakWeeks'
 import { BreakDaysTable } from './BreakDaysTable'
 import { StartDateChips } from './StartDateChips'
-import { AddBreakControls } from './AddBreakControls'
-import { fmtDayRange } from '../../utils/dateFormat'
 import { formatMultiplier } from '../../utils/breaks'
 
 function Stat({ value, label, highlight }) {
@@ -15,7 +13,7 @@ function Stat({ value, label, highlight }) {
 }
 
 /**
- * Details tab content for one break.
+ * Details tab content for one break, under the pinned Add + dates (BreakDetailHead).
  *
  * Props:
  *   brk        – the break (the clicked day, a saved break, or a previewed plan's earliest)
@@ -23,11 +21,8 @@ function Stat({ value, label, highlight }) {
  *   bestNote   – explains a break using fewer leave days than set
  *   label      – Overview plan name while one is previewed, e.g. "Up next"
  *   equalStarts, onPickStart – equal alternatives to move to (see StartDateChips)
- *   isSaved    – already in My breaks
- *   onAdd, onRemove
- *   overlaps, combined, onReplace – see AddBreakControls
  */
-export function BreakDetailPanel({ brk, nextBreak, bestNote, label, equalStarts, onPickStart, isSaved, onAdd, onRemove, ...addProps }) {
+export function BreakDetailPanel({ brk, nextBreak, bestNote, label, equalStarts, onPickStart }) {
   if (!brk) {
     return (
       <div className="px-5 py-7 border-[1.5px] border-dashed border-slate-300 rounded-2xl text-sm text-slate-600 text-center">
@@ -38,25 +33,24 @@ export function BreakDetailPanel({ brk, nextBreak, bestNote, label, equalStarts,
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        {label && (
-          <div className="mb-2 inline-block px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 text-xs font-bold">Overview plan · {label}</div>
-        )}
-        <h2 className="m-0 text-xl font-extrabold tracking-tight">{fmtDayRange(brk.startDate, brk.endDate)}</h2>
-        {bestNote && (
-          <div className="mt-1.5 inline-block px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold">{bestNote}</div>
-        )}
-      </div>
-
-      <AddBreakControls isSaved={isSaved} onAdd={onAdd} onRemove={onRemove} {...addProps} />
-
-      <StartDateChips options={equalStarts} current={brk.startDate} onPick={onPickStart} />
+      {(label || bestNote) && (
+        <div className="flex flex-wrap gap-1.5">
+          {label && (
+            <div className="px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 text-xs font-bold">Overview plan · {label}</div>
+          )}
+          {bestNote && (
+            <div className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold">{bestNote}</div>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-3 gap-2">
         <Stat value={brk.daysOff} label="days off" />
         <Stat value={brk.leaveDays} label="leave" />
         <Stat value={formatMultiplier(brk.multiplier)} label="multiplier" highlight />
       </div>
+
+      <StartDateChips options={equalStarts} current={brk.startDate} onPick={onPickStart} />
 
       <BreakWeeks brk={brk} />
       <BreakDaysTable brk={brk} />

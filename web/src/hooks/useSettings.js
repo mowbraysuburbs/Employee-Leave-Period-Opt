@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 
 const STORAGE_KEY = 'stretchmyleave.settings'
-const DEFAULTS = { theme: 'light', calendarSize: 'compact' }
+const DEFAULTS = { theme: 'light', calendarSize: 'compact', leaveTotal: 21 }
 
 function load() {
   try {
@@ -9,6 +9,7 @@ function load() {
     return {
       theme: parsed.theme === 'dark' ? 'dark' : DEFAULTS.theme,
       calendarSize: parsed.calendarSize === 'large' ? 'large' : DEFAULTS.calendarSize,
+      leaveTotal: Number.isInteger(parsed.leaveTotal) && parsed.leaveTotal > 0 ? parsed.leaveTotal : DEFAULTS.leaveTotal,
     }
   } catch {
     return DEFAULTS
@@ -16,8 +17,9 @@ function load() {
 }
 
 /**
- * Appearance settings remembered on this device: theme ('light' | 'dark')
- * and the phone calendar size ('large' | 'compact'). Dark mode works by
+ * Settings remembered on this device: theme ('light' | 'dark'), the phone
+ * calendar size ('large' | 'compact') and leaveTotal (the yearly leave days
+ * the Summary counts down from). Dark mode works by
  * putting `.dark` on <html>, which swaps the palette in index.css.
  */
 export function useSettings() {
@@ -34,5 +36,6 @@ export function useSettings() {
     ...settings,
     setTheme: theme => setSettings(s => ({ ...s, theme })),
     setCalendarSize: calendarSize => setSettings(s => ({ ...s, calendarSize })),
+    setLeaveTotal: leaveTotal => setSettings(s => ({ ...s, leaveTotal })),
   }
 }

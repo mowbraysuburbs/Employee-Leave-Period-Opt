@@ -36,7 +36,7 @@ export function MyBreaksPanel({ breaks, justAddedKey, onOpen, onRemove, onDismis
       <div className="grid grid-cols-3 gap-2">
         <Total value={totals.leaveUsed} label="leave used" />
         <Total value={totals.daysOff} label="days off" />
-        <Total value={breaks.length ? formatMultiplier(totals.multiplier) : '–'} label="overall" highlight />
+        <Total value={breaks.length ? formatMultiplier(totals.multiplier) : '–'} label="overall multiplier" highlight />
       </div>
 
       <button

@@ -30,7 +30,7 @@ export function tourSteps(phone, demo, { reset, showDate, showSummary }) {
       target: 'add',
       enter: showDate,
       title: 'Add it to your plan',
-      text: 'Press + Add to my breaks to keep it. If it overlaps a break you saved, you can combine them.',
+      text: 'Press Add to summary to keep it. If it overlaps a break you saved, you can combine them.',
     },
     {
       target: 'export',

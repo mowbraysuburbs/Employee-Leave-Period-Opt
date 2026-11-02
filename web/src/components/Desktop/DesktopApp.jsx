@@ -12,6 +12,8 @@ import { ControlRail } from './Rail/ControlRail'
 import { YearCalendar } from './YearCalendar'
 import { SidePanel } from './SidePanel'
 import { BreakDetailPanel } from './BreakDetailPanel'
+import { BreakDetailHead } from './BreakDetailHead'
+import { LeaveBar } from './LeaveBar'
 import { MyBreaksPanel } from './MyBreaksPanel'
 import { PreviewBanner } from './PreviewBanner'
 import { ActiveFiltersBar } from './ActiveFiltersBar'
@@ -40,7 +42,7 @@ export function DesktopApp() {
     detailBreak, nextBreak, bestNote, equalStarts, overlaps, combined,
     selectDay, openBreak, addBreaks, addDetailBreak, replaceOverlaps, removeBreak,
   } = useLeavePlanner()
-  const { theme, setTheme } = useSettings()
+  const { theme, setTheme, leaveTotal, setLeaveTotal } = useSettings()
   const { showWelcome, closeWelcome, replayWelcome } = useWelcome()
   const [helpOpen, setHelpOpen] = useState(false)
   // A first visit opens on the calendar so the tour can point at it.
@@ -76,6 +78,15 @@ export function DesktopApp() {
 
   // The calendar page is exactly one screen tall: only the months scroll, while
   // the controls and the Details/Summary panel stay put. Other pages scroll normally.
+  // Leave bar: leave in saved breaks, plus what adding the Details break would
+  // cost (a combine only costs the days beyond the breaks it absorbs).
+  const leaveUsed = saved.reduce((sum, s) => sum + s.leaveDays, 0)
+  const leaveAdding = !detailBreak || isSaved(detailBreak)
+    ? 0
+    : combined
+      ? Math.max(0, combined.leaveDays - overlaps.reduce((sum, b) => sum + b.leaveDays, 0))
+      : detailBreak.leaveDays
+
   const calendarPage = page === 'calendar'
 
   return (
@@ -124,6 +135,18 @@ export function DesktopApp() {
             tab={tab}
             onTabChange={setTab}
             savedCount={saved.length}
+            head={tab === 'details' && (
+              <BreakDetailHead
+                brk={detailBreak}
+                isSaved={detailBreak ? isSaved(detailBreak) : false}
+                onAdd={() => { addDetailBreak(); setTab('summary') }}
+                overlaps={overlaps}
+                combined={combined}
+                onReplace={() => { replaceOverlaps(); setTab('summary') }}
+                onRemove={() => removeBreak(detailBreak)}
+              />
+            )}
+            footer={<LeaveBar used={leaveUsed} adding={tab === 'details' ? leaveAdding : 0} total={leaveTotal} onTotalChange={setLeaveTotal} />}
             details={
               <BreakDetailPanel
                 brk={detailBreak}
@@ -132,12 +155,6 @@ export function DesktopApp() {
                 label={previewLabel}
                 equalStarts={equalStarts}
                 onPickStart={startDate => openBreak({ startDate, leaveDays: detailBreak.leaveDays })}
-                isSaved={detailBreak ? isSaved(detailBreak) : false}
-                onAdd={() => { addDetailBreak(); setTab('summary') }}
-                overlaps={overlaps}
-                combined={combined}
-                onReplace={() => { replaceOverlaps(); setTab('summary') }}
-                onRemove={() => removeBreak(detailBreak)}
               />
             }
             summary={
