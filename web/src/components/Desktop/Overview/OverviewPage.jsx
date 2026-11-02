@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { PeriodList } from './PeriodList'
 import { LeaveControl } from './LeaveControl'
 import { GoalChoice } from './GoalChoice'
-import { PlanMonths } from './PlanMonths'
+import { PlanMonths, PlanKey } from './PlanMonths'
+import { SidePanel } from '../SidePanel'
 import { MoreOptions } from './MoreOptions'
 import { PlannerResults } from './PlannerResults'
 import { CustomDates } from './CustomDates'
@@ -13,16 +14,19 @@ import { EventsComingSoon } from '../EventsComingSoon'
 /**
  * The page the desktop app opens on: a three-step leave planner. Pick a leave
  * period on the left; leave days and how many breaks sit above the results,
- * which update straight away. More options drops down under the settings.
+ * which update straight away. On the right, the same Details / Summary panel as
+ * the calendar: Details shows the plan on a calendar, Summary is your breaks.
  *
  * Props:
  *   planner                    – usePlanner() result
  *   isSaved                    – (break) => bool
  *   onAdd, onExport, onView    – (breaks) => void
  *   province, onProvinceChange – school province
+ *   savedCount, summary        – the Summary tab's count and panel (shared with the calendar)
  */
-export function OverviewPage({ planner, isSaved, onAdd, onExport, onView, province, onProvinceChange }) {
+export function OverviewPage({ planner, isSaved, onAdd, onExport, onView, province, onProvinceChange, savedCount, summary }) {
   const [showEvents, setShowEvents] = useState(false)
+  const [tab, setTab] = useState('details')
   const [moreOpen, setMoreOpen] = useState(false)
   // The break whose table row is hovered, highlighted in the calendar column.
   const [hovered, setHovered] = useState(null)
@@ -35,13 +39,9 @@ export function OverviewPage({ planner, isSaved, onAdd, onExport, onView, provin
 
   return (
     <>
-      <section>
-        <h1 className="m-0 text-[28px] leading-tight font-extrabold tracking-tight">Plan your leave</h1>
-        <p className="m-0 mt-1.5 text-[15px] text-slate-600">Pick a period, how many leave days, and how many breaks.</p>
-      </section>
 
-      {/* On wide screens the planner is one screen tall and each column scrolls on its own. */}
-      <div className="flex flex-wrap gap-[18px] items-start lg:flex-nowrap lg:items-stretch lg:h-[calc(100vh-214px)] lg:min-h-[520px]">
+      {/* Same layout as the calendar: on wide screens one screen tall, each column scrolling on its own. */}
+      <div className="flex flex-wrap gap-5 items-start lg:flex-nowrap lg:items-stretch lg:h-full">
         <PeriodList periods={planner.periods} cardStats={planner.cardStats} selectedId={showEvents ? 'events' : period.id} onSelect={select} />
         {showEvents ? <EventsComingSoon /> : (
           <article aria-label={`Plan: ${period.title}`} className="relative overflow-hidden flex-[999_1_520px] min-w-0 rounded-[20px] shadow-sm bg-white flex flex-col">
@@ -68,19 +68,32 @@ export function OverviewPage({ planner, isSaved, onAdd, onExport, onView, provin
             </div>
             {moreOpen && <MoreOptions planner={planner} province={province} onProvinceChange={onProvinceChange} />}
             <div className="px-[22px] py-4 flex-1 min-h-0 flex flex-col">
-              <PlannerResults planner={planner} isSaved={isSaved} onAdd={onAdd} onExport={onExport} onView={onView} onHover={setHovered} />
+              <PlannerResults planner={planner} isSaved={isSaved} onAdd={list => { onAdd(list); setTab('summary') }} onExport={onExport} onView={onView} onHover={setHovered} />
             </div>
           </article>
         )}
-        {!showEvents && planner.breaks.length > 0 && (
-          <PlanMonths
-            period={period}
-            breaks={planner.breaks}
-            ticked={planner.ticked}
-            highlight={hovered}
-            onOpen={() => onView(planner.breaks.filter(b => planner.ticked.has(b.startDate)))}
-          />
-        )}
+        <SidePanel
+          tab={tab}
+          onTabChange={setTab}
+          savedCount={savedCount}
+          head={tab === 'details' && (
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                disabled={!planner.breaks.some(b => planner.ticked.has(b.startDate))}
+                onClick={() => onView(planner.breaks.filter(b => planner.ticked.has(b.startDate)))}
+                className="h-10 rounded-xl bg-sky-700 text-white text-sm font-bold disabled:opacity-50"
+              >
+                Go to calendar →
+              </button>
+              <PlanKey />
+            </div>
+          )}
+          details={planner.breaks.length > 0
+            ? <PlanMonths bare period={period} breaks={planner.breaks} ticked={planner.ticked} highlight={hovered} />
+            : <p className="m-0 text-sm text-slate-600">No breaks to show for these settings.</p>}
+          summary={summary}
+        />
       </div>
     </>
   )

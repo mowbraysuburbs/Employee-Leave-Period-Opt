@@ -72,7 +72,7 @@ export function PlannerResults({ planner, isSaved, onAdd, onExport, onView, onHo
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="m-0 text-[17px] font-extrabold whitespace-nowrap">{period.title}: {count}</h3>
             <span className="flex gap-1 text-[11.5px] font-extrabold whitespace-nowrap">
-              <span className="px-2 py-1 rounded-lg bg-indigo-100 text-indigo-800">{totals.daysOff} days off</span>
+              <span className="px-2 py-1 rounded-lg bg-indigo-100 text-indigo-800">{totals.daysOff} off</span>
               <span className="px-2 py-1 rounded-lg bg-sky-100 text-sky-800">{totals.leave} leave</span>
               <span className="px-2 py-1 rounded-lg bg-amber-100 text-amber-800">{formatMultiplier(totals.multiplier)}</span>
             </span>

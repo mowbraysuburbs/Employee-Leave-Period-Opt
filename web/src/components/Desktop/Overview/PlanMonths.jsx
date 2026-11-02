@@ -63,8 +63,8 @@ function Month({ monthKey, dayInfo, highlight }) {
   )
 }
 
-// The 2×2 key under the heading.
-function Key() {
+// The 2×2 key: under the column heading, or pinned under the Overview's Details tab.
+export function PlanKey() {
   return (
     <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11.5px] text-slate-700">
       {DAY_TYPE_LEGEND.map(l => (
@@ -90,8 +90,9 @@ function Key() {
  *   highlight       – start date of the break to highlight (a hovered row), or null
  *   onOpen          – opens the full calendar with the ticked breaks
  *   phone           – no column frame or Open link (shown inside the results card)
+ *   bare            – just the months (the Overview's Details tab, which pins the key itself)
  */
-export function PlanMonths({ period, breaks, ticked, highlight, onOpen, phone = false }) {
+export function PlanMonths({ period, breaks, ticked, highlight, onOpen, phone = false, bare = false }) {
   const scroller = useRef(null)
   const dayInfo = new Map()
   for (const b of breaks) {
@@ -113,11 +114,24 @@ export function PlanMonths({ period, breaks, ticked, highlight, onOpen, phone = 
     const box = scroller.current
     const target = highlight && box?.querySelector(`[data-break-start="${highlight}"]`)
     if (!target) return
+    if (bare) {
+      // Inside the side panel, which does the scrolling.
+      target.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+      return
+    }
     const top = target.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop
     box.scrollTo({ top: Math.max(0, top - 40), behavior: 'smooth' })
-  }, [highlight])
+  }, [highlight, bare])
 
   if (breakMonths.length === 0) return null
+
+  if (bare) {
+    return (
+      <div ref={scroller} aria-label="Plan on the calendar" className="flex flex-col gap-3">
+        {breakMonths.map(m => <Month key={m} monthKey={m} dayInfo={dayInfo} highlight={highlight} />)}
+      </div>
+    )
+  }
 
   return (
     <aside
@@ -131,7 +145,7 @@ export function PlanMonths({ period, breaks, ticked, highlight, onOpen, phone = 
             <button type="button" onClick={onOpen} className="text-[12.5px] font-bold text-sky-700">Open in calendar →</button>
           </div>
         )}
-        <Key />
+        <PlanKey />
         {!phone && <span className="text-[11px] text-slate-500">Hover a holiday to see its name.</span>}
       </div>
       <div ref={scroller} className={phone ? 'flex flex-col gap-3' : 'flex-1 min-h-0 overflow-y-auto px-3.5 py-3 flex flex-col gap-3'}>
