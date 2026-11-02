@@ -125,10 +125,6 @@ export function useLeavePlanner() {
     : null
   // Equal alternatives next to it, shown as day icons in Details.
   const equalStarts = useMemo(() => (detailBreak ? findEqualStarts(detailBreak) : null), [detailBreak])
-  const nextBreak = useMemo(
-    () => (detailBreak && detailBreak.leaveDays < MAX_LEAVE ? buildBreak(detailBreak.startDate, detailBreak.leaveDays + 1) : null),
-    [detailBreak]
-  )
   const bestNote = colourBy === 'multiplier' && detailBreak && !pinned && !showingPreview && detailBreak.leaveDays < leaveDays
     ? `Best value: uses ${detailBreak.leaveDays} of your ${leaveDays} leave days`
     : null
@@ -303,7 +299,7 @@ export function useLeavePlanner() {
     months, breaks, demoDate, plans, selectedPlan, setSelectedPlanId, eventsSelected, ticked, toggleTick, toggleAllTicks, exportBreaks,
     preview, setPreview, previewOnly, setPreviewOnly, previewDays, previewLabel, openPreview,
     saved, savedBreaks, savedDayTypes, savedStarts, isSaved, justAddedKey, setJustAddedKey,
-    detailBreak, nextBreak, bestNote, equalStarts, overlaps, combined,
+    detailBreak, bestNote, equalStarts, overlaps, combined,
     selectDay, openBreak, addBreaks, addDetailBreak, replaceOverlaps, removeBreak,
   }
 }

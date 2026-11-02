@@ -39,7 +39,7 @@ export function DesktopApp() {
     months, breaks, demoDate, plans, selectedPlan, setSelectedPlanId, eventsSelected, ticked, toggleTick, toggleAllTicks, exportBreaks,
     preview, setPreview, previewOnly, previewDays, previewLabel, openPreview,
     saved, savedBreaks, savedDayTypes, savedStarts, isSaved, justAddedKey, setJustAddedKey,
-    detailBreak, nextBreak, bestNote, equalStarts, overlaps, combined,
+    detailBreak, bestNote, equalStarts, overlaps, combined,
     selectDay, openBreak, addBreaks, addDetailBreak, replaceOverlaps, removeBreak,
   } = useLeavePlanner()
   const { theme, setTheme, leaveTotal, setLeaveTotal } = useSettings()
@@ -150,7 +150,6 @@ export function DesktopApp() {
             details={
               <BreakDetailPanel
                 brk={detailBreak}
-                nextBreak={nextBreak}
                 bestNote={bestNote}
                 label={previewLabel}
                 equalStarts={equalStarts}

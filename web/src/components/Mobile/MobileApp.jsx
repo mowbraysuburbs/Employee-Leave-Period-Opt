@@ -153,7 +153,6 @@ export function MobileApp() {
             />
             <BreakDetailPanel
               brk={p.detailBreak}
-              nextBreak={p.nextBreak}
               bestNote={p.bestNote}
               label={p.previewLabel}
               equalStarts={p.equalStarts}
