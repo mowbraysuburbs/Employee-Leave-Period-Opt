@@ -18,16 +18,14 @@ function Total({ value, suffix, label, highlight }) {
 /**
  * Props:
  *   breaks       – saved breaks, newest first
- *   allowance    – yearly leave days
  *   justAddedKey – breakKey of the break just added (highlighted + calendar prompt)
  *   onOpen, onRemove – (brk) => void
  *   onDismissAdded
  *   mineOnly, onMineOnlyChange – same value as the rail's "Only my breaks"
  */
-export function MyBreaksPanel({ breaks, allowance, justAddedKey, onOpen, onRemove, onDismissAdded, mineOnly, onMineOnlyChange }) {
+export function MyBreaksPanel({ breaks, justAddedKey, onOpen, onRemove, onDismissAdded, mineOnly, onMineOnlyChange }) {
   const totals = summariseBreaks(breaks)
   const justAdded = breaks.find(b => breakKey(b) === justAddedKey)
-  const usedPct = Math.min(100, Math.round((totals.leaveUsed / allowance) * 100))
 
   return (
     <div className="flex flex-col gap-4">
@@ -36,12 +34,9 @@ export function MyBreaksPanel({ breaks, allowance, justAddedKey, onOpen, onRemov
       </h2>
 
       <div className="grid grid-cols-3 gap-2">
-        <Total value={totals.leaveUsed} suffix={`/${allowance}`} label="leave used" />
+        <Total value={totals.leaveUsed} label="leave used" />
         <Total value={totals.daysOff} label="days off" />
         <Total value={breaks.length ? formatMultiplier(totals.multiplier) : '–'} label="overall" highlight />
-      </div>
-      <div className="h-2 rounded bg-slate-200 overflow-hidden">
-        <div className="h-2 bg-sky-700" style={{ width: `${usedPct}%` }} />
       </div>
 
       <button

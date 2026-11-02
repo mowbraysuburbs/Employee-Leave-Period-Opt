@@ -25,7 +25,7 @@ function Stat({ value, label, highlight }) {
  *   equalStarts, onPickStart – equal alternatives to move to (see StartDateChips)
  *   isSaved    – already in My breaks
  *   onAdd, onRemove
- *   overlaps, combined, onReplace, leaveLeft, allowance – see AddBreakControls
+ *   overlaps, combined, onReplace – see AddBreakControls
  */
 export function BreakDetailPanel({ brk, nextBreak, bestNote, label, equalStarts, onPickStart, isSaved, onAdd, onRemove, ...addProps }) {
   if (!brk) {
@@ -48,7 +48,7 @@ export function BreakDetailPanel({ brk, nextBreak, bestNote, label, equalStarts,
         )}
       </div>
 
-      <AddBreakControls brk={brk} isSaved={isSaved} onAdd={onAdd} onRemove={onRemove} {...addProps} />
+      <AddBreakControls isSaved={isSaved} onAdd={onAdd} onRemove={onRemove} {...addProps} />
 
       <StartDateChips options={equalStarts} current={brk.startDate} onPick={onPickStart} />
 

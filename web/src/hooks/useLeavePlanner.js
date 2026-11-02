@@ -1,14 +1,12 @@
 import { useState, useMemo } from 'react'
 import { useSavedBreaks } from '../components/Desktop/useSavedBreaks'
-import { buildBreak, buildBreaksInRange, breakKey, hasGain, toCalendarEvent, findEqualStarts, breaksOverlap, combineBreaks, withBreakMerged, summariseBreaks } from '../utils/breaks'
+import { buildBreak, buildBreaksInRange, breakKey, hasGain, toCalendarEvent, findEqualStarts, breaksOverlap, combineBreaks, withBreakMerged } from '../utils/breaks'
 import { computePlans, schoolBreaksFor, provinceLabel } from '../utils/plans'
 import { buildIcs, downloadIcs } from '../utils/calendarExport'
 import { getColourForDaysOff, getColourForMultiplier, multiplierBucket } from '../utils/colorScale'
 import { fmtDay, fmtShortYear, addDays } from '../utils/dateFormat'
 
 export const MAX_LEAVE = 10
-// BCEA minimum: 21 consecutive days, i.e. 15 working days.
-export const ALLOWANCE = 15
 const LAST_DATE = '2028-01-01'
 
 function localToday() {
@@ -167,7 +165,6 @@ export function useLeavePlanner() {
     [detailBreak, savedBreaks, savedKeys]
   )
   const combined = useMemo(() => (overlaps.length ? combineBreaks([...overlaps, detailBreak]) : null), [overlaps, detailBreak])
-  const leaveLeft = ALLOWANCE - summariseBreaks(savedBreaks).leaveUsed
   const period = {
     from,
     to,
@@ -306,7 +303,7 @@ export function useLeavePlanner() {
     months, breaks, demoDate, plans, selectedPlan, setSelectedPlanId, eventsSelected, ticked, toggleTick, toggleAllTicks, exportBreaks,
     preview, setPreview, previewOnly, setPreviewOnly, previewDays, previewLabel, openPreview,
     saved, savedBreaks, savedDayTypes, savedStarts, isSaved, justAddedKey, setJustAddedKey,
-    detailBreak, nextBreak, bestNote, equalStarts, overlaps, combined, leaveLeft,
+    detailBreak, nextBreak, bestNote, equalStarts, overlaps, combined,
     selectDay, openBreak, addBreaks, addDetailBreak, replaceOverlaps, removeBreak,
   }
 }

@@ -18,7 +18,7 @@ import { ActiveFiltersBar } from './ActiveFiltersBar'
 import { OverviewPage } from './Overview/OverviewPage'
 import { EventsComingSoon } from './EventsComingSoon'
 import { HolidaysList } from '../Features/HolidaysList'
-import { useLeavePlanner, ALLOWANCE } from '../../hooks/useLeavePlanner'
+import { useLeavePlanner } from '../../hooks/useLeavePlanner'
 
 const RAIL_KEY = 'stretchmyleave.railCollapsed'
 
@@ -37,7 +37,7 @@ export function DesktopApp() {
     months, breaks, demoDate, plans, selectedPlan, setSelectedPlanId, eventsSelected, ticked, toggleTick, toggleAllTicks, exportBreaks,
     preview, setPreview, previewOnly, previewDays, previewLabel, openPreview,
     saved, savedBreaks, savedDayTypes, savedStarts, isSaved, justAddedKey, setJustAddedKey,
-    detailBreak, nextBreak, bestNote, equalStarts, overlaps, combined, leaveLeft,
+    detailBreak, nextBreak, bestNote, equalStarts, overlaps, combined,
     selectDay, openBreak, addBreaks, addDetailBreak, replaceOverlaps, removeBreak,
   } = useLeavePlanner()
   const { theme, setTheme } = useSettings()
@@ -137,15 +137,12 @@ export function DesktopApp() {
                 overlaps={overlaps}
                 combined={combined}
                 onReplace={() => { replaceOverlaps(); setTab('summary') }}
-                leaveLeft={leaveLeft}
-                allowance={ALLOWANCE}
                 onRemove={() => removeBreak(detailBreak)}
               />
             }
             summary={
               <MyBreaksPanel
                 breaks={savedBreaks}
-                allowance={ALLOWANCE}
                 justAddedKey={justAddedKey}
                 onOpen={b => { openBreak(b); setTab('details') }}
                 onRemove={removeBreak}

@@ -10,18 +10,16 @@ function overlapText(overlaps) {
 }
 
 /**
- * The Add / Combine / Remove buttons at the top of Details, plus how much
- * leave is left. Saved breaks never overlap: adding one that runs into a
+ * The Add / Combine / Remove buttons at the top of Details. Saved breaks never overlap: adding one that runs into a
  * saved break offers to combine them (or replace the old one).
  *
  * Props:
- *   brk, isSaved           – the Details break and whether it's saved as is
+ *   isSaved                – the Details break is saved as is
  *   overlaps               – saved breaks brk runs into
  *   combined               – the single break they'd make together, or null
- *   leaveLeft, allowance   – leave days not yet used / yearly total
  *   onAdd, onRemove, onReplace
  */
-export function AddBreakControls({ brk, isSaved, overlaps, combined, leaveLeft, allowance, onAdd, onRemove, onReplace }) {
+export function AddBreakControls({ isSaved, overlaps, combined, onAdd, onRemove, onReplace }) {
   if (isSaved) {
     return (
       <button type="button" onClick={onRemove} className="h-11 rounded-xl bg-white text-red-700 border border-red-300 text-[15px] font-bold">
@@ -32,8 +30,6 @@ export function AddBreakControls({ brk, isSaved, overlaps, combined, leaveLeft, 
 
   // Already inside one saved break: combining would change nothing.
   const covered = overlaps.length === 1 && breakKey(combined) === breakKey(overlaps[0])
-  const extraLeave = combined ? combined.leaveDays - overlaps.reduce((sum, b) => sum + b.leaveDays, 0) : brk.leaveDays
-  const tooMuch = !covered && extraLeave > leaveLeft
 
   return (
     <div className="flex flex-col gap-2">
@@ -56,11 +52,6 @@ export function AddBreakControls({ brk, isSaved, overlaps, combined, leaveLeft, 
         </button>
       )}
 
-      <p className={`m-0 text-xs ${tooMuch ? 'text-amber-800 font-semibold' : 'text-slate-500'}`}>
-        {tooMuch
-          ? `Needs ${extraLeave} more leave · only ${leaveLeft} of ${allowance} left`
-          : `${leaveLeft} of ${allowance} leave days left`}
-      </p>
     </div>
   )
 }
