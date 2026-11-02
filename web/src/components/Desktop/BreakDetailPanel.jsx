@@ -3,15 +3,6 @@ import { BreakDaysTable } from './BreakDaysTable'
 import { StartDateChips } from './StartDateChips'
 import { formatMultiplier } from '../../utils/breaks'
 
-function Stat({ value, label, highlight }) {
-  return (
-    <div className={`rounded-xl px-3 py-2.5 ${highlight ? 'bg-amber-100 text-amber-900' : 'bg-slate-100'}`}>
-      <div className="text-[22px] font-extrabold">{value}</div>
-      <div className={`text-xs ${highlight ? '' : 'text-slate-600'}`}>{label}</div>
-    </div>
-  )
-}
-
 /**
  * Details tab content for one break, under the pinned Add + dates (BreakDetailHead).
  *
@@ -43,12 +34,6 @@ export function BreakDetailPanel({ brk, nextBreak, bestNote, label, equalStarts,
           )}
         </div>
       )}
-
-      <div className="grid grid-cols-3 gap-2">
-        <Stat value={brk.daysOff} label="days off" />
-        <Stat value={brk.leaveDays} label="leave" />
-        <Stat value={formatMultiplier(brk.multiplier)} label="multiplier" highlight />
-      </div>
 
       <StartDateChips options={equalStarts} current={brk.startDate} onPick={onPickStart} />
 
