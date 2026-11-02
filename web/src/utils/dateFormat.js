@@ -66,6 +66,12 @@ export function fmtDayYear(dateStr) {
   return `${fmtDay(dateStr)} ${dateStr.slice(0, 4)}`
 }
 
+// "Sat 20 Mar '27": weekday, day, month and short year, for tables that can
+// span two years (the Overview plan and the Summary).
+export function fmtDayShortYear(dateStr) {
+  return `${fmtDay(dateStr)} '${dateStr.slice(2, 4)}`
+}
+
 export function fmtShortYear(dateStr) {
   const [y, m, d] = dateStr.split('-')
   return `${Number(d)} ${SHORT_MONTH[Number(m) - 1]} '${y.slice(2)}`

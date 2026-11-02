@@ -1,7 +1,7 @@
 import { breakKey } from '../../utils/breaks'
-import { fmtDay } from '../../utils/dateFormat'
+import { fmtDayShortYear } from '../../utils/dateFormat'
 
-const COLUMNS = 'grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_40px_24px] gap-2 items-center'
+const COLUMNS = 'grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_30px_24px] gap-1.5 items-center'
 
 /**
  * Saved breaks as a compact table: start | end | days off | remove.
@@ -30,15 +30,15 @@ export function SavedBreaksTable({ breaks, justAddedKey, onOpen, onRemove }) {
           >
             <span role="cell" className="min-w-0">
               <button type="button" onClick={() => onOpen(b)} className="w-full text-left font-bold truncate hover:underline">
-                {fmtDay(b.startDate)}
+                {fmtDayShortYear(b.startDate)}
               </button>
             </span>
-            <span role="cell" className="text-slate-600 truncate">{fmtDay(b.endDate)}</span>
+            <span role="cell" className="text-slate-600 truncate">{fmtDayShortYear(b.endDate)}</span>
             <span role="cell" className="text-right font-extrabold">{b.daysOff}</span>
             <span role="cell">
               <button
                 type="button"
-                aria-label={`Remove ${fmtDay(b.startDate)} break`}
+                aria-label={`Remove ${fmtDayShortYear(b.startDate)} break`}
                 onClick={() => onRemove(b)}
                 className="w-6 h-6 rounded-full bg-slate-100 text-slate-500 text-[11px] hover:bg-red-50 hover:text-red-700"
               >

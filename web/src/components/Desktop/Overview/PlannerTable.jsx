@@ -1,17 +1,18 @@
 import { aroundLabel } from '../../../utils/planner'
 import { formatMultiplier } from '../../../utils/breaks'
-import { fmtDay } from '../../../utils/dateFormat'
+import { fmtDayShortYear, fmtShortYear } from '../../../utils/dateFormat'
 
-const COLUMNS = 'grid grid-cols-[22px_112px_86px_minmax(0,1fr)_56px_40px_42px] gap-2 items-center'
-const PHONE_COLUMNS = 'grid grid-cols-[22px_minmax(0,1.3fr)_minmax(0,1fr)_32px_38px] gap-1.5 items-center'
+const COLUMNS = 'grid grid-cols-[22px_132px_78px_minmax(0,1fr)_52px_38px_40px] gap-2 items-center'
+const PHONE_COLUMNS = 'grid grid-cols-[22px_minmax(0,1.35fr)_minmax(0,1fr)_30px_36px] gap-1.5 items-center'
 
 // The start date, or a dropdown of other start dates that give the same days off.
 function StartCell({ brk, options, onSwap, phone }) {
-  const label = d => (phone ? fmtDay(d).slice(4) : fmtDay(d))
+  // Plans can span two years, so every date carries a short year.
+  const label = d => (phone ? fmtShortYear(d) : fmtDayShortYear(d))
   if (options.length < 2) return <b className={phone ? 'text-[12.5px]' : ''}>{label(brk.startDate)}</b>
   return (
     <select
-      aria-label={`Start date for the break ending ${fmtDay(brk.endDate)}`}
+      aria-label={`Start date for the break ending ${fmtDayShortYear(brk.endDate)}`}
       value={brk.startDate}
       onChange={e => onSwap(e.target.value)}
       className={`max-w-full border border-slate-300 rounded-lg bg-white font-bold text-sky-800 ${phone ? 'h-7 px-1 text-[12.5px]' : 'h-8 px-2 text-[13px]'}`}
@@ -59,12 +60,12 @@ export function PlannerTable({ breaks, startOptions, ticked, onToggle, onSwap, o
             onFocus={() => onHover?.(b.startDate)}
             className={`${cols} px-1.5 py-2 border-t border-slate-100 ${onHover ? 'hover:bg-slate-50' : ''} ${ticked.has(b.startDate) ? '' : 'opacity-50'}`}
           >
-            <input type="checkbox" aria-label={`Include ${fmtDay(b.startDate)}`} checked={ticked.has(b.startDate)} onChange={() => onToggle(b.startDate)} className="w-4 h-4 accent-sky-700" />
+            <input type="checkbox" aria-label={`Include ${fmtDayShortYear(b.startDate)}`} checked={ticked.has(b.startDate)} onChange={() => onToggle(b.startDate)} className="w-4 h-4 accent-sky-700" />
             <span role="cell" className="min-w-0">
               <StartCell brk={b} options={startOptions[i] ?? []} onSwap={d => onSwap(i, d)} phone={phone} />
               {phone && around && <span className="block truncate text-[10.5px] text-orange-800">{around}</span>}
             </span>
-            <span role="cell" className={phone ? 'text-[12.5px]' : ''}>{phone ? fmtDay(b.endDate).slice(4) : fmtDay(b.endDate)}</span>
+            <span role="cell" className={phone ? 'text-[12.5px]' : ''}>{fmtShortYear(b.endDate)}</span>
             {!phone && <span role="cell" className="min-w-0 text-orange-800 leading-tight [overflow-wrap:normal] hyphens-auto" lang="en">{around}</span>}
             <b role="cell">{b.daysOff}</b>
             {!phone && <span role="cell">{b.leaveDays}</span>}
