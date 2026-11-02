@@ -2,7 +2,8 @@ import { breakKey } from '../../utils/breaks'
 import { fmtDayRange } from '../../utils/dateFormat'
 
 const primary = 'h-11 rounded-xl bg-sky-700 text-white text-[15px] font-bold'
-const secondary = 'h-9 rounded-xl bg-white border border-slate-300 text-slate-700 text-[13px] font-bold hover:border-slate-400'
+const outline = 'rounded-xl bg-white border border-slate-300 text-slate-700 font-bold hover:border-slate-400'
+const secondary = `h-9 text-[13px] ${outline}`
 
 function overlapText(overlaps) {
   if (overlaps.length > 1) return `Overlaps ${overlaps.length} of your breaks`
@@ -45,11 +46,14 @@ export function AddBreakControls({ isSaved, overlaps, combined, onAdd, onRemove,
       )}
 
       {overlaps.length === 0 && <button type="button" data-tour="add" onClick={onAdd} className={primary}>Add to summary</button>}
-      {overlaps.length > 0 && !covered && <button type="button" data-tour="add" onClick={onAdd} className={primary}>Combine into one break</button>}
-      {overlaps.length > 0 && (
-        <button type="button" onClick={onReplace} className={secondary}>
-          {covered ? 'Replace it with this shorter break' : 'Replace instead'}
-        </button>
+      {overlaps.length > 0 && !covered && (
+        <div className="grid grid-cols-2 gap-2">
+          <button type="button" data-tour="add" onClick={onAdd} className={primary}>Combine</button>
+          <button type="button" onClick={onReplace} className={`h-11 text-[15px] ${outline}`}>Replace</button>
+        </div>
+      )}
+      {covered && (
+        <button type="button" onClick={onReplace} className={secondary}>Replace it with this shorter break</button>
       )}
 
     </div>
