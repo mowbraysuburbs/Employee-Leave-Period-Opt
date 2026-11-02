@@ -10,11 +10,11 @@ import { PlannerTable } from './PlannerTable'
  *   planner                 – usePlanner() result
  *   isSaved                 – (break) => bool
  *   onAdd, onExport, onView – (tickedBreaks) => void (View is phone only; desktop has it on the calendar column)
- *   onPick                  – optional (break) => void when a row is clicked
+ *   onHover                 – optional (startDate | null) => void as a row is hovered
  *   calendar                – phone only: the 2-month view, shown instead of the table when switched on
  *   phone
  */
-export function PlannerResults({ planner, isSaved, onAdd, onExport, onView, onPick, calendar, phone = false }) {
+export function PlannerResults({ planner, isSaved, onAdd, onExport, onView, onHover, calendar, phone = false }) {
   const [showCalendar, setShowCalendar] = useState(false)
   const { period, breaks, startOptions, ticked, toggleTick, swapStart, leave } = planner
   const chosen = breaks.filter(b => ticked.has(b.startDate))
@@ -49,7 +49,7 @@ export function PlannerResults({ planner, isSaved, onAdd, onExport, onView, onPi
       <div className={phone ? 'flex-1 min-h-0 overflow-y-auto' : ''}>
         {phone && showCalendar
           ? calendar
-          : <PlannerTable breaks={breaks} startOptions={startOptions} ticked={ticked} onToggle={toggleTick} onSwap={swapStart} onPick={onPick} phone={phone} />}
+          : <PlannerTable breaks={breaks} startOptions={startOptions} ticked={ticked} onToggle={toggleTick} onSwap={swapStart} onHover={onHover} phone={phone} />}
       </div>
       <div className={`flex gap-2 ${phone ? 'shrink-0' : 'flex-wrap'}`}>
         <button

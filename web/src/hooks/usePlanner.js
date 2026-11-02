@@ -16,8 +16,8 @@ export function usePlanner({ today, province }) {
   const [periodId, setPeriodId] = useState('next')
   const [custom, setCustom] = useState({ from: addDays(today, 1), to: addDays(today, 28) })
   const [leave, setLeave] = useState(MAX_LEAVE)
-  // "What matters most?" per period ('max' | 'mix' | 'long'), so each keeps its own default until changed.
-  const [goalChoice, setGoalChoice] = useState({})
+  // "What matters most?" ('max' | 'mix' | 'long'), shared by every period.
+  const [goalWanted, setGoalWanted] = useState('mix')
   // 'YYYY-MM' → 'avoid' | 'include'.
   const [monthMarks, setMonthMarks] = useState({})
   const [matchSchool, setMatchSchool] = useState(false)
@@ -26,17 +26,15 @@ export function usePlanner({ today, province }) {
   const [unticked, setUnticked] = useState([])
 
   const period = periodId === 'custom'
-    ? { id: 'custom', kind: 'custom', title: 'Custom', subtitle: 'Your own dates', defaultGoal: 'mix', ...custom }
+    ? { id: 'custom', kind: 'custom', title: 'Custom', subtitle: 'Your own dates', ...custom }
     : periods.find(p => p.id === periodId) ?? periods[0]
 
   // Never more than 10, and never more than the workdays in the period.
   const maxLeave = Math.max(1, Math.min(MAX_LEAVE, workdaysIn(period.from, period.to)))
   const leaveUsed = Math.min(leave, maxLeave)
 
-  const schoolSpans = useMemo(
-    () => (period.id === 'custom' ? schoolHolidaysIn(province, period.from, period.to) : []),
-    [period.id, period.from, period.to, province],
-  )
+  // School holidays inside the period, for "Plan around school holidays" (any period).
+  const schoolSpans = useMemo(() => schoolHolidaysIn(province, period.from, period.to), [period.from, period.to, province])
   const periodMonths = useMemo(() => monthsIn(period.from, period.to), [period.from, period.to])
   const avoidMonths = useMemo(() => new Set(periodMonths.filter(m => monthMarks[m] === 'avoid')), [periodMonths, monthMarks])
   const includeMonths = useMemo(() => new Set(periodMonths.filter(m => monthMarks[m] === 'include')), [periodMonths, monthMarks])
@@ -47,23 +45,24 @@ export function usePlanner({ today, province }) {
     [period.from, period.to, leaveUsed, avoidMonths, includeMonths, within],
   )
 
-  // The chosen goal, stepped back (Maximise → Mix → Longest) while it adds nothing.
+  // The goal's plan for this period. A period too short to split simply gives
+  // the same plan for every goal, and that's fine: the choice still applies to the others.
   const goals = useMemo(() => planGoals(choices), [choices])
-  let goal = goalChoice[period.id] ?? period.defaultGoal
-  if (goal === 'max' && goals.max.same) goal = 'mix'
-  if (goal === 'mix' && goals.mix.same) goal = 'long'
-  const chosen = goals[goal]
+  const chosen = goals[goalWanted]
 
-  // Each period card's quick summary: its plan with the current leave, goal and months.
+  // Each period card's quick summary: its plan with the current leave days, goal,
+  // months and school-holiday setting (a period too short to split shows its one break).
   const cardStats = useMemo(() => {
     const stats = {}
     for (const p of periods) {
-      const cap = Math.min(leave, MAX_LEAVE)
-      const g = goalChoice[p.id] ?? p.defaultGoal
-      stats[p.id] = summarise(planLeave({ from: p.from, to: p.to, leave: cap, maxBreaks: GOAL_BREAKS[g], avoidMonths, includeMonths }))
+      const spans = matchSchool ? schoolHolidaysIn(province, p.from, p.to) : []
+      stats[p.id] = summarise(planLeave({
+        from: p.from, to: p.to, leave: Math.min(leave, MAX_LEAVE), maxBreaks: GOAL_BREAKS[goalWanted],
+        avoidMonths, includeMonths, within: spans.length ? spans : null,
+      }))
     }
     return stats
-  }, [periods, leave, goalChoice, avoidMonths, includeMonths])
+  }, [periods, leave, goalWanted, avoidMonths, includeMonths, matchSchool, province])
 
   // Apply any start-date swaps (only to equal options, so the totals stay the same).
   const breaks = useMemo(() => chosen.breaks.map(b => {
@@ -96,8 +95,8 @@ export function usePlanner({ today, province }) {
     maxLeave,
     setLeave: reset(n => setLeave(Math.max(1, Math.min(n, maxLeave)))),
     goals,
-    goal,
-    setGoal: reset(g => setGoalChoice(prev => ({ ...prev, [period.id]: g }))),
+    goal: goalWanted,
+    setGoal: reset(setGoalWanted),
     cardStats,
     periodMonths,
     monthMarks,

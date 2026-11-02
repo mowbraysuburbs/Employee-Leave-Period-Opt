@@ -24,13 +24,12 @@ import { EventsComingSoon } from '../EventsComingSoon'
 export function OverviewPage({ planner, isSaved, onAdd, onExport, onView, province, onProvinceChange }) {
   const [showEvents, setShowEvents] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
-  // First month in the calendar column ('YYYY-MM'); null = the first break's month.
-  const [calMonth, setCalMonth] = useState(null)
+  // The break whose table row is hovered, highlighted in the calendar column.
+  const [hovered, setHovered] = useState(null)
   const { period } = planner
 
   function select(id) {
     setShowEvents(id === 'events')
-    setCalMonth(null)
     if (id !== 'events') planner.selectPeriod(id)
   }
 
@@ -64,7 +63,7 @@ export function OverviewPage({ planner, isSaved, onAdd, onExport, onView, provin
             </div>
             {moreOpen && <MoreOptions planner={planner} province={province} onProvinceChange={onProvinceChange} />}
             <div className="px-[22px] py-5">
-              <PlannerResults planner={planner} isSaved={isSaved} onAdd={onAdd} onExport={onExport} onView={onView} onPick={b => setCalMonth(b.startDate.slice(0, 7))} />
+              <PlannerResults planner={planner} isSaved={isSaved} onAdd={onAdd} onExport={onExport} onView={onView} onHover={setHovered} />
             </div>
           </article>
         )}
@@ -73,8 +72,7 @@ export function OverviewPage({ planner, isSaved, onAdd, onExport, onView, provin
             period={period}
             breaks={planner.breaks}
             ticked={planner.ticked}
-            month={calMonth}
-            onMonth={setCalMonth}
+            highlight={hovered}
             onOpen={() => onView(planner.breaks.filter(b => planner.ticked.has(b.startDate)))}
           />
         )}

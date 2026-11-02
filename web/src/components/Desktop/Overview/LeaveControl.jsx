@@ -1,4 +1,5 @@
 import { MAX_LEAVE } from '../../../utils/planner'
+import { StepHeading } from './StepHeading'
 
 /**
  * Step 2: leave days with − / + and a slider, like the calendar rail. The
@@ -9,11 +10,10 @@ import { MAX_LEAVE } from '../../../utils/planner'
 export function LeaveControl({ value, max, onChange, idPrefix, phone = false }) {
   return (
     <div className={`flex flex-col gap-1.5 ${phone ? '' : 'min-w-[200px]'}`}>
+      {!phone && <StepHeading number={2} htmlFor={`${idPrefix}-leave`} note="up to 10">How many leave days?</StepHeading>}
       <div className="flex items-center gap-2.5">
-        <label htmlFor={`${idPrefix}-leave`} className={phone ? 'text-[13px] font-bold' : 'text-xs font-extrabold text-slate-500 uppercase tracking-wide'}>
-          {phone ? 'Leave days' : '2 · Leave days'}
-        </label>
-        <div className="ml-auto flex items-center gap-2">
+        {phone && <StepHeading phone number={2} htmlFor={`${idPrefix}-leave`}>Leave days</StepHeading>}
+        <div className={`flex items-center gap-2 ${phone ? 'ml-auto' : ''}`}>
           <button type="button" aria-label="Fewer leave days" disabled={value <= 1} onClick={() => onChange(value - 1)} className="w-7 h-7 rounded-full bg-slate-200 text-base font-semibold disabled:opacity-40">−</button>
           <span className="w-8 text-center text-2xl font-extrabold">{value}</span>
           <button type="button" aria-label="More leave days" disabled={value >= max} onClick={() => onChange(value + 1)} className="w-7 h-7 rounded-full bg-slate-900 text-white text-base font-semibold disabled:opacity-40">+</button>

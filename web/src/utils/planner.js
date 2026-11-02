@@ -60,7 +60,7 @@ const groupName = name => GROUPS[name] ?? name
 /**
  * The leave periods offered in step 1 (Custom is handled by the caller).
  *
- * Returns [{ id, kind, title, subtitle, from, to, defaultGoal }] in display
+ * Returns [{ id, kind, title, subtitle, from, to }] in display
  * order, skipping any that fall outside the holiday data.
  */
 export function planPeriods({ today, provinceCode = 'GP' }) {
@@ -77,7 +77,7 @@ export function planPeriods({ today, provinceCode = 'GP' }) {
     const span = lastOfSet === next ? fmtDay(next) : fmtShortRange(next, lastOfSet)
     periods.push({
       id: 'next', kind: 'next', title: 'Up next', subtitle: `${name} · ${span}`,
-      from: maxDate(addDays(today, 1), addDays(next, -7)), to: addDays(lastOfSet, 7), defaultGoal: 'long',
+      from: maxDate(addDays(today, 1), addDays(next, -7)), to: addDays(lastOfSet, 7),
     })
   }
 
@@ -86,7 +86,7 @@ export function planPeriods({ today, provinceCode = 'GP' }) {
   const xmasYear = today > `${year}-12-25` ? year + 1 : year
   periods.push({
     id: 'xmas', kind: 'xmas', title: 'Christmas', subtitle: 'Dec – Jan',
-    from: maxDate(addDays(today, 1), `${xmasYear}-12-15`), to: `${xmasYear + 1}-01-10`, defaultGoal: 'mix',
+    from: maxDate(addDays(today, 1), `${xmasYear}-12-15`), to: `${xmasYear + 1}-01-10`,
   })
 
   // Easter: about ten days before Good Friday to two weeks after.
@@ -94,7 +94,7 @@ export function planPeriods({ today, provinceCode = 'GP' }) {
   if (goodFriday) {
     const from = maxDate(addDays(today, 1), addDays(goodFriday, -10))
     const to = addDays(goodFriday, 14)
-    periods.push({ id: 'easter', kind: 'easter', title: 'Easter', subtitle: fmtShortRange(from, to), from, to, defaultGoal: 'long' })
+    periods.push({ id: 'easter', kind: 'easter', title: 'Easter', subtitle: fmtShortRange(from, to), from, to })
   }
 
   // School holidays: the next (or current) one for the province.
@@ -103,7 +103,7 @@ export function planPeriods({ today, provinceCode = 'GP' }) {
     const from = maxDate(addDays(today, 1), school.start)
     periods.push({
       id: 'school', kind: 'school', title: 'School holidays', subtitle: `${provinceLabel(provinceCode)} · ${fmtShortRange(from, school.end)}`,
-      from, to: school.end, defaultGoal: 'mix',
+      from, to: school.end,
     })
   }
 
@@ -111,10 +111,10 @@ export function planPeriods({ today, provinceCode = 'GP' }) {
   const monthSpan = (from, to) => `${MONTHS[Number(from.slice(5, 7)) - 1]} – ${MONTHS[Number(to.slice(5, 7)) - 1]}`
   const three = monthsAhead(start, 3)
   const six = monthsAhead(start, 6)
-  periods.push({ id: 'three', kind: 'three', title: 'Next 3 months', subtitle: monthSpan(start, three), from: start, to: three, defaultGoal: 'mix' })
-  periods.push({ id: 'six', kind: 'six', title: 'Next 6 months', subtitle: monthSpan(start, six), from: start, to: six, defaultGoal: 'mix' })
-  periods.push({ id: 'rest', kind: 'rest', title: 'Rest of the year', subtitle: `until 31 Dec`, from: start, to: `${year}-12-31`, defaultGoal: 'mix' })
-  periods.push({ id: 'year', kind: 'year', title: String(year + 1), subtitle: 'Jan – Dec', from: `${year + 1}-01-01`, to: `${year + 1}-12-31`, defaultGoal: 'mix' })
+  periods.push({ id: 'three', kind: 'three', title: 'Next 3 months', subtitle: monthSpan(start, three), from: start, to: three })
+  periods.push({ id: 'six', kind: 'six', title: 'Next 6 months', subtitle: monthSpan(start, six), from: start, to: six })
+  periods.push({ id: 'rest', kind: 'rest', title: 'Rest of the year', subtitle: `until 31 Dec`, from: start, to: `${year}-12-31` })
+  periods.push({ id: 'year', kind: 'year', title: String(year + 1), subtitle: 'Jan – Dec', from: `${year + 1}-01-01`, to: `${year + 1}-12-31` })
 
   return periods.filter(p => p.from <= p.to)
 }

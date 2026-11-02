@@ -21,7 +21,6 @@ const SHORT = { custom: 'Custom', next: 'Up next', xmas: 'Christmas', easter: 'E
  */
 export function MobileOverview({ planner, isSaved, onAdd, onExport, onView, province, onProvinceChange }) {
   const [moreOpen, setMoreOpen] = useState(false)
-  const [calMonth, setCalMonth] = useState(null)
   const { period } = planner
   const strip = [{ id: 'custom', kind: 'custom', title: 'Custom' }, ...planner.periods]
 
@@ -48,7 +47,7 @@ export function MobileOverview({ planner, isSaved, onAdd, onExport, onView, prov
             onAdd={onAdd}
             onExport={onExport}
             onView={onView}
-            calendar={<PlanMonths phone period={period} breaks={planner.breaks} ticked={planner.ticked} month={calMonth} onMonth={setCalMonth} />}
+            calendar={<PlanMonths phone period={period} breaks={planner.breaks} ticked={planner.ticked} />}
           />
         </section>
       </main>
