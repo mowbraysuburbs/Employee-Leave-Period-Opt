@@ -13,7 +13,8 @@ function Row({ marker, children }) {
 
 /**
  * "ⓘ Key" button for the calendar page's top-right corner; opens a popover
- * explaining the hover card icons, day colours and calendar markers.
+ * explaining the hover card (with a worked example), day colours and
+ * calendar markers.
  */
 export function CalendarKey() {
   const [open, setOpen] = useState(false)
@@ -47,12 +48,18 @@ export function CalendarKey() {
       {open && (
         <div role="dialog" aria-label="Calendar key" className="absolute z-50 right-0 top-11 w-[320px] bg-white border border-slate-200 rounded-2xl shadow-xl p-4 flex flex-col gap-3.5">
           <section>
-            <h3 className="m-0 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wide">Hover card</h3>
-            <div className="flex flex-wrap gap-1.5">
-              <StatTile kind="leave" label="leave" />
-              <StatTile kind="free" label="free days" />
-              <StatTile kind="multiplier" label="multiplier" />
-              <StatTile kind="total" label="total off" />
+            <h3 className="m-0 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wide">Reading the hover card</h3>
+            <div className="grid grid-cols-2 gap-1.5">
+              <StatTile kind="leave" value={10} caption="leave days" />
+              <StatTile kind="free" value="+9" caption="free days" />
+              <StatTile kind="total" value={19} caption="days off" />
+              <StatTile kind="multiplier" value="1.90" caption="multiplier" />
+            </div>
+            {/* A worked example, so the multiplier isn't a mystery. */}
+            <div className="mt-2.5 px-3 py-2.5 rounded-xl bg-slate-50 text-[13px] leading-relaxed">
+              <div><b className="text-sky-800">10 leave</b> + <b className="text-green-800">9 free</b> = <b className="text-indigo-800">19 days off</b></div>
+              <div><b className="text-indigo-800">19</b> ÷ <b className="text-sky-800">10</b> = <b className="text-amber-800">1.90</b> days off per leave day</div>
+              <div className="mt-1 text-xs text-slate-500 leading-snug">Free days are weekends and public holidays. A higher multiplier means your leave goes further.</div>
             </div>
           </section>
 
@@ -68,10 +75,11 @@ export function CalendarKey() {
           <section>
             <h3 className="m-0 mb-2 text-xs font-bold text-slate-500 uppercase tracking-wide">On the calendar</h3>
             <ul className="m-0 p-0 list-none flex flex-col gap-1.5">
-              <Row marker={<span className="relative w-6 h-6 rounded-full bg-amber-500"><span className="absolute bottom-0.5 left-1/2 -ml-0.5 w-1 h-1 rounded-full bg-slate-900" /></span>}>Public holiday (dot)</Row>
-              <Row marker={<span className="w-6 h-6 rounded-full bg-transparent text-slate-500 text-xs font-semibold flex items-center justify-center">4</span>}>No free days (not coloured)</Row>
+              <Row marker={<span className="w-6 h-6 rounded-full bg-teal-500" />}>Colour = days off if leave starts that day</Row>
+              <Row marker={<span className="relative w-6 h-6 rounded-full bg-amber-500"><span className="absolute bottom-0.5 left-1/2 -ml-0.5 w-1 h-1 rounded-full bg-slate-900" /></span>}>Dot = public holiday</Row>
+              <Row marker={<span className="w-6 h-6 rounded-full bg-transparent text-slate-500 text-xs font-semibold flex items-center justify-center">4</span>}>Not coloured: leave here gets no free days</Row>
               <Row marker={<span className="w-6 h-6 rounded-full bg-teal-500 outline-2 outline-offset-2 outline-sky-600" />}>Today</Row>
-              <Row marker={<span className="w-6 h-6 rounded-full bg-teal-500 shadow-[0_0_0_3px_#0f172a]" />}>Start of a saved break</Row>
+              <Row marker={<span className="w-6 h-6 rounded-full bg-teal-500 shadow-[0_0_0_3px_#0f172a]" />}>First day of a break in your Summary</Row>
               <Row marker={<span className="w-[26px] h-1 rounded-sm bg-green-600" />}>School holiday (when that filter is on)</Row>
             </ul>
           </section>
