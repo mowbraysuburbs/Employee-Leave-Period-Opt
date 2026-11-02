@@ -1,7 +1,6 @@
 import { SavedBreaksTable } from './SavedBreaksTable'
-import { AddedPrompt } from './AddedPrompt'
-import { summariseBreaks, formatMultiplier, toCalendarEvent, breakKey } from '../../utils/breaks'
-import { buildIcs, downloadIcs } from '../../utils/calendarExport'
+import { CalendarExport } from './CalendarExport'
+import { summariseBreaks, formatMultiplier } from '../../utils/breaks'
 
 function Total({ value, suffix, label, highlight }) {
   return (
@@ -18,14 +17,12 @@ function Total({ value, suffix, label, highlight }) {
 /**
  * Props:
  *   breaks       – saved breaks, newest first
- *   justAddedKey – breakKey of the break just added (highlighted + calendar prompt)
+ *   justAddedKey – breakKey of the break just added (highlighted)
  *   onOpen, onRemove – (brk) => void
- *   onDismissAdded
  *   mineOnly, onMineOnlyChange – same value as the rail's "Selected"
  */
-export function MyBreaksPanel({ breaks, justAddedKey, onOpen, onRemove, onDismissAdded, mineOnly, onMineOnlyChange }) {
+export function MyBreaksPanel({ breaks, justAddedKey, onOpen, onRemove, mineOnly, onMineOnlyChange }) {
   const totals = summariseBreaks(breaks)
-  const justAdded = breaks.find(b => breakKey(b) === justAddedKey)
 
   return (
     <div className="flex flex-col gap-4">
@@ -49,7 +46,7 @@ export function MyBreaksPanel({ breaks, justAddedKey, onOpen, onRemove, onDismis
         {mineOnly ? '✓ ' : ''}Show selected ({breaks.length})
       </button>
 
-      {justAdded && <AddedPrompt brk={justAdded} onDismiss={onDismissAdded} />}
+      <CalendarExport breaks={breaks} />
 
       {breaks.length === 0 ? (
         <div className="p-5 border-[1.5px] border-dashed border-slate-300 rounded-2xl text-sm text-slate-600 text-center">
@@ -59,15 +56,6 @@ export function MyBreaksPanel({ breaks, justAddedKey, onOpen, onRemove, onDismis
         <SavedBreaksTable breaks={breaks} justAddedKey={justAddedKey} onOpen={onOpen} onRemove={onRemove} />
       )}
 
-      <button
-        type="button"
-        data-tour="export"
-        disabled={breaks.length === 0}
-        onClick={() => downloadIcs(buildIcs(breaks.map(toCalendarEvent)), 'my-leave-breaks.ics')}
-        className="h-[50px] rounded-2xl bg-slate-900 text-white text-[15px] font-bold disabled:opacity-40"
-      >
-        Add all to calendar (.ics)
-      </button>
     </div>
   )
 }

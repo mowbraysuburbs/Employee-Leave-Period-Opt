@@ -36,7 +36,7 @@ export function tourSteps(phone, demo, { reset, showDate, showSummary }) {
       target: 'export',
       enter: showSummary,
       title: phone ? 'My breaks' : 'Summary',
-      text: "Once you add breaks, they're listed here with your totals. Export them all to your calendar (Apple, Outlook or Google) with this button.",
+      text: "Once you add breaks, they're listed here with your totals. Add them to your calendar here: Apple / iPhone (also Outlook) or Google.",
     },
     {
       target: 'help',

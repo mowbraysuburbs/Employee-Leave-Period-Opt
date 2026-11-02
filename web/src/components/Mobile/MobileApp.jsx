@@ -198,7 +198,6 @@ export function MobileApp() {
             justAddedKey={p.justAddedKey}
             onOpen={b => { p.openBreak(b); setPage('calendar'); setSheet('day') }}
             onRemove={p.removeBreak}
-            onDismissAdded={() => p.setJustAddedKey(null)}
             mineOnly={p.picksOnly}
             onMineOnlyChange={p.setPicksOnly}
           />
