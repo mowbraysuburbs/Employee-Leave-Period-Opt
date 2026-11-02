@@ -140,7 +140,7 @@ export function RailCollapsed({ c }) {
         icon="school"
         label={`School holidays: ${c.schoolOn ? 'on' : 'off'} (${c.provinceName})`}
         onClick={open}
-        className={c.schoolOn ? 'bg-green-100 text-green-800' : off}
+        className={c.schoolOn ? 'bg-slate-900 text-white' : off}
         dot={c.schoolOn}
       />
     </aside>

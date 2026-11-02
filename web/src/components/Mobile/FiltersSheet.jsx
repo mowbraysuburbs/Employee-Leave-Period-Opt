@@ -37,7 +37,7 @@ export function FiltersSheet({ c, onClose }) {
               aria-pressed={c.schoolOn}
               aria-label={`School holidays · ${c.provinceName}`}
               onClick={() => c.onSchoolOnChange(!c.schoolOn)}
-              className={`flex-1 min-w-0 h-[42px] px-3 rounded-xl text-left text-sm font-semibold border ${c.schoolOn ? 'bg-green-100 text-green-800 border-green-300' : 'bg-white border-slate-300'}`}
+              className={`flex-1 min-w-0 h-[42px] px-3 rounded-xl text-left text-sm font-semibold border ${c.schoolOn ? 'bg-slate-900 text-white border-slate-900' : 'bg-white border-slate-300'}`}
             >
               School holidays
             </button>
