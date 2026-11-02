@@ -25,12 +25,11 @@ export function GoalChoice({ goals, value, onChange, phone = false }) {
   return (
     <div className="flex flex-col gap-1.5">
       {!phone && <span className="text-xs font-extrabold text-slate-500 uppercase tracking-wide">3 · What matters most?</span>}
-      <div role="radiogroup" aria-label="What matters most" className={phone ? 'flex p-[3px] gap-[3px] rounded-xl bg-slate-100' : 'grid grid-cols-3 gap-2'}>
+      <div role="radiogroup" aria-label="What matters most" className="flex p-[3px] gap-[3px] rounded-xl bg-slate-100">
         {GOALS.map(id => {
           const { breaks, same } = goals[id]
           const t = summarise(breaks)
           const on = id === value
-          const result = `${t.daysOff} days off · ${formatMultiplier(t.multiplier)}`
           return (
             <button
               key={id}
@@ -38,26 +37,14 @@ export function GoalChoice({ goals, value, onChange, phone = false }) {
               role="radio"
               aria-checked={on}
               disabled={same}
-              title={same ? 'Gives the same plan as the option to its right for this period' : undefined}
+              title={same ? `Same plan as ${id === 'mix' ? 'Longest' : 'Mix'} for this period` : GOAL_TEXT[id].text}
               onClick={() => onChange(id)}
-              className={phone
-                ? `flex-1 py-1.5 px-1 rounded-[9px] text-[12px] font-bold leading-tight ${on ? 'bg-white text-slate-900 shadow' : same ? 'text-slate-300' : 'text-slate-600'}`
-                : `text-left p-2.5 rounded-xl border-2 flex flex-col gap-1 bg-white ${on ? 'border-slate-900 shadow-md' : 'border-slate-200 hover:border-slate-300'} ${same ? 'opacity-40' : ''}`}
+              className={`flex-1 rounded-[9px] font-bold leading-tight ${phone ? 'py-1.5 px-1 text-[12px]' : 'py-1.5 px-2 text-[13px]'} ${on ? 'bg-white text-slate-900 shadow' : same ? 'text-slate-300' : 'text-slate-600 hover:text-slate-900'}`}
             >
-              {phone ? (
-                <>
-                  <span className="block">{GOAL_TEXT[id].short}</span>
-                  <span className="block text-[10.5px] text-indigo-800">{same ? '—' : `${t.daysOff} off · ${formatMultiplier(t.multiplier)}`}</span>
-                </>
-              ) : (
-                <>
-                  <span className="text-[13.5px] font-extrabold">{GOAL_TEXT[id].title}</span>
-                  <span className="text-[11.5px] text-slate-600 leading-snug">{GOAL_TEXT[id].text}</span>
-                  <span className="self-start px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800 text-[11.5px] font-extrabold">
-                    {same ? `Same as ${id === 'mix' ? 'Longest' : 'Mix'}` : `${result} · ${plural(t.breaks, 'break')}`}
-                  </span>
-                </>
-              )}
+              <span className="block">{phone ? GOAL_TEXT[id].short : GOAL_TEXT[id].title}</span>
+              <span className={`block font-semibold whitespace-nowrap ${phone ? 'text-[10.5px]' : 'text-[11.5px]'} ${same ? '' : 'text-indigo-800'}`}>
+                {same ? `Same as ${id === 'mix' ? 'Longest' : 'Mix'}` : phone ? `${t.daysOff} off · ${formatMultiplier(t.multiplier)}` : `${t.daysOff} off · ${formatMultiplier(t.multiplier)} · ${plural(t.breaks, 'break')}`}
+              </span>
             </button>
           )
         })}

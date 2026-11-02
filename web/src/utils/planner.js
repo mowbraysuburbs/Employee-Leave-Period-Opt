@@ -53,6 +53,7 @@ const GROUPS = {
   'Family Day': 'Easter',
   'Christmas Day': 'Christmas',
   'Day of Goodwill': 'Christmas',
+  "St. Stephen's Day": 'Christmas',
 }
 const groupName = name => GROUPS[name] ?? name
 

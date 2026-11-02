@@ -32,7 +32,7 @@ export function MobileOverview({ planner, isSaved, onAdd, onExport, onView, prov
           <div className="flex items-center justify-between gap-2">
             <h1 className="m-0 text-base font-extrabold truncate">{period.title}</h1>
             <button type="button" onClick={() => setMoreOpen(true)} className="shrink-0 text-[13px] font-bold text-sky-700">
-              More options ▾{planner.moreCount > 0 && <span className="ml-1 px-1.5 rounded-md bg-sky-700 text-white text-[11px]">{planner.moreCount}</span>}
+              Advanced ▾{planner.moreCount > 0 && <span className="ml-1 px-1.5 rounded-md bg-sky-700 text-white text-[11px]">{planner.moreCount}</span>}
             </button>
           </div>
           {period.id === 'custom' && <CustomDates phone value={planner.custom} onChange={planner.setCustom} />}
@@ -73,7 +73,7 @@ export function MobileOverview({ planner, isSaved, onAdd, onExport, onView, prov
       </nav>
 
       {moreOpen && (
-        <BottomSheet label="More options" title="More options" backdrop onClose={() => setMoreOpen(false)}>
+        <BottomSheet label="Advanced options" title="Advanced options" backdrop onClose={() => setMoreOpen(false)}>
           <div className="px-4 pb-4 flex flex-col gap-4">
             <MoreOptions phone planner={planner} province={province} onProvinceChange={onProvinceChange} />
             <button type="button" onClick={() => setMoreOpen(false)} className="h-12 rounded-2xl bg-slate-900 text-white text-[15px] font-bold">Show results</button>

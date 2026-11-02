@@ -9,7 +9,7 @@ import { PlannerTable } from './PlannerTable'
  * Props:
  *   planner                 – usePlanner() result
  *   isSaved                 – (break) => bool
- *   onAdd, onExport, onView – (tickedBreaks) => void
+ *   onAdd, onExport, onView – (tickedBreaks) => void (View is phone only; desktop has it on the calendar column)
  *   onPick                  – optional (break) => void when a row is clicked
  *   calendar                – phone only: the 2-month view, shown instead of the table when switched on
  *   phone
@@ -63,9 +63,12 @@ export function PlannerResults({ planner, isSaved, onAdd, onExport, onView, onPi
         <button type="button" disabled={none} onClick={() => onExport(chosen)} className={`${button} h-11 rounded-xl bg-slate-900 text-white text-sm font-bold whitespace-nowrap disabled:opacity-50`}>
           {phone ? 'Export' : 'Export (.ics)'}
         </button>
-        <button type="button" disabled={none} onClick={() => onView(chosen)} className={`${button} h-11 rounded-xl border border-slate-300 bg-white text-sm font-bold whitespace-nowrap disabled:opacity-50`}>
-          {phone ? 'Calendar →' : 'View on calendar →'}
-        </button>
+        {/* On desktop, "Open in calendar" sits on the calendar column instead. */}
+        {phone && (
+          <button type="button" disabled={none} onClick={() => onView(chosen)} className={`${button} h-11 rounded-xl border border-slate-300 bg-white text-sm font-bold whitespace-nowrap disabled:opacity-50`}>
+            Calendar →
+          </button>
+        )}
       </div>
     </div>
   )
