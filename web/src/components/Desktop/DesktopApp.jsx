@@ -37,7 +37,7 @@ export function DesktopApp() {
     controls, activeFilters, clearAllFilters, period, colourBy, holidayFilter, picksOnly, setPicksOnly, activeDaysOff, province, setProvince, schoolDates,
     months, breaks, demoDate, plans, selectedPlan, setSelectedPlanId, eventsSelected, ticked, toggleTick, toggleAllTicks, exportBreaks,
     preview, setPreview, previewOnly, previewDays, previewLabel, openPreview,
-    saved, savedBreaks, savedDayTypes, savedStarts, isSaved, justAddedKey, setJustAddedKey,
+    saved, savedBreaks, savedDayTypes, savedStarts, isSaved, justAddedKey,
     detailBreak, bestNote, equalStarts, overlaps, combined,
     selectDay, openBreak, addBreaks, addDetailBreak, replaceOverlaps, removeBreak,
   } = useLeavePlanner()
@@ -160,7 +160,6 @@ export function DesktopApp() {
                 justAddedKey={justAddedKey}
                 onOpen={b => { openBreak(b); setTab('details') }}
                 onRemove={removeBreak}
-                onDismissAdded={() => setJustAddedKey(null)}
                 mineOnly={picksOnly}
                 onMineOnlyChange={setPicksOnly}
               />
