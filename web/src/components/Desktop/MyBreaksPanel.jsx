@@ -46,7 +46,7 @@ export function MyBreaksPanel({ breaks, justAddedKey, onOpen, onRemove, onDismis
         onClick={() => onMineOnlyChange(!mineOnly)}
         className={`h-10 rounded-xl border text-sm font-bold disabled:opacity-40 ${mineOnly ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-900 border-slate-300 hover:border-slate-400'}`}
       >
-        {mineOnly ? '✓ Selected' : 'Selected'}
+        {mineOnly ? '✓ ' : ''}Show selected ({breaks.length})
       </button>
 
       {justAdded && <AddedPrompt brk={justAdded} onDismiss={onDismissAdded} />}
