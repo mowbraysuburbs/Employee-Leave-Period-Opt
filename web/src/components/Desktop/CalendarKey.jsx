@@ -80,7 +80,7 @@ export function CalendarKey() {
               <Row marker={<span className="w-6 h-6 rounded-full bg-transparent text-slate-500 text-xs font-semibold flex items-center justify-center">4</span>}>Not coloured: leave here gets no free days</Row>
               <Row marker={<span className="w-6 h-6 rounded-full bg-teal-500 outline-2 outline-offset-2 outline-sky-600" />}>Today</Row>
               <Row marker={<span className="relative w-6 h-6 rounded-full bg-slate-300"><span className="absolute top-0 left-0 w-2 h-2 rounded-full bg-slate-500" /></span>}>Grey = the break you clicked (dot = first day)</Row>
-              <Row marker={<span className="relative w-7 h-6 rounded-md bg-slate-900 text-slate-300 text-xs font-semibold flex items-center justify-center">12<span className="absolute top-0.5 left-0.5 w-1.5 h-1.5 rounded-full bg-white" /></span>}>Dark boxes = a break in your Summary</Row>
+              <Row marker={<span className="relative w-7 h-6 rounded-md bg-teal-500 text-white text-xs font-semibold flex items-center justify-center">12<span className="absolute top-0.5 left-0.5 w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_0_1px_rgba(15,23,42,0.3)]" /></span>}>Rectangles, white numbers = a break in your Summary</Row>
               <Row marker={<span className="w-[26px] h-1 rounded-sm bg-green-600" />}>School holiday (when that filter is on)</Row>
             </ul>
           </section>

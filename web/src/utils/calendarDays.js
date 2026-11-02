@@ -57,7 +57,7 @@ export function buildMonthDays({ months, breaks, colourBy, holidayFilter, picksO
     return { bg, fg: '#0f172a' }
   }
 
-  // Saved breaks turn into one joined band of dark boxes, rounded where a break
+  // Saved breaks turn into one joined band of rectangles, rounded where a break
   // or a week row / month starts and ends; `start` marks a break's first day.
   // Off while previewing a plan.
   function saved(date) {

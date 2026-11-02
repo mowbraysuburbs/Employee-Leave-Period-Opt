@@ -5,15 +5,19 @@ const MONTH_NAMES = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ]
 const WEEKDAY_HEADERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
-// Saved days: near-black boxes with lighter numbers (palette variables, so dark mode flips them).
-const SAVED_LOOK = { bg: 'var(--color-slate-900, #0f172a)', fg: 'var(--color-slate-300, #cbd5e1)' }
+// Saved days keep their colour with white numbers; uncoloured or faded ones get
+// a mid grey so the white still reads.
+const PLAIN_BACKGROUNDS = ['transparent', 'var(--color-slate-100, #f1f5f9)']
+function savedLook(look) {
+  return { bg: PLAIN_BACKGROUNDS.includes(look.bg) ? 'var(--color-slate-400, #94a3b8)' : look.bg, fg: '#ffffff' }
+}
 
 /**
  * Props:
  *   year, month  – month is 1-based
  *   days         – [{ date, dayNumber, look: { bg, fg }, saved, isHoliday, disabled, ariaLabel,
  *                     band, school }]  band is { roundLeft, roundRight, selected } while the day is in the hovered or
- *                     selected break (a grey pill); saved is { roundLeft, roundRight, start } on saved days (dark joined boxes, which win);
+ *                     selected break (a grey pill); saved is { roundLeft, roundRight, start } on saved days (joined rectangles, which win);
  *                     school is { roundLeft, roundRight } on school-holiday days while that filter is on
  *   popoverFor   – (date) => node | null; the hover card to show on a day
  *   onDayClick, onDayHover
@@ -35,12 +39,12 @@ export function MonthCard({ year, month, days, popoverFor, onDayClick, onDayHove
         ))}
         {Array.from({ length: leadingBlanks }, (_, i) => <div key={`blank-${i}`} />)}
         {days.map(d => {
-          // Saved days: dark joined boxes with lighter numbers; everything else stays a circle.
-          const look = d.saved ? SAVED_LOOK : d.look
+          // Saved days: joined rectangles with white numbers; everything else stays a circle.
+          const look = d.saved ? savedLook(d.look) : d.look
           const shape = !d.saved ? 'rounded-full'
             : d.saved.roundLeft && d.saved.roundRight ? 'rounded-md'
             : d.saved.roundLeft ? 'rounded-l-md' : d.saved.roundRight ? 'rounded-r-md' : 'rounded-none'
-          const startDot = d.saved?.start ? 'bg-white' : d.band?.selected && d.band.start ? 'bg-slate-500' : null
+          const startDot = d.saved?.start ? 'bg-white shadow-[0_0_0_1px_rgba(15,23,42,0.3)]' : d.band?.selected && d.band.start ? 'bg-slate-500' : null
           return (
           <div key={d.date} className={`relative ${d.saved ? '' : compact ? 'px-px' : 'px-[1.5px]'}`}>
             {!d.saved && d.band && (
