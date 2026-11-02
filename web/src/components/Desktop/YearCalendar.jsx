@@ -18,7 +18,7 @@ import { buildMonthDays, keepMatchingRows, withBand } from '../../utils/calendar
  *   daysOffFilter  – Set of days-off values to keep coloured, or null; months without a
  *                    match are hidden, but any row with a match is kept whole
  *   hoveredDate    – day under the mouse (owned by the parent so Details can follow it)
- *   selectedBreak  – the clicked break, drawn as a solid band of squares, or null
+ *   selectedBreak  – the clicked break, drawn with a grey pill behind it, or null
  *   onDayHover, onDayClick
  */
 export function YearCalendar({

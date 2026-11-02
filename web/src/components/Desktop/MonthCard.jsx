@@ -9,8 +9,8 @@ const WEEKDAY_HEADERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 /**
  * Props:
  *   year, month  – month is 1-based
- *   days         – [{ date, dayNumber, look: { bg, fg }, ring, isHoliday, disabled, ariaLabel,
- *                     inBand, shape, school }]  inBand/shape are set while the day is in the hovered or selected break;
+ *   days         – [{ date, dayNumber, look: { bg, fg }, saved, isHoliday, disabled, ariaLabel,
+ *                     band, school }]  band is { roundLeft, roundRight, selected } while the day is in the hovered or selected break;
  *                     school is { roundLeft, roundRight } on school-holiday days while that filter is on
  *   popoverFor   – (date) => node | null; the hover card to show on a day
  *   onDayClick, onDayHover
@@ -24,15 +24,26 @@ export function MonthCard({ year, month, days, popoverFor, onDayClick, onDayHove
   return (
     <div data-tour={tour} className={`bg-white shadow-sm ${compact ? 'rounded-xl px-1.5 py-2' : 'rounded-2xl p-3.5'}`}>
       <h2 className={`m-0 font-bold ${compact ? 'mb-1 ml-1 text-xs' : 'mb-2 text-[15px]'}`}>{MONTH_NAMES[month - 1]} {year}</h2>
-      {/* No column gap, so a hovered break's days touch and read as one band;
-          normal days get a little padding instead to stay apart. */}
+      {/* No column gap, so a break's grey pill runs unbroken behind its days;
+          the circles get a little padding instead to stay apart. */}
       <div className={`grid grid-cols-7 text-center ${compact ? 'gap-y-0.5' : 'gap-y-[3px]'}`}>
         {WEEKDAY_HEADERS.map((w, i) => (
           <div key={i} className={`font-bold text-slate-500 pb-0.5 ${compact ? 'text-[8px]' : 'text-[10px]'}`}>{w}</div>
         ))}
         {Array.from({ length: leadingBlanks }, (_, i) => <div key={`blank-${i}`} />)}
         {days.map(d => (
-          <div key={d.date} className={`relative ${d.inBand ? '' : compact ? 'px-px' : 'px-[1.5px]'}`}>
+          <div key={d.date} className={`relative ${compact ? 'px-px' : 'px-[1.5px]'}`}>
+            {d.band && (
+              <span
+                aria-hidden="true"
+                className={[
+                  'absolute inset-y-0 left-0 right-0',
+                  d.band.selected ? 'bg-slate-300' : 'bg-slate-200',
+                  d.band.roundLeft ? 'rounded-l-full' : '',
+                  d.band.roundRight ? 'rounded-r-full' : '',
+                ].join(' ')}
+              />
+            )}
             <button
               type="button"
               disabled={d.disabled}
@@ -47,14 +58,14 @@ export function MonthCard({ year, month, days, popoverFor, onDayClick, onDayHove
               className={[
                 'relative w-full',
                 compact ? 'h-[22px] text-[10px]' : large ? 'h-10 text-sm' : 'h-8 text-xs',
-                d.shape ?? 'rounded-full',
+                'rounded-full',
                 d.isHoliday ? 'font-extrabold' : 'font-semibold',
                 d.disabled ? 'cursor-default' : 'cursor-pointer',
-                // Today: a blue outline just outside the cell, separate from the box-shadow rings.
+                // Today: a blue outline just outside the cell, separate from the saved glow.
                 d.saved === 'start' ? 'saved-glow-start z-[1]' : d.saved === 'day' ? 'saved-glow z-[1]' : '',
                 d.date === TODAY ? `outline-2 outline-sky-600 z-10 ${compact ? 'outline-offset-1' : 'outline-offset-2'}` : '',
               ].join(' ')}
-              style={{ backgroundColor: d.look.bg, color: d.look.fg, boxShadow: d.ring ?? undefined }}
+              style={{ backgroundColor: d.look.bg, color: d.look.fg }}
             >
               {d.dayNumber}
               {d.isHoliday && (
