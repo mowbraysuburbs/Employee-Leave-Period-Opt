@@ -51,6 +51,28 @@ const PATHS = {
       <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
     </>
   ),
+  six: (
+    <>
+      <path d="M3 12a9 9 0 1 0 3-6.7" />
+      <polyline points="3 4 3 9 8 9" />
+      <polyline points="12 7 12 12 15.5 14" />
+    </>
+  ),
+  rest: (
+    <>
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+    </>
+  ),
+  custom: (
+    <>
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+      <path d="M12 13v6M9 16h6" />
+    </>
+  ),
   // A ticket, for the planned events feature.
   events: (
     <>
@@ -68,6 +90,9 @@ const COLOURS = {
   school: 'bg-sky-100 text-sky-800',
   year: 'bg-indigo-100 text-indigo-800',
   trip: 'bg-amber-100 text-amber-800',
+  six: 'bg-teal-100 text-teal-800',
+  rest: 'bg-amber-100 text-amber-800',
+  custom: 'bg-slate-100 text-slate-700',
   events: 'bg-teal-100 text-teal-800',
 }
 

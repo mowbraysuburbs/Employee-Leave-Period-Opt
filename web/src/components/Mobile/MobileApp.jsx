@@ -75,12 +75,7 @@ export function MobileApp() {
 
       {page === 'overview' ? (
         <MobileOverview
-          plans={p.plans}
-          selectedPlan={p.selectedPlan}
-          onSelect={p.setSelectedPlanId}
-          ticked={p.ticked}
-          onToggle={p.toggleTick}
-          onToggleAll={p.toggleAllTicks}
+          planner={p.planner}
           isSaved={p.isSaved}
           onAdd={p.addBreaks}
           onExport={p.exportBreaks}

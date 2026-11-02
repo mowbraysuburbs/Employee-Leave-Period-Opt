@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react'
 import { useSavedBreaks } from '../components/Desktop/useSavedBreaks'
 import { buildBreak, buildBreaksInRange, breakKey, hasGain, toCalendarEvent, findEqualStarts, breaksOverlap, combineBreaks, withBreakMerged } from '../utils/breaks'
-import { computePlans, schoolBreaksFor, provinceLabel } from '../utils/plans'
+import { schoolBreaksFor, provinceLabel } from '../utils/plans'
+import { usePlanner } from './usePlanner'
 import { buildIcs, downloadIcs } from '../utils/calendarExport'
 import { getColourForDaysOff, getColourForMultiplier, multiplierBucket } from '../utils/colorScale'
 import { fmtDay, fmtShortYear, addDays } from '../utils/dateFormat'
@@ -48,10 +49,6 @@ export function useLeavePlanner() {
   const [detailDate, setDetailDate] = useState(null)
   // A saved break opened from Summary: { startDate, leaveDays } until the next click.
   const [pinned, setPinned] = useState(null)
-  // Overview: the plan in the details panel, and per plan the break start
-  // dates the user has unticked.
-  const [selectedPlanId, setSelectedPlanId] = useState(null)
-  const [unticked, setUnticked] = useState({})
   // An Overview plan opened with "View on calendar": { title, breaks } (the
   // ticked ones), and whether the calendar is filtered to only those dates.
   const [preview, setPreview] = useState(null)
@@ -78,7 +75,8 @@ export function useLeavePlanner() {
     }
     return best
   }, [months, breaks])
-  const plans = useMemo(() => computePlans({ from, to, provinceCode: province }), [from, to, province])
+  // The Overview planner (period, leave days, breaks, results).
+  const planner = usePlanner({ today: TODAY, province })
   const schoolDates = useMemo(() => {
     if (!schoolOn) return null
     const dates = new Set()
@@ -87,14 +85,6 @@ export function useLeavePlanner() {
     }
     return dates
   }, [schoolOn, province, from, to])
-  // 'events' selects the Overview's coming-soon Events row instead of a plan.
-  const eventsSelected = selectedPlanId === 'events'
-  const selectedPlan = eventsSelected ? null : plans.find(p => p.id === selectedPlanId) ?? plans[0] ?? null
-  const ticked = useMemo(() => {
-    if (!selectedPlan) return new Set()
-    const off = unticked[selectedPlan.id] ?? []
-    return new Set(selectedPlan.breaks.map(b => b.startDate).filter(d => !off.includes(d)))
-  }, [selectedPlan, unticked])
 
   const savedBreaks = useMemo(() => saved.map(s => buildBreak(s.startDate, s.leaveDays)).reverse(), [saved])
   const savedKeys = useMemo(() => new Set(saved.map(breakKey)), [saved])
@@ -226,23 +216,13 @@ export function useLeavePlanner() {
     if (breakKey(entry) === justAddedKey) setJustAddedKey(null)
   }
 
-  function toggleTick(startDate) {
-    const off = unticked[selectedPlan.id] ?? []
-    setUnticked({ ...unticked, [selectedPlan.id]: off.includes(startDate) ? off.filter(d => d !== startDate) : [...off, startDate] })
-  }
-
-  function toggleAllTicks() {
-    const allTicked = (unticked[selectedPlan.id] ?? []).length === 0
-    setUnticked({ ...unticked, [selectedPlan.id]: allTicked ? selectedPlan.breaks.map(b => b.startDate) : [] })
-  }
-
   function exportBreaks(list) {
-    downloadIcs(buildIcs(list.map(toCalendarEvent)), `${selectedPlan.id}-leave.ics`)
+    downloadIcs(buildIcs(list.map(toCalendarEvent)), `${planner.period.id}-leave.ics`)
   }
 
-  // Filters the calendar to an Overview plan's ticked breaks, earliest in Details.
+  // Filters the calendar to the planner's ticked breaks, earliest in Details.
   function openPreview(list) {
-    setPreview({ title: selectedPlan.title, breaks: list })
+    setPreview({ title: planner.period.title, breaks: list })
     setPreviewOnly(true)
     setPinned(null)
     setDetailDate(null)
@@ -296,7 +276,7 @@ export function useLeavePlanner() {
     holidayFilter, setHolidayFilter, holidayOptions, picksOnly, setPicksOnly,
     daysOffFilter, toggleDaysOff, clearDaysOff: () => setDaysOffFilter([]), activeDaysOff, legend,
     province, setProvince, schoolOn, setSchoolOn, schoolDates,
-    months, breaks, demoDate, plans, selectedPlan, setSelectedPlanId, eventsSelected, ticked, toggleTick, toggleAllTicks, exportBreaks,
+    months, breaks, demoDate, planner, exportBreaks,
     preview, setPreview, previewOnly, setPreviewOnly, previewDays, previewLabel, openPreview,
     saved, savedBreaks, savedDayTypes, savedStarts, isSaved, justAddedKey, setJustAddedKey,
     detailBreak, bestNote, equalStarts, overlaps, combined,

@@ -1,62 +1,68 @@
-import { PlanList } from './PlanList'
-import { PlanDetails } from './PlanDetails'
-import { PeriodPicker } from '../PeriodPicker'
-import { ProvincePicker } from '../ProvincePicker'
+import { useState } from 'react'
+import { PeriodList } from './PeriodList'
+import { LeaveControl } from './LeaveControl'
+import { BreakChoice } from './BreakChoice'
+import { MoreOptions } from './MoreOptions'
+import { PlannerResults } from './PlannerResults'
+import { CustomDates } from './CustomDates'
+import { PlanTheme } from './PlanTheme'
+import { STRIP_THEMES } from './periodThemes'
 import { EventsComingSoon } from '../EventsComingSoon'
-import { OVERVIEW_LEAVE } from '../../../utils/plans'
 
 /**
- * The page the desktop app opens on: plans on the left, the selected plan in
- * full on the right. Always based on 10 leave days; the date period drives
- * every plan.
+ * The page the desktop app opens on: a three-step leave planner. Pick a leave
+ * period on the left; leave days and how many breaks sit above the results,
+ * which update straight away. More options drops down under the settings.
  *
  * Props:
- *   plans, selectedPlan, onSelect
- *   period                       – PeriodPicker props (from, to, minDate, …)
- *   ticked, onToggle, onToggleAll – tick boxes for the selected plan
- *   isSaved                      – (break) => bool
- *   onAdd, onExport, onView      – (breaks) => void
- *   province, onProvinceChange   – school province, shown on School run
- *   eventsSelected               – the Events row is selected (shows its coming-soon panel)
+ *   planner                    – usePlanner() result
+ *   isSaved                    – (break) => bool
+ *   onAdd, onExport, onView    – (breaks) => void
+ *   province, onProvinceChange – school province
  */
-export function OverviewPage({ plans, selectedPlan, onSelect, period, ticked, onToggle, onToggleAll, isSaved, onAdd, onExport, onView, province, onProvinceChange, eventsSelected }) {
-  const chosen = selectedPlan ? selectedPlan.breaks.filter(b => ticked.has(b.startDate)) : []
+export function OverviewPage({ planner, isSaved, onAdd, onExport, onView, province, onProvinceChange }) {
+  const [showEvents, setShowEvents] = useState(false)
+  const [moreOpen, setMoreOpen] = useState(false)
+  const { period } = planner
+
+  function select(id) {
+    setShowEvents(id === 'events')
+    if (id !== 'events') planner.selectPeriod(id)
+  }
 
   return (
     <>
-      <section className="flex flex-wrap items-end justify-between gap-3.5">
-        <div>
-          <h1 className="m-0 text-[28px] leading-tight font-extrabold tracking-tight">Your best breaks</h1>
-          <p className="m-0 mt-1.5 text-[15px] text-slate-600">
-            Based on <strong className="text-slate-900">{OVERVIEW_LEAVE} leave days</strong>. Pick a plan to see it in full; fine-tune dates on the calendar.
-          </p>
-        </div>
-        <PeriodPicker idPrefix="overview-period" {...period} />
+      <section>
+        <h1 className="m-0 text-[28px] leading-tight font-extrabold tracking-tight">Plan your leave</h1>
+        <p className="m-0 mt-1.5 text-[15px] text-slate-600">Pick a period, how many leave days, and how many breaks.</p>
       </section>
 
-      {plans.length === 0 ? (
-        <div className="p-5 border-[1.5px] border-dashed border-slate-300 rounded-2xl text-sm text-slate-600 text-center">
-          No public or school holidays fall in this period. Try widening the dates.
-        </div>
-      ) : (
-        <div className="flex flex-wrap gap-[18px] items-start">
-          <PlanList plans={plans} selectedId={eventsSelected ? 'events' : selectedPlan?.id} onSelect={onSelect} />
-          {eventsSelected && <EventsComingSoon />}
-          {selectedPlan && (
-            <PlanDetails
-              plan={selectedPlan}
-              ticked={ticked}
-              onToggle={onToggle}
-              onToggleAll={onToggleAll}
-              allSaved={chosen.length > 0 && chosen.every(isSaved)}
-              onAdd={onAdd}
-              onExport={onExport}
-              onView={onView}
-              topSlot={selectedPlan.kind === 'school' ? <ProvincePicker value={province} onChange={onProvinceChange} /> : null}
-            />
-          )}
-        </div>
-      )}
+      <div className="flex flex-wrap gap-[18px] items-start">
+        <PeriodList periods={planner.periods} selectedId={showEvents ? 'events' : period.id} onSelect={select} />
+        {showEvents ? <EventsComingSoon /> : (
+          <article aria-label={`Plan: ${period.title}`} className="relative overflow-hidden flex-[999_1_520px] min-w-0 rounded-[20px] shadow-sm bg-white">
+            <div className={`relative px-[22px] py-4 flex flex-wrap items-start gap-x-8 gap-y-4 border-b border-slate-100 ${STRIP_THEMES[period.kind]}`}>
+              <PlanTheme kind={period.kind} />
+              {period.id === 'custom' && <CustomDates value={planner.custom} onChange={planner.setCustom} />}
+              <div className="relative z-10"><LeaveControl value={planner.leave} max={planner.maxLeave} onChange={planner.setLeave} idPrefix="planner" /></div>
+              <div className="relative z-10"><BreakChoice choices={planner.choices} value={planner.breakChoice} onChange={planner.setBreakChoice} /></div>
+              <button
+                type="button"
+                aria-expanded={moreOpen}
+                onClick={() => setMoreOpen(o => !o)}
+                className="relative z-10 ml-auto h-9 px-3 rounded-xl border border-slate-300 bg-white text-[13px] font-extrabold whitespace-nowrap"
+              >
+                More options {moreOpen ? '▴' : '▾'}
+                {planner.moreCount > 0 && <span className="ml-1.5 px-1.5 rounded-md bg-sky-700 text-white text-[11px]">{planner.moreCount}</span>}
+              </button>
+            </div>
+            {moreOpen && <MoreOptions planner={planner} province={province} onProvinceChange={onProvinceChange} />}
+            <div className="px-[22px] py-5">
+              <PlannerResults planner={planner} isSaved={isSaved} onAdd={onAdd} onExport={onExport} onView={onView} />
+            </div>
+          </article>
+        )}
+      </div>
     </>
   )
 }
