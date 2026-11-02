@@ -249,7 +249,7 @@ export function useLeavePlanner() {
   }
 
   // Every filter that's narrowing the calendar right now, with how to clear it:
-  // chips on desktop, a count on the phone's Filters button.
+  // a count on the rail's Clear filters button and the phone's Filters button.
   const activeFilters = [
     activeDaysOff && { key: 'daysOff', label: 'Days off', value: [...daysOffFilter].sort((a, b) => a - b).join(', '), clear: () => setDaysOffFilter([]) },
     period.changed && { key: 'dates', label: 'Dates', value: `${fmtShortYear(from)} – ${fmtShortYear(to)}`, clear: period.onReset },
