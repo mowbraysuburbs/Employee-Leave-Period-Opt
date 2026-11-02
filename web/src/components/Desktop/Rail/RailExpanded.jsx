@@ -101,8 +101,7 @@ export function RailExpanded({ c }) {
       </section>
 
       <section className={card}>
-        <div className="text-[13px] font-bold">Dates</div>
-        <PeriodPicker bare idPrefix="rail-period" {...c.period} />
+        <PeriodPicker stacked idPrefix="rail-period" {...c.period} />
       </section>
 
       <section className={card}>

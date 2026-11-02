@@ -17,8 +17,7 @@ export function FiltersSheet({ c, onClose }) {
     <BottomSheet label="Filters" title="Filters" backdrop onClose={onClose}>
       <div className="flex flex-col gap-4 pt-1">
         <section className="flex flex-col gap-1.5">
-          <h3 className="m-0 text-[13px] font-bold">Dates</h3>
-          <PeriodPicker bare idPrefix="mobile-period" {...c.period} />
+          <PeriodPicker stacked idPrefix="mobile-period" {...c.period} />
         </section>
 
         <section className="flex flex-col gap-2">
