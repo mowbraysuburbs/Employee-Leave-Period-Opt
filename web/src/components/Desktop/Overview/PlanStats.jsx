@@ -28,7 +28,7 @@ export function PlanStats({ breaks, total, compact = false }) {
       <div className="grid grid-cols-3 gap-2">
         <Stat value={daysOff} label="days off" className="bg-indigo-100 text-indigo-800" />
         <Stat value={leave} label="leave used" className="bg-sky-100 text-sky-800" />
-        <Stat value={leave ? formatMultiplier(daysOff / leave) : '–'} label="multiplier" className="bg-amber-100 text-amber-800" />
+        <Stat value={leave ? formatMultiplier(daysOff / leave) : '–'} label="overall" className="bg-amber-100 text-amber-800" />
       </div>
     )
   }
@@ -40,7 +40,7 @@ export function PlanStats({ breaks, total, compact = false }) {
       <Stat value={countDays(breaks, 'public_holiday')} label="public holidays" className="bg-orange-100 text-orange-800" />
       <Stat value={countDays(breaks, 'weekend')} label="weekend days" className="bg-slate-200 text-slate-700" />
       <Stat value={daysOff} label="days off" className="bg-indigo-100 text-indigo-800" />
-      <Stat value={leave ? formatMultiplier(daysOff / leave) : '–'} label="avg multiplier" className="bg-amber-100 text-amber-800" />
+      <Stat value={leave ? formatMultiplier(daysOff / leave) : '–'} label="overall multiplier" className="bg-amber-100 text-amber-800" />
     </div>
   )
 }
