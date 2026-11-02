@@ -6,6 +6,9 @@ import { addDays, fmtDay, fmtShortRange } from './dateFormat'
 // The Overview planner: pick a leave period, how many leave days and how many
 // breaks, and get the plan with the most days off. Pure functions only.
 
+// Nobody plans with more than this many leave days (the calendar uses it too).
+export const MAX_LEAVE = 10
+
 // Breaks in a plan are at least this many workdays apart (one working week).
 export const BREAK_GAP_WORKDAYS = 5
 

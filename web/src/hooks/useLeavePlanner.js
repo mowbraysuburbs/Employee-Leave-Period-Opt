@@ -3,11 +3,12 @@ import { useSavedBreaks } from '../components/Desktop/useSavedBreaks'
 import { buildBreak, buildBreaksInRange, breakKey, hasGain, toCalendarEvent, findEqualStarts, breaksOverlap, combineBreaks, withBreakMerged } from '../utils/breaks'
 import { schoolBreaksFor, provinceLabel } from '../utils/plans'
 import { usePlanner } from './usePlanner'
+import { MAX_LEAVE } from '../utils/planner'
 import { buildIcs, downloadIcs } from '../utils/calendarExport'
 import { getColourForDaysOff, getColourForMultiplier, multiplierBucket } from '../utils/colorScale'
 import { fmtDay, fmtShortYear, addDays } from '../utils/dateFormat'
 
-export const MAX_LEAVE = 10
+export { MAX_LEAVE }
 const LAST_DATE = '2028-01-01'
 
 function localToday() {

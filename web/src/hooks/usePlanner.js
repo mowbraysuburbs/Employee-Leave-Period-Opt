@@ -1,9 +1,8 @@
 import { useState, useMemo } from 'react'
 import { buildBreak } from '../utils/breaks'
-import { planPeriods, planAllChoices, workdaysIn, schoolHolidaysIn, equalStartsWithin, monthsIn } from '../utils/planner'
+import { MAX_LEAVE, planPeriods, planAllChoices, workdaysIn, schoolHolidaysIn, equalStartsWithin, monthsIn } from '../utils/planner'
 import { addDays } from '../utils/dateFormat'
 
-const DEFAULT_LEAVE = 10
 
 /**
  * The Overview planner's settings and results: which leave period, how many
@@ -16,7 +15,7 @@ export function usePlanner({ today, province }) {
   const periods = useMemo(() => planPeriods({ today, provinceCode: province }), [today, province])
   const [periodId, setPeriodId] = useState('next')
   const [custom, setCustom] = useState({ from: addDays(today, 1), to: addDays(today, 28) })
-  const [leave, setLeave] = useState(DEFAULT_LEAVE)
+  const [leave, setLeave] = useState(MAX_LEAVE)
   // Break choice per period, so each keeps its own default until changed.
   const [breakChoice, setBreakChoice] = useState({})
   // 'YYYY-MM' → 'avoid' | 'include'.
@@ -30,7 +29,8 @@ export function usePlanner({ today, province }) {
     ? { id: 'custom', kind: 'custom', title: 'Custom', subtitle: 'Your own dates', defaultBreaks: 3, ...custom }
     : periods.find(p => p.id === periodId) ?? periods[0]
 
-  const maxLeave = Math.max(1, workdaysIn(period.from, period.to))
+  // Never more than 10, and never more than the workdays in the period.
+  const maxLeave = Math.max(1, Math.min(MAX_LEAVE, workdaysIn(period.from, period.to)))
   const leaveUsed = Math.min(leave, maxLeave)
 
   const schoolSpans = useMemo(
