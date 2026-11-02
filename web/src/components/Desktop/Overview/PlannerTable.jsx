@@ -38,7 +38,7 @@ export function PlannerTable({ breaks, startOptions, ticked, onToggle, onSwap, o
   const head = 'text-[11px] font-bold text-slate-500 uppercase tracking-wide'
   return (
     <div role="table" aria-label="Breaks in this plan" className="text-[13px]">
-      <div role="row" className={`${cols} px-1.5 pb-1.5`}>
+      <div role="row" className={`${cols} px-1.5 py-1.5 sticky top-0 z-10 bg-white border-b border-slate-200`}>
         <span />
         <span role="columnheader" className={head}>Start</span>
         <span role="columnheader" className={head}>End</span>

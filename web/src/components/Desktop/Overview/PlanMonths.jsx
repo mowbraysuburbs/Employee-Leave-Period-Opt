@@ -120,7 +120,7 @@ export function PlanMonths({ period, breaks, ticked, highlight, onOpen, phone = 
   return (
     <aside
       aria-label="Plan on the calendar"
-      className={phone ? 'flex flex-col gap-3' : 'flex-[0_0_300px] min-w-0 max-w-full max-h-[calc(100vh-150px)] sticky top-4 bg-white rounded-[20px] shadow-sm flex flex-col overflow-hidden'}
+      className={phone ? 'flex flex-col gap-3' : 'flex-[0_0_300px] min-w-0 max-w-full max-h-[600px] lg:max-h-none lg:h-full bg-white rounded-[20px] shadow-sm flex flex-col overflow-hidden'}
     >
       <div className={`flex flex-col gap-2 ${phone ? '' : 'px-3.5 pt-3.5 pb-2.5 border-b border-slate-100'}`}>
         {!phone && (

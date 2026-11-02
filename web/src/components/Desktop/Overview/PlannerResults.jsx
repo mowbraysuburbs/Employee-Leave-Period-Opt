@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { PlanStats } from './PlanStats'
 import { PlannerTable } from './PlannerTable'
+import { summarise } from '../../../utils/planner'
+import { formatMultiplier } from '../../../utils/breaks'
 
 /**
  * The plan the planner found: a title, the stat tiles (following the ticked
@@ -30,9 +32,31 @@ export function PlannerResults({ planner, isSaved, onAdd, onExport, onView, onHo
     )
   }
 
-  const button = phone ? 'flex-1' : 'flex-[1_1_150px]'
+  const button = phone ? 'flex-1' : ''
+  const totals = summarise(chosen)
+  const actions = (
+    <>
+      <button
+        type="button"
+        disabled={none || allSaved}
+        onClick={() => onAdd(chosen)}
+        className={`${button} ${phone ? 'h-11' : 'h-9 px-3.5'} rounded-xl text-sm font-bold whitespace-nowrap disabled:opacity-50 ${allSaved ? 'bg-green-100 text-green-800 border border-green-300' : 'bg-sky-700 text-white'}`}
+      >
+        {allSaved ? 'Added ✓' : `Add (${chosen.length})`}
+      </button>
+      <button type="button" disabled={none} onClick={() => onExport(chosen)} className={`${button} ${phone ? 'h-11' : 'h-9 px-3.5'} rounded-xl bg-slate-900 text-white text-sm font-bold whitespace-nowrap disabled:opacity-50`}>
+        {phone ? 'Export' : 'Export .ics'}
+      </button>
+      {/* On desktop, "Open in calendar" sits on the calendar column instead. */}
+      {phone && (
+        <button type="button" disabled={none} onClick={() => onView(chosen)} className={`${button} ${phone ? 'h-11' : 'h-9 px-3.5'} rounded-xl border border-slate-300 bg-white text-sm font-bold whitespace-nowrap disabled:opacity-50`}>
+          Calendar →
+        </button>
+      )}
+          </>
+  )
   return (
-    <div className={`flex flex-col ${phone ? 'gap-2.5 flex-1 min-h-0' : 'gap-3.5'}`}>
+    <div className={`flex flex-col flex-1 min-h-0 ${phone ? 'gap-2.5' : 'gap-3'}`}>
       {phone
         ? (
           <div className="flex items-center justify-between gap-2">
@@ -43,33 +67,26 @@ export function PlannerResults({ planner, isSaved, onAdd, onExport, onView, onHo
             </div>
           </div>
         )
-        : <h3 className="m-0 text-xl font-extrabold">{period.title}: {count}</h3>}
-      {/* One row of three tiles everywhere, so the middle column fits beside the calendar column. */}
-      <PlanStats breaks={chosen} total={breaks.length} compact />
-      <div className={phone ? 'flex-1 min-h-0 overflow-y-auto' : ''}>
+        : (
+          // Desktop: title, the totals as small pills, and Add / Export on the right.
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="m-0 text-[17px] font-extrabold whitespace-nowrap">{period.title}: {count}</h3>
+            <span className="flex gap-1 text-[11.5px] font-extrabold whitespace-nowrap">
+              <span className="px-2 py-1 rounded-lg bg-indigo-100 text-indigo-800">{totals.daysOff} days off</span>
+              <span className="px-2 py-1 rounded-lg bg-sky-100 text-sky-800">{totals.leave} leave</span>
+              <span className="px-2 py-1 rounded-lg bg-amber-100 text-amber-800">{formatMultiplier(totals.multiplier)}</span>
+            </span>
+            <span className="ml-auto flex gap-2">{actions}</span>
+          </div>
+        )}
+      {phone && <PlanStats breaks={chosen} total={breaks.length} compact />}
+      {/* The table scrolls on its own (header row stays), so the page doesn't have to. */}
+      <div className={phone ? 'flex-1 min-h-0 overflow-y-auto' : 'flex-1 min-h-[200px] overflow-y-auto rounded-xl border border-slate-100'}>
         {phone && showCalendar
           ? calendar
           : <PlannerTable breaks={breaks} startOptions={startOptions} ticked={ticked} onToggle={toggleTick} onSwap={swapStart} onHover={onHover} phone={phone} />}
       </div>
-      <div className={`flex gap-2 ${phone ? 'shrink-0' : 'flex-wrap'}`}>
-        <button
-          type="button"
-          disabled={none || allSaved}
-          onClick={() => onAdd(chosen)}
-          className={`${button} h-11 rounded-xl text-sm font-bold whitespace-nowrap disabled:opacity-50 ${allSaved ? 'bg-green-100 text-green-800 border border-green-300' : 'bg-sky-700 text-white'}`}
-        >
-          {allSaved ? 'Added ✓' : phone ? `Add (${chosen.length})` : `Add ticked (${chosen.length})`}
-        </button>
-        <button type="button" disabled={none} onClick={() => onExport(chosen)} className={`${button} h-11 rounded-xl bg-slate-900 text-white text-sm font-bold whitespace-nowrap disabled:opacity-50`}>
-          {phone ? 'Export' : 'Export (.ics)'}
-        </button>
-        {/* On desktop, "Open in calendar" sits on the calendar column instead. */}
-        {phone && (
-          <button type="button" disabled={none} onClick={() => onView(chosen)} className={`${button} h-11 rounded-xl border border-slate-300 bg-white text-sm font-bold whitespace-nowrap disabled:opacity-50`}>
-            Calendar →
-          </button>
-        )}
-      </div>
+      {phone && <div className="flex gap-2 shrink-0">{actions}</div>}
     </div>
   )
 }

@@ -51,7 +51,7 @@ function PeriodCard({ id, kind, title, subtitle, stats, selected, onSelect }) {
  */
 export function PeriodList({ periods, selectedId, onSelect, cardStats }) {
   return (
-    <nav aria-label="Leave periods" className="flex-[1_1_300px] max-w-[330px] min-w-0 flex flex-col gap-1.5">
+    <nav aria-label="Leave periods" className="flex-[1_1_300px] max-w-[330px] min-w-0 flex flex-col gap-1.5 lg:h-full lg:overflow-y-auto lg:pr-1 lg:pb-2 [&>*]:shrink-0">
       <div className="mb-1"><StepHeading number={1}>Pick a leave period</StepHeading></div>
       <PeriodCard id="custom" kind="custom" title="Custom" subtitle="Choose your first and last day" selected={selectedId === 'custom'} onSelect={onSelect} />
       <span className="ml-1 text-[11px] font-bold text-slate-400">or pick one</span>
