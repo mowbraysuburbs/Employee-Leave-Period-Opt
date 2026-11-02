@@ -39,13 +39,23 @@ function CalendarIcon({ size }) {
   )
 }
 
+function TrendUpIcon({ size }) {
+  return (
+    <svg width={size} height={size} {...svgProps}>
+      <path d="M3 17l6-6 4 4 8-8" />
+      <path d="M15 7h6v6" />
+    </svg>
+  )
+}
+
 // One colour + icon per stat, shared by the hover card and its key so the
-// two can never drift apart. The multiplier is shown as a plain number (e.g. 2.50).
+// two can never drift apart. The multiplier is a plain number (e.g. 2.50) with a
+// trending-up icon, its value one size smaller so both fit.
 const KINDS = {
   leave: { className: 'bg-sky-100 text-sky-800', Icon: BriefcaseIcon },
   free: { className: 'bg-green-100 text-green-800', Icon: GiftIcon },
   total: { className: 'bg-indigo-100 text-indigo-800', Icon: CalendarIcon },
-  multiplier: { className: 'bg-amber-100 text-amber-800', Icon: null },
+  multiplier: { className: 'bg-amber-100 text-amber-800', Icon: TrendUpIcon, small: true },
 }
 
 /**
@@ -55,12 +65,12 @@ const KINDS = {
  *   label – optional text after the value (used by the key, not the card)
  */
 export function StatTile({ kind, value, label }) {
-  const { className, Icon } = KINDS[kind]
+  const { className, Icon, small } = KINDS[kind]
   return (
     <span
       className={[
         'inline-flex items-center justify-center gap-1 rounded-lg font-extrabold',
-        label ? 'h-[26px] px-2 text-xs font-semibold' : 'h-7 text-sm',
+        label ? 'h-[26px] px-2 text-xs font-semibold' : `h-7 ${small ? 'text-[12.5px]' : 'text-sm'}`,
         className,
       ].join(' ')}
     >
