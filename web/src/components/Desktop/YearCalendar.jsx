@@ -11,14 +11,14 @@ import { buildMonthDays, keepMatchingRows, withBand } from '../../utils/calendar
  *   holidayFilter  – string[]; non-matching start days fade out
  *   picksOnly      – show saved breaks by day type instead of the heatmap
  *   savedDayTypes  – Map(date -> type) across every saved break
- *   savedStarts    – Set of saved break start dates
- *   previewDayTypes, previewStarts – a quick pick being previewed from
+ *   savedStarts    – Set of saved break start dates (they breathe)
+ *   previewDayTypes – a quick pick being previewed from
  *                    Overview (Map date -> type, Set of start dates), or null
  *   schoolDates    – Set of school-holiday dates to underline, or null when the filter is off
  *   daysOffFilter  – Set of days-off values to keep coloured, or null; months without a
  *                    match are hidden, but any row with a match is kept whole
  *   hoveredDate    – day under the mouse (owned by the parent so Details can follow it)
- *   selectedBreak  – the clicked break, drawn as a solid band of squares, or null
+ *   selectedBreak  – the clicked break, drawn with a grey pill behind it, or null
  *   onDayHover, onDayClick
  */
 export function YearCalendar({
@@ -30,7 +30,6 @@ export function YearCalendar({
   savedDayTypes,
   savedStarts,
   previewDayTypes,
-  previewStarts,
   schoolDates,
   daysOffFilter,
   hoveredDate,
@@ -40,8 +39,8 @@ export function YearCalendar({
 }) {
   // Colours depend on everything except the hover, so hovering stays cheap.
   const monthDays = useMemo(
-    () => buildMonthDays({ months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, previewStarts, schoolDates, daysOffFilter }),
-    [months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, previewStarts, schoolDates, daysOffFilter]
+    () => buildMonthDays({ months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, schoolDates, daysOffFilter }),
+    [months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, schoolDates, daysOffFilter]
   )
 
   // How many month cards fit per row, matching the grid's minmax(260px, 1fr) and 16px gap.

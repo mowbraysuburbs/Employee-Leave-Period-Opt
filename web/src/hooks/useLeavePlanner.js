@@ -105,10 +105,10 @@ export function useLeavePlanner() {
   }, [savedBreaks])
 
   const previewDays = useMemo(() => {
-    if (!preview) return { dayTypes: null, starts: null }
+    if (!preview) return { dayTypes: null }
     const dayTypes = new Map()
     for (const b of preview.breaks) for (const d of b.days) dayTypes.set(d.date, d.type)
-    return { dayTypes, starts: new Set(preview.breaks.map(b => b.startDate)) }
+    return { dayTypes }
   }, [preview])
 
   // Details: a saved break opened from Summary, else the clicked day, else the

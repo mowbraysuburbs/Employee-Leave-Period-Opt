@@ -119,7 +119,6 @@ export function DesktopApp() {
               savedDayTypes={savedDayTypes}
               savedStarts={savedStarts}
               previewDayTypes={previewOnly ? previewDays.dayTypes : null}
-              previewStarts={previewOnly ? previewDays.starts : null}
               schoolDates={schoolDates}
               daysOffFilter={activeDaysOff}
               hoveredDate={hoveredDate}

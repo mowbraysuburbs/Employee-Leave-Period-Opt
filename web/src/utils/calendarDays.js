@@ -10,8 +10,6 @@ import { fmtDay, addDays } from './dateFormat'
 const OUTSIDE = { bg: 'transparent', fg: 'var(--color-slate-300, #cbd5e1)' }
 const FADED = { bg: 'var(--color-slate-100, #f1f5f9)', fg: 'var(--color-slate-400, #94a3b8)' }
 const NO_GAIN = { bg: 'transparent', fg: 'var(--color-slate-500, #64748b)' }
-const START_RING = '0 0 0 3px var(--color-slate-900, #0f172a)'
-const SAVED_RING = 'inset 0 0 0 2px var(--color-slate-900, #0f172a)'
 
 function typeLook(type) {
   return { bg: DAY_TYPE_COLOUR[type], fg: type === 'weekend' ? '#ffffff' : '#0f172a' }
@@ -24,52 +22,28 @@ function datesInMonth(year, month) {
 }
 
 /**
- * Draws a break as one joined band of squares: corners only round off where
- * the band starts or ends a run (the break's first/last day, a week row edge,
- * or a month edge). The hovered break gets a soft outline; the clicked
- * (selected) break is just the joined squares, no outline, until another day is clicked.
+ * Marks a day inside a break so the calendar draws a grey pill behind it: the
+ * day keeps its coloured circle, and the pill joins the break's days, rounding
+ * off where the break or a week row (or month) starts and ends. The clicked
+ * (selected) break is a shade darker than the hovered one, and its first day
+ * gets a small dot in the corner.
  */
 export function withBand(day, brk, selected = false) {
   if (!brk || day.date < brk.startDate || day.date > brk.endDate) return day
   const weekday = new Date(day.date + 'T00:00:00').getDay()
-  const isStart = day.date === brk.startDate
-  const isEnd = day.date === brk.endDate
-  const leftCap = isStart || weekday === 0 || day.dayNumber === 1
-  const rightCap = isEnd || weekday === 6 || addDays(day.date, 1).slice(5, 7) !== day.date.slice(5, 7)
-
-  let shape = 'rounded-none'
-  if (leftCap && rightCap) shape = 'rounded-md'
-  else if (leftCap) shape = 'rounded-l-md'
-  else if (rightCap) shape = 'rounded-r-md'
-
-  // No outline on the selected break: uncoloured days inside it get a light
-  // fill instead, so the band still reads as one block.
-  if (selected) {
-    const look = day.look.bg === 'transparent' ? { ...day.look, bg: 'var(--color-slate-200, #e2e8f0)' } : day.look
-    return { ...day, inBand: true, shape, look }
-  }
-
-  // Zero spread on the top/bottom lines so neighbouring days don't overlap
-  // into visible seams; only the capped ends draw a side edge.
-  const edge = '1.5px 0 0 var(--range-border)'
-  const shadows = [`0 -${edge}`, `0 ${edge}`]
-  if (leftCap) shadows.push(`-${edge}`)
-  if (rightCap) shadows.push(edge)
-  if (isStart) shadows.push('-3px 0 8px 0 var(--range-glow)')
-  if (isEnd) shadows.push('3px 0 8px 0 var(--range-glow)')
-  if (day.ring) shadows.push(day.ring)
-
-  return { ...day, inBand: true, shape, ring: shadows.join(', ') }
+  const roundLeft = day.date === brk.startDate || weekday === 0 || day.dayNumber === 1
+  const roundRight = day.date === brk.endDate || weekday === 6 || addDays(day.date, 1).slice(5, 7) !== day.date.slice(5, 7)
+  return { ...day, band: { roundLeft, roundRight, selected, start: day.date === brk.startDate } }
 }
 
 /**
  * Every month's day cells with their colour, ring, school bar and label.
  *
  * Options: months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes,
- * savedStarts, previewDayTypes, previewStarts, schoolDates, daysOffFilter
+ * savedStarts, previewDayTypes, schoolDates, daysOffFilter
  * (see YearCalendar for what each means).
  */
-export function buildMonthDays({ months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, previewStarts, schoolDates, daysOffFilter }) {
+export function buildMonthDays({ months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, schoolDates, daysOffFilter }) {
   const passesFilter = brk => holidayFilter.length === 0 || holidayNamesIn(brk).some(n => holidayFilter.includes(n))
 
   function look(date, brk) {
@@ -83,11 +57,18 @@ export function buildMonthDays({ months, breaks, colourBy, holidayFilter, picksO
     return { bg, fg: '#0f172a' }
   }
 
-  function ring(date) {
-    if (previewStarts) return previewStarts.has(date) ? START_RING : null
-    if (savedStarts.has(date)) return START_RING
-    if (!picksOnly && savedDayTypes.has(date)) return SAVED_RING
-    return null
+  // Saved breaks turn into one joined band of rectangles, rounded where a break
+  // or a week row / month starts and ends; `start` marks a break's first day.
+  // Off while previewing a plan.
+  function saved(date) {
+    if (previewDayTypes || !savedDayTypes.has(date)) return null
+    const weekday = new Date(date + 'T00:00:00').getDay()
+    const next = addDays(date, 1)
+    return {
+      roundLeft: savedStarts.has(date) || weekday === 0 || date.endsWith('-01') || !savedDayTypes.has(addDays(date, -1)),
+      roundRight: weekday === 6 || next.slice(5, 7) !== date.slice(5, 7) || !savedDayTypes.has(next) || savedStarts.has(next),
+      start: savedStarts.has(date),
+    }
   }
 
   function school(date) {
@@ -109,7 +90,7 @@ export function buildMonthDays({ months, breaks, colourBy, holidayFilter, picksO
         date,
         dayNumber: Number(date.slice(8)),
         look: look(date, brk),
-        ring: ring(date),
+        saved: saved(date),
         isHoliday: brk?.days[0].type === 'public_holiday',
         disabled: !brk,
         ariaLabel: brk
