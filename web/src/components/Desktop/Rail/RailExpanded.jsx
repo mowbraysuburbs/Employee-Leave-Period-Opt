@@ -130,6 +130,14 @@ export function RailExpanded({ c }) {
           </div>
         </div>
       </section>
+      <button
+        type="button"
+        onClick={c.onClearAll}
+        disabled={!c.activeCount}
+        className="shrink-0 mt-auto h-9 rounded-xl border border-red-300 bg-white text-red-700 text-[13px] font-bold disabled:border-slate-200 disabled:text-slate-300"
+      >
+        {c.activeCount ? `✕ Clear filters (${c.activeCount})` : 'No filters on'}
+      </button>
     </aside>
   )
 }

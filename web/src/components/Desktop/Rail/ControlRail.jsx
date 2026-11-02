@@ -6,6 +6,7 @@ import { RailCollapsed } from './RailCollapsed'
  *
  * Props (all in `c`, since both versions need the same set):
  *   collapsed, onToggleCollapsed
+ *   activeCount, onClearAll       – the Clear filters button (greyed out at 0)
  *   leaveDays, maxLeave, onLeaveDaysChange
  *   colourBy, onColourByChange, legend
  *   daysOffFilter, onToggleDaysOff, onClearDaysOff

@@ -74,7 +74,7 @@ export function DesktopApp() {
     } catch { /* storage unavailable — just don't remember it */ }
   }
 
-  const railControls = { ...controls, collapsed: railCollapsed, onToggleCollapsed: toggleRail }
+  const railControls = { ...controls, collapsed: railCollapsed, onToggleCollapsed: toggleRail, activeCount: activeFilters.length, onClearAll: clearAllFilters }
 
   // The calendar page is exactly one screen tall: only the months scroll, while
   // the controls and the Details/Summary panel stay put. Other pages scroll normally.
