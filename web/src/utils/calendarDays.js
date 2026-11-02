@@ -25,14 +25,15 @@ function datesInMonth(year, month) {
  * Marks a day inside a break so the calendar draws a grey pill behind it: the
  * day keeps its coloured circle, and the pill joins the break's days, rounding
  * off where the break or a week row (or month) starts and ends. The clicked
- * (selected) break is a shade darker than the hovered one.
+ * (selected) break is a shade darker than the hovered one, and its first day
+ * gets a small dot in the corner.
  */
 export function withBand(day, brk, selected = false) {
   if (!brk || day.date < brk.startDate || day.date > brk.endDate) return day
   const weekday = new Date(day.date + 'T00:00:00').getDay()
   const roundLeft = day.date === brk.startDate || weekday === 0 || day.dayNumber === 1
   const roundRight = day.date === brk.endDate || weekday === 6 || addDays(day.date, 1).slice(5, 7) !== day.date.slice(5, 7)
-  return { ...day, band: { roundLeft, roundRight, selected } }
+  return { ...day, band: { roundLeft, roundRight, selected, start: day.date === brk.startDate } }
 }
 
 /**
@@ -56,14 +57,18 @@ export function buildMonthDays({ months, breaks, colourBy, holidayFilter, picksO
     return { bg, fg: '#0f172a' }
   }
 
-  // Saved breaks glow (see .saved-glow in index.css); a break's first day
-  // breathes. Off while previewing a plan, and with "Selected" on only the
-  // first days glow, since every coloured day is saved then.
+  // Saved breaks turn into one joined band of dark boxes, rounded where a break
+  // or a week row / month starts and ends; `start` marks a break's first day.
+  // Off while previewing a plan.
   function saved(date) {
-    if (previewDayTypes) return null
-    if (savedStarts.has(date)) return 'start'
-    if (!picksOnly && savedDayTypes.has(date)) return 'day'
-    return null
+    if (previewDayTypes || !savedDayTypes.has(date)) return null
+    const weekday = new Date(date + 'T00:00:00').getDay()
+    const next = addDays(date, 1)
+    return {
+      roundLeft: savedStarts.has(date) || weekday === 0 || date.endsWith('-01') || !savedDayTypes.has(addDays(date, -1)),
+      roundRight: weekday === 6 || next.slice(5, 7) !== date.slice(5, 7) || !savedDayTypes.has(next) || savedStarts.has(next),
+      start: savedStarts.has(date),
+    }
   }
 
   function school(date) {

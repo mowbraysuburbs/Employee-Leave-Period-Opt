@@ -85,16 +85,4 @@ body {
 .roll-in-right { animation: roll-in-right 0.18s cubic-bezier(.22,1,.36,1) forwards; }
 .roll-in-left  { animation: roll-in-left  0.18s cubic-bezier(.22,1,.36,1) forwards; }
 
-/* Saved breaks on the calendar: a white outline with a soft blue glow; the
-   first day of each break breathes (still for people who reduce motion). */
-:root { --saved-ring: #ffffff; --saved-glow: rgba(14, 165, 233, 0.75); --saved-glow-strong: rgba(14, 165, 233, 0.95); }
-.dark { --saved-ring: #ffffff; --saved-glow: rgba(56, 189, 248, 0.8); --saved-glow-strong: rgba(56, 189, 248, 1); }
-.saved-glow { box-shadow: 0 0 0 2px var(--saved-ring), 0 0 10px 3px var(--saved-glow); }
-.saved-glow-start { animation: saved-breathe 1.8s ease-in-out infinite; }
-@keyframes saved-breathe {
-  0%, 100% { box-shadow: 0 0 0 2px var(--saved-ring), 0 0 8px 3px var(--saved-glow); }
-  50%      { box-shadow: 0 0 0 2px var(--saved-ring), 0 0 18px 8px var(--saved-glow-strong); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .saved-glow-start { animation: none; box-shadow: 0 0 0 2px var(--saved-ring), 0 0 14px 6px var(--saved-glow-strong); }
-}
+
