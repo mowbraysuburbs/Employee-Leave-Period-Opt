@@ -37,7 +37,7 @@ export function DesktopApp() {
     controls, activeFilters, clearAllFilters, period, colourBy, holidayFilter, picksOnly, setPicksOnly, activeDaysOff, province, setProvince, schoolDates,
     months, breaks, demoDate, plans, selectedPlan, setSelectedPlanId, eventsSelected, ticked, toggleTick, toggleAllTicks, exportBreaks,
     preview, setPreview, previewOnly, previewDays, previewLabel, openPreview,
-    saved, savedBreaks, savedDayTypes, savedStarts, isSaved, justAddedKey,
+    saved, savedBreaks, savedDayTypes, isSaved, justAddedKey,
     detailBreak, bestNote, equalStarts, overlaps, combined,
     selectDay, openBreak, addBreaks, addDetailBreak, replaceOverlaps, removeBreak,
   } = useLeavePlanner()
@@ -117,9 +117,7 @@ export function DesktopApp() {
               holidayFilter={holidayFilter}
               picksOnly={picksOnly}
               savedDayTypes={savedDayTypes}
-              savedStarts={savedStarts}
               previewDayTypes={previewOnly ? previewDays.dayTypes : null}
-              previewStarts={previewOnly ? previewDays.starts : null}
               schoolDates={schoolDates}
               daysOffFilter={activeDaysOff}
               hoveredDate={hoveredDate}

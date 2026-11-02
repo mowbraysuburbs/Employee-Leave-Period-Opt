@@ -10,8 +10,6 @@ import { fmtDay, addDays } from './dateFormat'
 const OUTSIDE = { bg: 'transparent', fg: 'var(--color-slate-300, #cbd5e1)' }
 const FADED = { bg: 'var(--color-slate-100, #f1f5f9)', fg: 'var(--color-slate-400, #94a3b8)' }
 const NO_GAIN = { bg: 'transparent', fg: 'var(--color-slate-500, #64748b)' }
-const START_RING = '0 0 0 3px var(--color-slate-900, #0f172a)'
-const SAVED_RING = 'inset 0 0 0 2px var(--color-slate-900, #0f172a)'
 
 function typeLook(type) {
   return { bg: DAY_TYPE_COLOUR[type], fg: type === 'weekend' ? '#ffffff' : '#0f172a' }
@@ -57,7 +55,6 @@ export function withBand(day, brk, selected = false) {
   if (rightCap) shadows.push(edge)
   if (isStart) shadows.push('-3px 0 8px 0 var(--range-glow)')
   if (isEnd) shadows.push('3px 0 8px 0 var(--range-glow)')
-  if (day.ring) shadows.push(day.ring)
 
   return { ...day, inBand: true, shape, ring: shadows.join(', ') }
 }
@@ -66,10 +63,10 @@ export function withBand(day, brk, selected = false) {
  * Every month's day cells with their colour, ring, school bar and label.
  *
  * Options: months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes,
- * savedStarts, previewDayTypes, previewStarts, schoolDates, daysOffFilter
+ * previewDayTypes, schoolDates, daysOffFilter
  * (see YearCalendar for what each means).
  */
-export function buildMonthDays({ months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, previewStarts, schoolDates, daysOffFilter }) {
+export function buildMonthDays({ months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, previewDayTypes, schoolDates, daysOffFilter }) {
   const passesFilter = brk => holidayFilter.length === 0 || holidayNamesIn(brk).some(n => holidayFilter.includes(n))
 
   function look(date, brk) {
@@ -81,13 +78,6 @@ export function buildMonthDays({ months, breaks, colourBy, holidayFilter, picksO
     if (!passesFilter(brk)) return FADED
     const bg = colourBy === 'multiplier' ? getColourForMultiplier(brk.multiplier) : getColourForDaysOff(brk.daysOff)
     return { bg, fg: '#0f172a' }
-  }
-
-  function ring(date) {
-    if (previewStarts) return previewStarts.has(date) ? START_RING : null
-    if (savedStarts.has(date)) return START_RING
-    if (!picksOnly && savedDayTypes.has(date)) return SAVED_RING
-    return null
   }
 
   function school(date) {
@@ -109,7 +99,6 @@ export function buildMonthDays({ months, breaks, colourBy, holidayFilter, picksO
         date,
         dayNumber: Number(date.slice(8)),
         look: look(date, brk),
-        ring: ring(date),
         isHoliday: brk?.days[0].type === 'public_holiday',
         disabled: !brk,
         ariaLabel: brk

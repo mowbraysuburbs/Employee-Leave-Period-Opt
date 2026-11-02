@@ -16,10 +16,10 @@ const noHover = () => {}
  *   compact       – two smaller months per row instead of one
  */
 export function MobileCalendar({ selectedBreak, onDayClick, compact = false, ...options }) {
-  const { months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, previewStarts, schoolDates, daysOffFilter } = options
+  const { months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, previewDayTypes, schoolDates, daysOffFilter } = options
   const monthDays = useMemo(
-    () => buildMonthDays({ months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, previewStarts, schoolDates, daysOffFilter }),
-    [months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, previewStarts, schoolDates, daysOffFilter]
+    () => buildMonthDays({ months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, previewDayTypes, schoolDates, daysOffFilter }),
+    [months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, previewDayTypes, schoolDates, daysOffFilter]
   )
   // The days-off filter hides rows (one or two months) without a match.
   const columns = compact ? 2 : 1

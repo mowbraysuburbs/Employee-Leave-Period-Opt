@@ -98,17 +98,17 @@ export function useLeavePlanner() {
 
   const savedBreaks = useMemo(() => saved.map(s => buildBreak(s.startDate, s.leaveDays)).reverse(), [saved])
   const savedKeys = useMemo(() => new Set(saved.map(breakKey)), [saved])
-  const { savedDayTypes, savedStarts } = useMemo(() => {
+  const savedDayTypes = useMemo(() => {
     const types = new Map()
     for (const b of savedBreaks) for (const d of b.days) if (!types.has(d.date)) types.set(d.date, d.type)
-    return { savedDayTypes: types, savedStarts: new Set(savedBreaks.map(b => b.startDate)) }
+    return types
   }, [savedBreaks])
 
   const previewDays = useMemo(() => {
-    if (!preview) return { dayTypes: null, starts: null }
+    if (!preview) return { dayTypes: null }
     const dayTypes = new Map()
     for (const b of preview.breaks) for (const d of b.days) dayTypes.set(d.date, d.type)
-    return { dayTypes, starts: new Set(preview.breaks.map(b => b.startDate)) }
+    return { dayTypes }
   }, [preview])
 
   // Details: a saved break opened from Summary, else the clicked day, else the
@@ -298,7 +298,7 @@ export function useLeavePlanner() {
     province, setProvince, schoolOn, setSchoolOn, schoolDates,
     months, breaks, demoDate, plans, selectedPlan, setSelectedPlanId, eventsSelected, ticked, toggleTick, toggleAllTicks, exportBreaks,
     preview, setPreview, previewOnly, setPreviewOnly, previewDays, previewLabel, openPreview,
-    saved, savedBreaks, savedDayTypes, savedStarts, isSaved, justAddedKey, setJustAddedKey,
+    saved, savedBreaks, savedDayTypes, isSaved, justAddedKey, setJustAddedKey,
     detailBreak, bestNote, equalStarts, overlaps, combined,
     selectDay, openBreak, addBreaks, addDetailBreak, replaceOverlaps, removeBreak,
   }

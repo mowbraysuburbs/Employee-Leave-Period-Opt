@@ -102,9 +102,7 @@ export function MobileApp() {
             holidayFilter={p.holidayFilter}
             picksOnly={p.picksOnly}
             savedDayTypes={p.savedDayTypes}
-            savedStarts={p.savedStarts}
             previewDayTypes={p.previewOnly ? p.previewDays.dayTypes : null}
-            previewStarts={p.previewOnly ? p.previewDays.starts : null}
             schoolDates={p.schoolDates}
             daysOffFilter={p.activeDaysOff}
             compact={settings.calendarSize === 'compact'}
