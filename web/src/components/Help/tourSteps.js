@@ -16,7 +16,7 @@ export function tourSteps(phone, demo, { reset, showDate, showSummary }) {
       target: 'colours',
       enter: reset,
       title: 'Colours show days off',
-      text: `Each colour is how many days off in a row you get if leave starts that day. ${act} a number to show only those dates, or switch to Value × for days off per leave day.`,
+      text: `Each colour is how many days off in a row you get if leave starts that day. ${act} a number to show only those dates, or switch to Multiplier for days off per leave day.`,
     },
     {
       date: demo?.startDate,

@@ -15,7 +15,7 @@ export function HoverCard({ brk, colourBy }) {
   return (
     <div
       role="tooltip"
-      aria-label={`${brk.leaveDays} leave days plus ${free} free days: ${brk.daysOff} days off, ${formatMultiplier(brk.multiplier)}`}
+      aria-label={`${brk.leaveDays} leave days plus ${free} free days: ${brk.daysOff} days off, ${formatMultiplier(brk.multiplier)} multiplier`}
       className="pointer-events-none absolute z-30 bottom-10 left-1/2 -translate-x-1/2 w-[132px] bg-white border border-slate-200 rounded-xl p-1 shadow-lg grid grid-cols-2 gap-1"
     >
       <div className="col-span-2 text-center text-xs font-bold text-slate-700 pt-0.5">

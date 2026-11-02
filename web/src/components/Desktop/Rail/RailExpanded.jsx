@@ -4,7 +4,7 @@ import { ProvincePicker } from '../ProvincePicker'
 
 const MODES = [
   { id: 'daysOff', label: 'Total days' },
-  { id: 'multiplier', label: 'Value ×' },
+  { id: 'multiplier', label: 'Multiplier' },
 ]
 
 const card = 'bg-white rounded-2xl p-3 shadow-sm flex flex-col gap-2'

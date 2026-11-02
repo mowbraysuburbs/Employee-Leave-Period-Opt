@@ -41,7 +41,7 @@ export function PlanBreaksTable({ breaks, ticked, onToggle, onToggleAll }) {
           <span role="columnheader" className="truncate">Leave</span>
           <span role="columnheader" className="truncate">Holidays</span>
           <span role="columnheader" className="truncate">Weekend</span>
-          <span role="columnheader" className="truncate">×</span>
+          <span role="columnheader" className="truncate">Multiplier</span>
         </div>
         {breaks.map(b => {
           const isTicked = ticked.has(b.startDate)

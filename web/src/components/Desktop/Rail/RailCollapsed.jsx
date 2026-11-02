@@ -100,8 +100,8 @@ export function RailCollapsed({ c }) {
       <RailIcon
         tour="colours"
         icon="days"
-        label={`Colour by: ${multiplier ? 'Value' : 'Total days off'}`}
-        value={multiplier ? '×' : 'days'}
+        label={`Colour by: ${multiplier ? 'Multiplier' : 'Total days off'}`}
+        value={multiplier ? 'mult' : 'days'}
         onClick={open}
         className={multiplier ? 'bg-amber-100 text-amber-800' : 'bg-indigo-100 text-indigo-800'}
       />

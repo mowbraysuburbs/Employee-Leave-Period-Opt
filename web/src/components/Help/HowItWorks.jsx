@@ -42,7 +42,7 @@ export function HowItWorks({ phone = false, onReplay }) {
             <strong className="text-slate-900">Total days</strong><br /><span className="text-[13px]">How many days off in a row you get.</span>
           </div>
           <div className="px-3 py-2.5 border border-slate-200 rounded-xl">
-            <strong className="text-slate-900">Value ×</strong><br /><span className="text-[13px]">Days off for each leave day. 2× = double.</span>
+            <strong className="text-slate-900">Multiplier</strong><br /><span className="text-[13px]">Days off for each leave day. 2.00 = double.</span>
           </div>
         </div>
       </section>

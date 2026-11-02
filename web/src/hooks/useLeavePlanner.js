@@ -148,8 +148,8 @@ export function useLeavePlanner() {
     const gaining = Object.values(breaks).filter(hasGain)
     const values = gaining.map(b => (colourBy === 'multiplier' ? multiplierBucket(b.multiplier) : b.daysOff))
     return [...new Set(values)].sort((a, b) => a - b).map(v => colourBy === 'multiplier'
-      // Buckets are 0.25 steps, so show them exactly (1.25×) rather than rounded.
-      ? { value: v, label: `${v}×`, colour: getColourForMultiplier(v) }
+      // Buckets are 0.25 steps, shown with two decimals like every multiplier.
+      ? { value: v, label: v.toFixed(2), colour: getColourForMultiplier(v) }
       : { value: v, label: String(v), colour: getColourForDaysOff(v) })
   }, [breaks, colourBy])
 

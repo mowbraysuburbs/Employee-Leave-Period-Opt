@@ -4,7 +4,7 @@
  * Filters and My breaks.
  *
  * Props:
- *   colourBy, onColourByChange – 'daysOff' (Total days) | 'multiplier' (Value ×)
+ *   colourBy, onColourByChange – 'daysOff' (Total days) | 'multiplier' (Multiplier)
  *   legend, filterable, daysOffFilter, onToggleDaysOff, onClearDaysOff
  *   leaveDays, maxLeave, onLeaveDaysChange
  *   savedCount, savedDaysOff, savedLeave – totals for the My breaks button
@@ -38,11 +38,11 @@ export function BottomPanel({
       <div data-tour="colours" className="flex items-center gap-1.5 overflow-x-auto py-1 -my-1 [scrollbar-width:none]">
         <button
           type="button"
-          aria-label={`Colouring by ${colourBy === 'multiplier' ? 'value' : 'total days off'}; tap to switch`}
+          aria-label={`Colouring by ${colourBy === 'multiplier' ? 'multiplier' : 'total days off'}; tap to switch`}
           onClick={() => onColourByChange(colourBy === 'multiplier' ? 'daysOff' : 'multiplier')}
           className="shrink-0 h-7 pl-2.5 pr-2 mr-0.5 rounded-full border border-slate-300 bg-white text-[11px] font-bold text-slate-700 inline-flex items-center gap-1"
         >
-          {colourBy === 'multiplier' ? 'Value ×' : 'Total days'}
+          {colourBy === 'multiplier' ? 'Multiplier' : 'Total days'}
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7" />
           </svg>

@@ -17,7 +17,7 @@ const countDays = (breaks, type) => breaks.reduce((t, b) => t + b.days.filter(d 
  * Props:
  *   breaks – the ticked breaks
  *   total  – how many breaks the plan has (shows "2/3" when some are unticked)
- *   compact – phones: just days off, leave used and value in one row
+ *   compact – phones: just days off, leave used and multiplier in one row
  */
 export function PlanStats({ breaks, total, compact = false }) {
   const leave = breaks.reduce((t, b) => t + b.leaveDays, 0)
@@ -28,7 +28,7 @@ export function PlanStats({ breaks, total, compact = false }) {
       <div className="grid grid-cols-3 gap-2">
         <Stat value={daysOff} label="days off" className="bg-indigo-100 text-indigo-800" />
         <Stat value={leave} label="leave used" className="bg-sky-100 text-sky-800" />
-        <Stat value={leave ? formatMultiplier(daysOff / leave) : '–'} label="value" className="bg-amber-100 text-amber-800" />
+        <Stat value={leave ? formatMultiplier(daysOff / leave) : '–'} label="multiplier" className="bg-amber-100 text-amber-800" />
       </div>
     )
   }

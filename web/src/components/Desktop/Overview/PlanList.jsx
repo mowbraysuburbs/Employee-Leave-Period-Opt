@@ -53,7 +53,7 @@ export function PlanList({ plans, selectedId, onSelect }) {
               <span className="text-xs text-slate-600 truncate">{whenLabel(plan.breaks)}</span>
             </span>
             <span
-              aria-label={`${totals.leaveUsed} leave days, ${totals.daysOff} days off, ${formatMultiplier(totals.multiplier)} average`}
+              aria-label={`${totals.leaveUsed} leave days, ${totals.daysOff} days off, ${formatMultiplier(totals.multiplier)} average multiplier`}
               className="shrink-0 flex gap-1 text-xs font-extrabold"
             >
               <span className="h-6 min-w-[30px] px-1.5 rounded-md bg-sky-100 text-sky-800 inline-flex items-center justify-center">{totals.leaveUsed}</span>
@@ -66,7 +66,7 @@ export function PlanList({ plans, selectedId, onSelect }) {
       <div aria-hidden="true" className="flex justify-end gap-1 px-3 pt-1 text-[11px] text-slate-500">
         <span className="min-w-[30px] text-center">leave</span>
         <span className="min-w-[30px] text-center">off</span>
-        <span className="min-w-[40px] text-center">avg ×</span>
+        <span className="min-w-[40px] text-center">mult.</span>
       </div>
 
       <button
