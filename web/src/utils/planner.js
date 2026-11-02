@@ -6,11 +6,19 @@ import { addDays, fmtDay, fmtShortRange } from './dateFormat'
 // The Overview planner: pick a leave period, how many leave days and how many
 // breaks, and get the plan with the most days off. Pure functions only.
 
+// Nobody plans with more than this many leave days (the calendar uses it too).
+export const MAX_LEAVE = 10
+
 // Breaks in a plan are at least this many workdays apart (one working week).
 export const BREAK_GAP_WORKDAYS = 5
 
 // "How many breaks?" choices; null means as many as possible.
 export const BREAK_CHOICES = [1, 2, 3, null]
+
+// "What matters most?" goals and the most breaks each may use:
+// max = the best rate (as many breaks as help), mix = up to 3, long = one continuous break.
+export const GOALS = ['max', 'mix', 'long']
+export const GOAL_BREAKS = { max: null, mix: 3, long: 1 }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
@@ -45,13 +53,14 @@ const GROUPS = {
   'Family Day': 'Easter',
   'Christmas Day': 'Christmas',
   'Day of Goodwill': 'Christmas',
+  "St. Stephen's Day": 'Christmas',
 }
 const groupName = name => GROUPS[name] ?? name
 
 /**
  * The leave periods offered in step 1 (Custom is handled by the caller).
  *
- * Returns [{ id, kind, title, subtitle, from, to, defaultBreaks }] in display
+ * Returns [{ id, kind, title, subtitle, from, to }] in display
  * order, skipping any that fall outside the holiday data.
  */
 export function planPeriods({ today, provinceCode = 'GP' }) {
@@ -68,7 +77,7 @@ export function planPeriods({ today, provinceCode = 'GP' }) {
     const span = lastOfSet === next ? fmtDay(next) : fmtShortRange(next, lastOfSet)
     periods.push({
       id: 'next', kind: 'next', title: 'Up next', subtitle: `${name} · ${span}`,
-      from: maxDate(addDays(today, 1), addDays(next, -7)), to: addDays(lastOfSet, 7), defaultBreaks: 1,
+      from: maxDate(addDays(today, 1), addDays(next, -7)), to: addDays(lastOfSet, 7),
     })
   }
 
@@ -77,7 +86,7 @@ export function planPeriods({ today, provinceCode = 'GP' }) {
   const xmasYear = today > `${year}-12-25` ? year + 1 : year
   periods.push({
     id: 'xmas', kind: 'xmas', title: 'Christmas', subtitle: 'Dec – Jan',
-    from: maxDate(addDays(today, 1), `${xmasYear}-12-15`), to: `${xmasYear + 1}-01-10`, defaultBreaks: 2,
+    from: maxDate(addDays(today, 1), `${xmasYear}-12-15`), to: `${xmasYear + 1}-01-10`,
   })
 
   // Easter: about ten days before Good Friday to two weeks after.
@@ -85,7 +94,7 @@ export function planPeriods({ today, provinceCode = 'GP' }) {
   if (goodFriday) {
     const from = maxDate(addDays(today, 1), addDays(goodFriday, -10))
     const to = addDays(goodFriday, 14)
-    periods.push({ id: 'easter', kind: 'easter', title: 'Easter', subtitle: fmtShortRange(from, to), from, to, defaultBreaks: 1 })
+    periods.push({ id: 'easter', kind: 'easter', title: 'Easter', subtitle: fmtShortRange(from, to), from, to })
   }
 
   // School holidays: the next (or current) one for the province.
@@ -94,7 +103,7 @@ export function planPeriods({ today, provinceCode = 'GP' }) {
     const from = maxDate(addDays(today, 1), school.start)
     periods.push({
       id: 'school', kind: 'school', title: 'School holidays', subtitle: `${provinceLabel(provinceCode)} · ${fmtShortRange(from, school.end)}`,
-      from, to: school.end, defaultBreaks: 2,
+      from, to: school.end,
     })
   }
 
@@ -102,10 +111,10 @@ export function planPeriods({ today, provinceCode = 'GP' }) {
   const monthSpan = (from, to) => `${MONTHS[Number(from.slice(5, 7)) - 1]} – ${MONTHS[Number(to.slice(5, 7)) - 1]}`
   const three = monthsAhead(start, 3)
   const six = monthsAhead(start, 6)
-  periods.push({ id: 'three', kind: 'three', title: 'Next 3 months', subtitle: monthSpan(start, three), from: start, to: three, defaultBreaks: 3 })
-  periods.push({ id: 'six', kind: 'six', title: 'Next 6 months', subtitle: monthSpan(start, six), from: start, to: six, defaultBreaks: 3 })
-  periods.push({ id: 'rest', kind: 'rest', title: 'Rest of the year', subtitle: `until 31 Dec`, from: start, to: `${year}-12-31`, defaultBreaks: 3 })
-  periods.push({ id: 'year', kind: 'year', title: String(year + 1), subtitle: 'Jan – Dec', from: `${year + 1}-01-01`, to: `${year + 1}-12-31`, defaultBreaks: 3 })
+  periods.push({ id: 'three', kind: 'three', title: 'Next 3 months', subtitle: monthSpan(start, three), from: start, to: three })
+  periods.push({ id: 'six', kind: 'six', title: 'Next 6 months', subtitle: monthSpan(start, six), from: start, to: six })
+  periods.push({ id: 'rest', kind: 'rest', title: 'Rest of the year', subtitle: `until 31 Dec`, from: start, to: `${year}-12-31` })
+  periods.push({ id: 'year', kind: 'year', title: String(year + 1), subtitle: 'Jan – Dec', from: `${year + 1}-01-01`, to: `${year + 1}-12-31` })
 
   return periods.filter(p => p.from <= p.to)
 }
@@ -253,7 +262,7 @@ export function planLeave({ from, to, leave, maxBreaks = null, avoidMonths = new
   return picked.reverse()
 }
 
-const planKey = breaks => breaks.map(b => `${b.startDate}|${b.leaveDays}`).join(',')
+export const planKey = breaks => breaks.map(b => `${b.startDate}|${b.leaveDays}`).join(',')
 
 /**
  * Plans for every "How many breaks?" choice, and which choices add nothing
@@ -273,6 +282,25 @@ export function planAllChoices(options) {
 }
 
 /**
+ * The three goals from planAllChoices(): each one's plan, and whether it adds
+ * nothing over the simpler goal (Mix over Longest, Maximise over Mix), so it
+ * can be greyed out.
+ *
+ * Returns { max, mix, long }, each { breaks, same }.
+ */
+export function planGoals(choices) {
+  const byChoice = new Map(choices.map(c => [c.choice, c.breaks]))
+  const long = byChoice.get(1)
+  const mix = byChoice.get(3)
+  const max = byChoice.get(null)
+  return {
+    long: { breaks: long, same: false },
+    mix: { breaks: mix, same: planKey(mix) === planKey(long) },
+    max: { breaks: max, same: planKey(max) === planKey(mix) },
+  }
+}
+
+/**
  * Other start dates for brk that give the same days off and still sit inside
  * [from, to], in date order including brk itself (at most `limit`).
  */
@@ -282,6 +310,13 @@ export function equalStartsWithin(brk, from, to, limit = 4) {
   const i = options.findIndex(b => b.startDate === brk.startDate)
   const start = Math.max(0, Math.min(i - 1, options.length - limit))
   return options.slice(start, start + limit)
+}
+
+/** Totals for a plan: { breaks, leave, daysOff, multiplier }. */
+export function summarise(breaks) {
+  const leave = breaks.reduce((t, b) => t + b.leaveDays, 0)
+  const daysOff = breaks.reduce((t, b) => t + b.daysOff, 0)
+  return { breaks: breaks.length, leave, daysOff, multiplier: leave ? daysOff / leave : 0 }
 }
 
 /** What a break is built around, e.g. "Christmas & New Year's Day", or "Long weekend". */

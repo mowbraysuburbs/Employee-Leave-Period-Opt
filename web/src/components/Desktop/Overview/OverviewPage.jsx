@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { PeriodList } from './PeriodList'
 import { LeaveControl } from './LeaveControl'
-import { BreakChoice } from './BreakChoice'
+import { GoalChoice } from './GoalChoice'
+import { PlanMonths } from './PlanMonths'
 import { MoreOptions } from './MoreOptions'
 import { PlannerResults } from './PlannerResults'
 import { CustomDates } from './CustomDates'
@@ -23,6 +24,8 @@ import { EventsComingSoon } from '../EventsComingSoon'
 export function OverviewPage({ planner, isSaved, onAdd, onExport, onView, province, onProvinceChange }) {
   const [showEvents, setShowEvents] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
+  // The break whose table row is hovered, highlighted in the calendar column.
+  const [hovered, setHovered] = useState(null)
   const { period } = planner
 
   function select(id) {
@@ -37,30 +40,46 @@ export function OverviewPage({ planner, isSaved, onAdd, onExport, onView, provin
         <p className="m-0 mt-1.5 text-[15px] text-slate-600">Pick a period, how many leave days, and how many breaks.</p>
       </section>
 
-      <div className="flex flex-wrap gap-[18px] items-start">
-        <PeriodList periods={planner.periods} selectedId={showEvents ? 'events' : period.id} onSelect={select} />
+      {/* On wide screens the planner is one screen tall and each column scrolls on its own. */}
+      <div className="flex flex-wrap gap-[18px] items-start lg:flex-nowrap lg:items-stretch lg:h-[calc(100vh-214px)] lg:min-h-[520px]">
+        <PeriodList periods={planner.periods} cardStats={planner.cardStats} selectedId={showEvents ? 'events' : period.id} onSelect={select} />
         {showEvents ? <EventsComingSoon /> : (
-          <article aria-label={`Plan: ${period.title}`} className="relative overflow-hidden flex-[999_1_520px] min-w-0 rounded-[20px] shadow-sm bg-white">
-            <div className={`relative px-[22px] py-4 flex flex-wrap items-start gap-x-8 gap-y-4 border-b border-slate-100 ${STRIP_THEMES[period.kind]}`}>
+          <article aria-label={`Plan: ${period.title}`} className="relative overflow-hidden flex-[999_1_520px] min-w-0 rounded-[20px] shadow-sm bg-white flex flex-col">
+            <div className={`relative px-[22px] py-3 flex flex-col gap-2 border-b border-slate-100 ${STRIP_THEMES[period.kind]}`}>
               <PlanTheme kind={period.kind} />
               {period.id === 'custom' && <CustomDates value={planner.custom} onChange={planner.setCustom} />}
-              <div className="relative z-10"><LeaveControl value={planner.leave} max={planner.maxLeave} onChange={planner.setLeave} idPrefix="planner" /></div>
-              <div className="relative z-10"><BreakChoice choices={planner.choices} value={planner.breakChoice} onChange={planner.setBreakChoice} /></div>
-              <button
-                type="button"
-                aria-expanded={moreOpen}
-                onClick={() => setMoreOpen(o => !o)}
-                className="relative z-10 ml-auto h-9 px-3 rounded-xl border border-slate-300 bg-white text-[13px] font-extrabold whitespace-nowrap"
-              >
-                More options {moreOpen ? '▴' : '▾'}
-                {planner.moreCount > 0 && <span className="ml-1.5 px-1.5 rounded-md bg-sky-700 text-white text-[11px]">{planner.moreCount}</span>}
-              </button>
+              {/* Step 2 with Advanced options on the right, then step 3 with the gap rule after it. */}
+              <div className="relative z-10 flex items-center gap-3">
+                <LeaveControl value={planner.leave} max={planner.maxLeave} onChange={planner.setLeave} idPrefix="planner" />
+                <button
+                  type="button"
+                  aria-expanded={moreOpen}
+                  onClick={() => setMoreOpen(o => !o)}
+                  className="ml-auto self-start h-8 px-3 rounded-xl border border-slate-300 bg-white text-[13px] font-extrabold whitespace-nowrap"
+                >
+                  Advanced options {moreOpen ? '▴' : '▾'}
+                  {planner.moreCount > 0 && <span className="ml-1.5 px-1.5 rounded-md bg-sky-700 text-white text-[11px]">{planner.moreCount}</span>}
+                </button>
+              </div>
+              <div className="relative z-10 flex flex-wrap items-center gap-x-3 gap-y-1">
+                <GoalChoice goals={planner.goals} value={planner.goal} onChange={planner.setGoal} />
+                <span className="text-[11px] text-slate-600" title="Hover a choice to see its result">↔ Breaks ≥ one working week apart</span>
+              </div>
             </div>
             {moreOpen && <MoreOptions planner={planner} province={province} onProvinceChange={onProvinceChange} />}
-            <div className="px-[22px] py-5">
-              <PlannerResults planner={planner} isSaved={isSaved} onAdd={onAdd} onExport={onExport} onView={onView} />
+            <div className="px-[22px] py-4 flex-1 min-h-0 flex flex-col">
+              <PlannerResults planner={planner} isSaved={isSaved} onAdd={onAdd} onExport={onExport} onView={onView} onHover={setHovered} />
             </div>
           </article>
+        )}
+        {!showEvents && planner.breaks.length > 0 && (
+          <PlanMonths
+            period={period}
+            breaks={planner.breaks}
+            ticked={planner.ticked}
+            highlight={hovered}
+            onOpen={() => onView(planner.breaks.filter(b => planner.ticked.has(b.startDate)))}
+          />
         )}
       </div>
     </>

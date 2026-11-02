@@ -19,7 +19,7 @@ import { PreviewBanner } from '../Desktop/PreviewBanner'
 import { MobileOverview } from './MobileOverview'
 import { EventsComingSoon } from '../Desktop/EventsComingSoon'
 import { HolidaysList } from '../Features/HolidaysList'
-import { useLeavePlanner, MAX_LEAVE } from '../../hooks/useLeavePlanner'
+import { useLeavePlanner } from '../../hooks/useLeavePlanner'
 import { summariseBreaks } from '../../utils/breaks'
 
 /**
@@ -28,9 +28,9 @@ import { summariseBreaks } from '../../utils/breaks'
  * as sheets from the bottom.
  */
 export function MobileApp() {
-  const p = useLeavePlanner()
-  const [page, setPage] = useState('calendar')
   const settings = useSettings()
+  const p = useLeavePlanner({ leaveLimit: settings.leaveTotal, onLeaveLimitChange: settings.setLeaveTotal })
+  const [page, setPage] = useState('calendar')
   const { showWelcome, closeWelcome, replayWelcome } = useWelcome()
   // Which bottom sheet is open: 'day' | 'filters' | 'summary' | 'settings' | 'help' | null.
   const [sheet, setSheet] = useState(null)
@@ -114,7 +114,9 @@ export function MobileApp() {
             onToggleDaysOff={p.toggleDaysOff}
             onClearDaysOff={p.clearDaysOff}
             leaveDays={p.leaveDays}
-            maxLeave={MAX_LEAVE}
+            maxLeave={p.controls.maxLeave}
+            leaveLeft={p.leaveLeft}
+            leaveLimit={p.leaveLimit}
             onLeaveDaysChange={p.changeLeaveDays}
             savedCount={p.saved.length}
             savedDaysOff={summariseBreaks(p.savedBreaks).daysOff}

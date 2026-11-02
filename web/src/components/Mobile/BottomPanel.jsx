@@ -7,6 +7,7 @@
  *   colourBy, onColourByChange – 'daysOff' (Total days) | 'multiplier' (Multiplier)
  *   legend, filterable, daysOffFilter, onToggleDaysOff, onClearDaysOff
  *   leaveDays, maxLeave, onLeaveDaysChange
+ *   leaveLeft, leaveLimit – "5 of 10 left" under Leave (tap to change the limit in Filters)
  *   savedCount, savedDaysOff, savedLeave – totals for the My breaks button
  *   onOpenFilters, onOpenSummary
  *   activeCount  – how many filters are on (badge on the Filters button)
@@ -22,6 +23,8 @@ export function BottomPanel({
   leaveDays,
   maxLeave,
   onLeaveDaysChange,
+  leaveLeft,
+  leaveLimit,
   savedCount,
   savedDaysOff,
   savedLeave,
@@ -73,7 +76,10 @@ export function BottomPanel({
 
       <div className="flex items-center gap-2">
         <div data-tour="leave" className="flex-1 min-w-0 h-[46px] pl-3 pr-1.5 rounded-full bg-slate-100 flex items-center justify-between">
-          <span className="text-[13px] font-bold">Leave</span>
+          <button type="button" onClick={onOpenFilters} aria-label={`Leave: ${leaveLeft} of ${leaveLimit} left. Change your limit`} className="flex flex-col items-start leading-tight text-left">
+            <span className="text-[13px] font-bold">Leave</span>
+            <span className={`text-[10.5px] font-bold ${leaveLeft === 0 ? 'text-amber-700' : 'text-sky-700'}`}>{leaveLeft} of {leaveLimit} left</span>
+          </button>
           <div className="flex items-center gap-1.5">
             <button type="button" aria-label="Fewer leave days" disabled={leaveDays <= 1} onClick={() => onLeaveDaysChange(leaveDays - 1)} className="w-[34px] h-[34px] rounded-full bg-white shadow-sm text-lg font-semibold disabled:opacity-40">−</button>
             <span aria-live="polite" className="w-7 text-center text-[22px] font-extrabold">{leaveDays}</span>

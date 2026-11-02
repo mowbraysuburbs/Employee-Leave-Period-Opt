@@ -3,11 +3,12 @@ import { useSavedBreaks } from '../components/Desktop/useSavedBreaks'
 import { buildBreak, buildBreaksInRange, breakKey, hasGain, toCalendarEvent, findEqualStarts, breaksOverlap, combineBreaks, withBreakMerged } from '../utils/breaks'
 import { schoolBreaksFor, provinceLabel } from '../utils/plans'
 import { usePlanner } from './usePlanner'
+import { MAX_LEAVE } from '../utils/planner'
 import { buildIcs, downloadIcs } from '../utils/calendarExport'
 import { getColourForDaysOff, getColourForMultiplier, multiplierBucket } from '../utils/colorScale'
 import { fmtDay, fmtShortYear, addDays } from '../utils/dateFormat'
 
-export const MAX_LEAVE = 10
+export { MAX_LEAVE }
 const LAST_DATE = '2028-01-01'
 
 function localToday() {
@@ -34,8 +35,12 @@ function monthsBetween(from, to) {
  * Everything the desktop and mobile apps share: leave days, the date period,
  * filters, the break shown in Details, saved breaks and the Overview plans.
  * Layout-only state (pages, tabs, hover, sheets) stays in each app.
+ *
+ * Args: { leaveLimit, onLeaveLimitChange } – the most leave days the user has
+ * to spend in total (from settings); what's left after the Summary caps the
+ * leave days for one break.
  */
-export function useLeavePlanner() {
+export function useLeavePlanner({ leaveLimit = MAX_LEAVE, onLeaveLimitChange = () => {} } = {}) {
   const [leaveDays, setLeaveDays] = useState(3)
   const [colourBy, setColourBy] = useState('daysOff')
   // One date period, shared by Overview and Calendar.
@@ -59,11 +64,18 @@ export function useLeavePlanner() {
   const [justAddedKey, setJustAddedKey] = useState(null)
   const { saved, remove, replaceAll } = useSavedBreaks()
 
+  // Leave left = your limit minus the leave in your Summary. It caps the leave
+  // days for one break, so the calendar always shows what you can still take.
+  const leaveInSummary = saved.reduce((t, s) => t + s.leaveDays, 0)
+  const leaveLeft = Math.max(0, leaveLimit - leaveInSummary)
+  const maxPerBreak = Math.max(1, Math.min(MAX_LEAVE, leaveLeft))
+  const leaveDaysUsed = Math.min(leaveDays, maxPerBreak)
+
   const months = useMemo(() => monthsBetween(from, to), [from, to])
   // Multiplier mode colours each day by its best deal using up to leaveDays.
   const breaks = useMemo(
-    () => buildBreaksInRange(from, to, leaveDays, { best: colourBy === 'multiplier' }),
-    [from, to, leaveDays, colourBy]
+    () => buildBreaksInRange(from, to, leaveDaysUsed, { best: colourBy === 'multiplier' }),
+    [from, to, leaveDaysUsed, colourBy]
   )
   // The guided tour taps this date as its example: the longest break in the
   // first month (earliest on a tie).
@@ -115,8 +127,8 @@ export function useLeavePlanner() {
     : null
   // Equal alternatives next to it, shown as day icons in Details.
   const equalStarts = useMemo(() => (detailBreak ? findEqualStarts(detailBreak) : null), [detailBreak])
-  const bestNote = colourBy === 'multiplier' && detailBreak && !pinned && !showingPreview && detailBreak.leaveDays < leaveDays
-    ? `Best value: uses ${detailBreak.leaveDays} of your ${leaveDays} leave days`
+  const bestNote = colourBy === 'multiplier' && detailBreak && !pinned && !showingPreview && detailBreak.leaveDays < leaveDaysUsed
+    ? `Best value: uses ${detailBreak.leaveDays} of your ${leaveDaysUsed} leave days`
     : null
 
   // Each holiday in the period once, for the filter menu.
@@ -244,9 +256,15 @@ export function useLeavePlanner() {
 
   // The calendar controls as one object, for the desktop rail and the mobile Filters sheet.
   const controls = {
-    leaveDays,
-    maxLeave: MAX_LEAVE,
+    leaveDays: leaveDaysUsed,
+    maxLeave: maxPerBreak,
     onLeaveDaysChange: changeLeaveDays,
+    // Set higher than the leave left, so the calendar uses the leave left instead.
+    leaveCapped: leaveDays > maxPerBreak,
+    leaveLimit,
+    leaveLeft,
+    leaveInSummary,
+    onLeaveLimitChange,
     colourBy,
     onColourByChange: setColourBy,
     legend,
@@ -272,7 +290,7 @@ export function useLeavePlanner() {
 
   return {
     controls, activeFilters, clearAllFilters,
-    leaveDays, changeLeaveDays, colourBy, setColourBy, period,
+    leaveDays: leaveDaysUsed, changeLeaveDays, colourBy, setColourBy, period, leaveLimit, leaveLeft, leaveInSummary,
     holidayFilter, setHolidayFilter, holidayOptions, picksOnly, setPicksOnly,
     daysOffFilter, toggleDaysOff, clearDaysOff: () => setDaysOffFilter([]), activeDaysOff, legend,
     province, setProvince, schoolOn, setSchoolOn, schoolDates,

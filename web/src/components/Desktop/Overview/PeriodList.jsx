@@ -1,7 +1,23 @@
 import { PlanIcon } from './PlanIcon'
 import { PERIOD_THEMES } from './periodThemes'
+import { StatTile } from '../StatTile'
+import { StepHeading } from './StepHeading'
+import { formatMultiplier } from '../../../utils/breaks'
 
-function PeriodCard({ id, kind, title, subtitle, selected, onSelect }) {
+// The card's plan at a glance, in a 2×2 grid of the calendar's stat tiles.
+function CardStats({ stats }) {
+  if (!stats || stats.breaks === 0) return null
+  return (
+    <span className="shrink-0 grid grid-cols-2 gap-[3px]" aria-label={`${stats.breaks} breaks, ${stats.leave} leave days, ${stats.daysOff} days off, ${formatMultiplier(stats.multiplier)} multiplier`}>
+      <StatTile tiny kind="breaks" value={stats.breaks} title="Breaks" />
+      <StatTile tiny kind="leave" value={stats.leave} title="Leave days used" />
+      <StatTile tiny kind="total" value={stats.daysOff} title="Days off" />
+      <StatTile tiny kind="multiplier" value={formatMultiplier(stats.multiplier)} title="Multiplier" />
+    </span>
+  )
+}
+
+function PeriodCard({ id, kind, title, subtitle, stats, selected, onSelect }) {
   return (
     <button
       type="button"
@@ -18,6 +34,7 @@ function PeriodCard({ id, kind, title, subtitle, selected, onSelect }) {
         <span className="text-sm font-extrabold truncate">{title}</span>
         <span className="text-xs text-slate-600 truncate">{subtitle}</span>
       </span>
+      <CardStats stats={stats} />
     </button>
   )
 }
@@ -30,15 +47,16 @@ function PeriodCard({ id, kind, title, subtitle, selected, onSelect }) {
  *   periods            – planPeriods() result
  *   selectedId         – 'custom', a period id, or 'events'
  *   onSelect           – (id) => void
+ *   cardStats          – { [periodId]: { breaks, leave, daysOff, multiplier } }
  */
-export function PeriodList({ periods, selectedId, onSelect }) {
+export function PeriodList({ periods, selectedId, onSelect, cardStats }) {
   return (
-    <nav aria-label="Leave periods" className="flex-[1_1_280px] max-w-[320px] min-w-0 flex flex-col gap-1.5">
-      <h2 className="m-0 mb-0.5 text-xs font-extrabold text-slate-500 uppercase tracking-wide">1 · Pick a leave period</h2>
+    <nav aria-label="Leave periods" className="flex-[1_1_300px] max-w-[330px] min-w-0 flex flex-col gap-1.5 lg:h-full lg:overflow-y-auto lg:pr-1 lg:pb-2 [&>*]:shrink-0">
+      <div className="mb-1"><StepHeading number={1}>Pick a leave period</StepHeading></div>
       <PeriodCard id="custom" kind="custom" title="Custom" subtitle="Choose your first and last day" selected={selectedId === 'custom'} onSelect={onSelect} />
       <span className="ml-1 text-[11px] font-bold text-slate-400">or pick one</span>
       {periods.map(p => (
-        <PeriodCard key={p.id} {...p} selected={p.id === selectedId} onSelect={onSelect} />
+        <PeriodCard key={p.id} {...p} stats={cardStats[p.id]} selected={p.id === selectedId} onSelect={onSelect} />
       ))}
       <button
         type="button"

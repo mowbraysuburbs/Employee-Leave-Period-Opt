@@ -39,6 +39,17 @@ function CalendarIcon({ size }) {
   )
 }
 
+function SuitcaseIcon({ size }) {
+  return (
+    <svg width={size} height={size} {...svgProps}>
+      <rect x="4" y="7" width="16" height="13" rx="2" />
+      <path d="M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7" />
+      <line x1="9" y1="11" x2="9" y2="16" />
+      <line x1="15" y1="11" x2="15" y2="16" />
+    </svg>
+  )
+}
+
 function TrendUpIcon({ size }) {
   return (
     <svg width={size} height={size} {...svgProps}>
@@ -56,6 +67,7 @@ const KINDS = {
   free: { className: 'bg-green-100 text-green-800', Icon: GiftIcon },
   total: { className: 'bg-indigo-100 text-indigo-800', Icon: CalendarIcon },
   multiplier: { className: 'bg-amber-100 text-amber-800', Icon: TrendUpIcon, small: true },
+  breaks: { className: 'bg-slate-100 text-slate-700', Icon: SuitcaseIcon },
 }
 
 /**
@@ -64,9 +76,19 @@ const KINDS = {
  *   value   – shown in the tile (number or text)
  *   label   – optional text after the value (used by the key, not the card)
  *   caption – optional word under the value (the Details stats)
+ *   tiny    – small chip for the Overview period cards
+ *   title   – tooltip / accessible description
  */
-export function StatTile({ kind, value, label, caption }) {
+export function StatTile({ kind, value, label, caption, tiny = false, title }) {
   const { className, Icon, small } = KINDS[kind]
+  if (tiny) {
+    return (
+      <span title={title} className={`inline-flex items-center gap-[3px] h-[19px] px-1.5 rounded-md text-[11px] font-extrabold ${className}`}>
+        <Icon size={10} />
+        {value}
+      </span>
+    )
+  }
   if (caption) {
     return (
       <div className={`flex flex-col items-center gap-px rounded-[10px] px-2 py-1.5 ${className}`}>

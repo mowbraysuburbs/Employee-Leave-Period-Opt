@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
+import { MAX_LEAVE } from '../utils/planner'
 
 const STORAGE_KEY = 'stretchmyleave.settings'
-const DEFAULTS = { theme: 'light', calendarSize: 'compact', leaveTotal: 21 }
+const DEFAULTS = { theme: 'light', calendarSize: 'compact', leaveTotal: MAX_LEAVE }
 
 function load() {
   try {
@@ -9,7 +10,8 @@ function load() {
     return {
       theme: parsed.theme === 'dark' ? 'dark' : DEFAULTS.theme,
       calendarSize: parsed.calendarSize === 'large' ? 'large' : DEFAULTS.calendarSize,
-      leaveTotal: Number.isInteger(parsed.leaveTotal) && parsed.leaveTotal > 0 ? parsed.leaveTotal : DEFAULTS.leaveTotal,
+      // Your leave limit: 1 to 10 (older saves of up to 21 come back as 10).
+      leaveTotal: Number.isInteger(parsed.leaveTotal) && parsed.leaveTotal > 0 ? Math.min(parsed.leaveTotal, MAX_LEAVE) : DEFAULTS.leaveTotal,
     }
   } catch {
     return DEFAULTS
