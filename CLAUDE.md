@@ -31,18 +31,21 @@ A mobile-first React web app for South African employees to find optimal leave p
 src/
   components/
     Desktop/      # Desktop layout (≥640px): year calendar, hover card, break details, My breaks
-      Overview/   # Landing page: plan list (left) + themed plan details with tick boxes (right)
+      Overview/   # Landing page: 3-step planner (leave period list left; leave days, breaks, results right)
       Rail/       # Calendar control rail (expanded / collapsed to icons)
     Mobile/       # Phone layout (<640px): calendar, bottom panel, day / Filters / My breaks sheets
     Features/     # HolidaysList (used by both layouts)
   hooks/
     useLeavePlanner.js  # Planning state shared by DesktopApp and MobileApp
+    usePlanner.js       # Overview planner settings and results
   data/
     publicHolidays.js   # Hardcoded SA public holidays 2025–2026
     schoolHolidays.js   # SA school term breaks by province
   utils/
     leaveCalculator.js  # Core algorithm — JS port of the Python notebook
     breaks.js           # Break building, equal starts, combining overlaps
+    planner.js          # Overview planner: leave periods + best breaks (DP, breaks ≥ one working week apart)
+    plans.js            # School-holiday helpers
     calendarDays.js     # Day cells (colours, bands) for both calendars
     colorScale.js       # Maps days-off count → distinct colour
     shareCard.js        # Canvas share image + Web Share (kept for the parked Share feature)

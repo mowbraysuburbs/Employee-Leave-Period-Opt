@@ -34,8 +34,8 @@ function initialRailCollapsed() {
 
 export function DesktopApp() {
   const {
-    controls, activeFilters, clearAllFilters, period, colourBy, holidayFilter, picksOnly, setPicksOnly, activeDaysOff, province, setProvince, schoolDates,
-    months, breaks, demoDate, plans, selectedPlan, setSelectedPlanId, eventsSelected, ticked, toggleTick, toggleAllTicks, exportBreaks,
+    controls, activeFilters, clearAllFilters, colourBy, holidayFilter, picksOnly, setPicksOnly, activeDaysOff, province, setProvince, schoolDates,
+    months, breaks, demoDate, planner, exportBreaks,
     preview, setPreview, previewOnly, previewDays, previewLabel, openPreview,
     saved, savedBreaks, savedDayTypes, savedStarts, isSaved, justAddedKey,
     detailBreak, bestNote, equalStarts, overlaps, combined,
@@ -170,20 +170,13 @@ export function DesktopApp() {
       <main className="max-w-[1320px] mx-auto px-6 pt-6 pb-10 flex flex-col gap-4">
         {page === 'overview' && (
           <OverviewPage
-            plans={plans}
-            selectedPlan={selectedPlan}
-            onSelect={setSelectedPlanId}
-            period={period}
-            ticked={ticked}
-            onToggle={toggleTick}
-            onToggleAll={toggleAllTicks}
+            planner={planner}
             isSaved={isSaved}
             onAdd={addBreaks}
             onExport={exportBreaks}
             onView={viewOnCalendar}
             province={province}
             onProvinceChange={setProvince}
-            eventsSelected={eventsSelected}
           />
         )}
 

@@ -11,7 +11,7 @@ const heading = 'm-0 text-[13px] font-extrabold text-slate-900 uppercase trackin
  */
 export function HowItWorks({ phone = false, onReplay }) {
   const tips = [
-    'Overview has ready-made plans (Up next, Christmas, Easter…) based on 10 leave days.',
+    'Overview plans your leave: pick a period (Up next, Christmas, Easter or your own dates), your leave days and how many breaks.',
     'Tap the days-off chips to show only those dates.',
     phone ? 'Settings (⚙): make the calendar Compact, or switch to Dark.' : 'Use the moon button for dark mode.',
     'Your breaks are saved on this device.',

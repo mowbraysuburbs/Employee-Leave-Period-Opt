@@ -1,70 +1,75 @@
-import { PlanDetails } from '../Desktop/Overview/PlanDetails'
+import { useState } from 'react'
 import { PlanIcon } from '../Desktop/Overview/PlanIcon'
-import { ProvincePicker } from '../Desktop/ProvincePicker'
+import { LeaveControl } from '../Desktop/Overview/LeaveControl'
+import { BreakChoice } from '../Desktop/Overview/BreakChoice'
+import { MoreOptions } from '../Desktop/Overview/MoreOptions'
+import { PlannerResults } from '../Desktop/Overview/PlannerResults'
+import { CustomDates } from '../Desktop/Overview/CustomDates'
+import { PERIOD_THEMES, STRIP_THEMES } from '../Desktop/Overview/periodThemes'
+import { BottomSheet } from './BottomSheet'
 
-// Short labels for the icon strip; year plans show just their year.
-function shortLabel(plan) {
-  const labels = { next: 'Up next', three: '3 months', xmas: 'Christmas', easter: 'Easter', school: 'School', trip: 'Big trip' }
-  return labels[plan.kind] ?? plan.title.match(/\d{4}/)?.[0] ?? plan.title
-}
+// Short labels for the period strip.
+const SHORT = { custom: 'Custom', next: 'Up next', xmas: 'Christmas', easter: 'Easter', school: 'School', three: '3 months', six: '6 months', rest: 'This year' }
 
 /**
- * The phone Overview: the selected plan's details fill the screen, and a
- * strip of plan icons sits above the bottom tabs (within thumb reach) to
- * switch plans with one tap, so the details never need a long scroll.
+ * The phone Overview: the planner's settings in a card at the top, the plan
+ * underneath (only the breaks scroll), and a strip of colourful leave periods
+ * above the bottom tabs, within thumb reach. More options opens as a sheet.
  *
- * Props: the same plan props as OverviewPage.
+ * Props: the same as OverviewPage.
  */
-export function MobileOverview({ plans, selectedPlan, onSelect, ticked, onToggle, onToggleAll, isSaved, onAdd, onExport, onView, province, onProvinceChange }) {
-  if (plans.length === 0) {
-    return (
-      <main className="flex-1 min-h-0 p-4">
-        <div className="p-5 border-[1.5px] border-dashed border-slate-300 rounded-2xl text-sm text-slate-600 text-center">
-          No public or school holidays fall in this period. Try widening the dates.
-        </div>
-      </main>
-    )
-  }
-
-  const chosen = selectedPlan ? selectedPlan.breaks.filter(b => ticked.has(b.startDate)) : []
+export function MobileOverview({ planner, isSaved, onAdd, onExport, onView, province, onProvinceChange }) {
+  const [moreOpen, setMoreOpen] = useState(false)
+  const { period } = planner
+  const strip = [{ id: 'custom', kind: 'custom', title: 'Custom' }, ...planner.periods]
 
   return (
     <>
-      <main className="flex-1 min-h-0 p-3 flex flex-col">
-        {selectedPlan && (
-          <PlanDetails
-            phone
-            plan={selectedPlan}
-            ticked={ticked}
-            onToggle={onToggle}
-            onToggleAll={onToggleAll}
-            allSaved={chosen.length > 0 && chosen.every(isSaved)}
-            onAdd={onAdd}
-            onExport={onExport}
-            onView={onView}
-            topSlot={selectedPlan.kind === 'school' ? <ProvincePicker compact id="phone-overview-province" value={province} onChange={onProvinceChange} /> : null}
-          />
-        )}
+      <main className="flex-1 min-h-0 p-3 flex flex-col gap-2.5">
+        <section aria-label="Plan settings" className={`shrink-0 rounded-2xl p-3 flex flex-col gap-2.5 ${STRIP_THEMES[period.kind]}`}>
+          <div className="flex items-center justify-between gap-2">
+            <h1 className="m-0 text-base font-extrabold truncate">{period.title}</h1>
+            <button type="button" onClick={() => setMoreOpen(true)} className="shrink-0 text-[13px] font-bold text-sky-700">
+              More options ▾{planner.moreCount > 0 && <span className="ml-1 px-1.5 rounded-md bg-sky-700 text-white text-[11px]">{planner.moreCount}</span>}
+            </button>
+          </div>
+          {period.id === 'custom' && <CustomDates phone value={planner.custom} onChange={planner.setCustom} />}
+          <LeaveControl phone value={planner.leave} max={planner.maxLeave} onChange={planner.setLeave} idPrefix="phone-planner" />
+          <BreakChoice phone choices={planner.choices} value={planner.breakChoice} onChange={planner.setBreakChoice} />
+        </section>
+
+        <section aria-label="Your plan" className="flex-1 min-h-0 rounded-2xl bg-white shadow-sm p-3 flex flex-col">
+          <PlannerResults phone planner={planner} isSaved={isSaved} onAdd={onAdd} onExport={onExport} onView={onView} />
+        </section>
       </main>
 
-      <nav aria-label="Plans" className="shrink-0 flex gap-1 overflow-x-auto px-2 pt-2 pb-1.5 bg-white border-t border-slate-200 [scrollbar-width:none]">
-        {plans.map(plan => {
-          const on = plan.id === selectedPlan?.id
+      <nav aria-label="Leave periods" className="shrink-0 flex gap-1 overflow-x-auto px-2 pt-2 pb-1.5 bg-white border-t border-slate-200 [scrollbar-width:none]">
+        {strip.map(p => {
+          const on = p.id === period.id
           return (
             <button
-              key={plan.id}
+              key={p.id}
               type="button"
-              aria-label={plan.title}
+              aria-label={p.title}
               aria-pressed={on}
-              onClick={() => onSelect(plan.id)}
-              className={`shrink-0 w-[66px] pt-1 pb-0.5 rounded-xl border-2 flex flex-col items-center gap-0.5 ${on ? 'border-sky-700 bg-sky-50 text-sky-800' : 'border-transparent text-slate-700'}`}
+              onClick={() => planner.selectPeriod(p.id)}
+              className={`shrink-0 w-[64px] pt-1 pb-0.5 rounded-xl border-2 flex flex-col items-center gap-0.5 ${on ? `border-slate-900 ${PERIOD_THEMES[p.kind]}` : 'border-transparent text-slate-700'}`}
             >
-              <PlanIcon kind={plan.kind} size={32} />
-              <span className="text-[10px] font-bold whitespace-nowrap">{shortLabel(plan)}</span>
+              <PlanIcon kind={p.kind} size={30} />
+              <span className="text-[10px] font-bold whitespace-nowrap">{SHORT[p.kind] ?? p.title}</span>
             </button>
           )
         })}
       </nav>
+
+      {moreOpen && (
+        <BottomSheet label="More options" title="More options" backdrop onClose={() => setMoreOpen(false)}>
+          <div className="px-4 pb-4 flex flex-col gap-4">
+            <MoreOptions phone planner={planner} province={province} onProvinceChange={onProvinceChange} />
+            <button type="button" onClick={() => setMoreOpen(false)} className="h-12 rounded-2xl bg-slate-900 text-white text-[15px] font-bold">Show results</button>
+          </div>
+        </BottomSheet>
+      )}
     </>
   )
 }
