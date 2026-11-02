@@ -16,7 +16,6 @@ import { BreakDetailHead } from './BreakDetailHead'
 import { LeaveBar } from './LeaveBar'
 import { MyBreaksPanel } from './MyBreaksPanel'
 import { PreviewBanner } from './PreviewBanner'
-import { ActiveFiltersBar } from './ActiveFiltersBar'
 import { OverviewPage } from './Overview/OverviewPage'
 import { EventsComingSoon } from './EventsComingSoon'
 import { HolidaysList } from '../Features/HolidaysList'
@@ -111,7 +110,6 @@ export function DesktopApp() {
                 onClear={() => setPreview(null)}
               />
             )}
-            <ActiveFiltersBar filters={activeFilters} onClearAll={clearAllFilters} />
             <YearCalendar
               months={months}
               breaks={breaks}
