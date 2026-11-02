@@ -23,7 +23,7 @@ export function AddBreakControls({ isSaved, overlaps, combined, onAdd, onRemove,
   if (isSaved) {
     return (
       <button type="button" onClick={onRemove} className="h-11 rounded-xl bg-white text-red-700 border border-red-300 text-[15px] font-bold">
-        Remove from my breaks
+        Remove from summary
       </button>
     )
   }
@@ -44,7 +44,7 @@ export function AddBreakControls({ isSaved, overlaps, combined, onAdd, onRemove,
         </div>
       )}
 
-      {overlaps.length === 0 && <button type="button" data-tour="add" onClick={onAdd} className={primary}>+ Add to my breaks</button>}
+      {overlaps.length === 0 && <button type="button" data-tour="add" onClick={onAdd} className={primary}>Add to summary</button>}
       {overlaps.length > 0 && !covered && <button type="button" data-tour="add" onClick={onAdd} className={primary}>Combine into one break</button>}
       {overlaps.length > 0 && (
         <button type="button" onClick={onReplace} className={secondary}>

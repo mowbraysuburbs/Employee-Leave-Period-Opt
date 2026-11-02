@@ -38,6 +38,8 @@ export function BreakDetailPanel({ brk, nextBreak, bestNote, label, equalStarts,
 
   return (
     <div className="flex flex-col gap-4">
+      <AddBreakControls isSaved={isSaved} onAdd={onAdd} onRemove={onRemove} {...addProps} />
+
       <div>
         {label && (
           <div className="mb-2 inline-block px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800 text-xs font-bold">Overview plan · {label}</div>
@@ -48,15 +50,13 @@ export function BreakDetailPanel({ brk, nextBreak, bestNote, label, equalStarts,
         )}
       </div>
 
-      <AddBreakControls isSaved={isSaved} onAdd={onAdd} onRemove={onRemove} {...addProps} />
-
-      <StartDateChips options={equalStarts} current={brk.startDate} onPick={onPickStart} />
-
       <div className="grid grid-cols-3 gap-2">
         <Stat value={brk.daysOff} label="days off" />
         <Stat value={brk.leaveDays} label="leave" />
         <Stat value={formatMultiplier(brk.multiplier)} label="multiplier" highlight />
       </div>
+
+      <StartDateChips options={equalStarts} current={brk.startDate} onPick={onPickStart} />
 
       <BreakWeeks brk={brk} />
       <BreakDaysTable brk={brk} />
