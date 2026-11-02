@@ -110,11 +110,11 @@ export function RailExpanded({ c }) {
         <HolidayFilterMenu inline options={c.holidayOptions} selected={c.holidayFilter} onChange={c.onHolidayFilterChange} />
         {c.previewCount > 0 && (
           <button type="button" aria-pressed={c.previewOnly} onClick={() => c.onPreviewOnlyChange(!c.previewOnly)} className={toggle(c.previewOnly)}>
-            Only selected dates ({c.previewCount})
+            Only plan dates ({c.previewCount})
           </button>
         )}
         <button type="button" aria-pressed={c.picksOnly} onClick={() => c.onPicksOnlyChange(!c.picksOnly)} className={toggle(c.picksOnly)}>
-          Only my breaks ({c.savedCount})
+          Selected ({c.savedCount})
         </button>
         <div className="flex gap-1.5">
           <button
