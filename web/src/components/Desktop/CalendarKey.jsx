@@ -79,7 +79,7 @@ export function CalendarKey() {
               <Row marker={<span className="relative w-6 h-6 rounded-full bg-amber-500"><span className="absolute bottom-0.5 left-1/2 -ml-0.5 w-1 h-1 rounded-full bg-slate-900" /></span>}>Dot = public holiday</Row>
               <Row marker={<span className="w-6 h-6 rounded-full bg-transparent text-slate-500 text-xs font-semibold flex items-center justify-center">4</span>}>Not coloured: leave here gets no free days</Row>
               <Row marker={<span className="w-6 h-6 rounded-full bg-teal-500 outline-2 outline-offset-2 outline-sky-600" />}>Today</Row>
-              <Row marker={<span className="w-6 h-6 rounded-full bg-teal-500 shadow-[0_0_0_3px_#0f172a]" />}>First day of a break in your Summary</Row>
+              <Row marker={<span className="w-6 h-6 rounded-full bg-teal-500 saved-glow" />}>Glow = a break in your Summary (its first day pulses)</Row>
               <Row marker={<span className="w-[26px] h-1 rounded-sm bg-green-600" />}>School holiday (when that filter is on)</Row>
             </ul>
           </section>

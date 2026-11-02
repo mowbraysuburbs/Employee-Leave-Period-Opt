@@ -51,6 +51,7 @@ export function MonthCard({ year, month, days, popoverFor, onDayClick, onDayHove
                 d.isHoliday ? 'font-extrabold' : 'font-semibold',
                 d.disabled ? 'cursor-default' : 'cursor-pointer',
                 // Today: a blue outline just outside the cell, separate from the box-shadow rings.
+                d.saved === 'start' ? 'saved-glow-start z-[1]' : d.saved === 'day' ? 'saved-glow z-[1]' : '',
                 d.date === TODAY ? `outline-2 outline-sky-600 z-10 ${compact ? 'outline-offset-1' : 'outline-offset-2'}` : '',
               ].join(' ')}
               style={{ backgroundColor: d.look.bg, color: d.look.fg, boxShadow: d.ring ?? undefined }}

@@ -63,10 +63,10 @@ export function withBand(day, brk, selected = false) {
  * Every month's day cells with their colour, ring, school bar and label.
  *
  * Options: months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes,
- * previewDayTypes, schoolDates, daysOffFilter
+ * savedStarts, previewDayTypes, schoolDates, daysOffFilter
  * (see YearCalendar for what each means).
  */
-export function buildMonthDays({ months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, previewDayTypes, schoolDates, daysOffFilter }) {
+export function buildMonthDays({ months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, schoolDates, daysOffFilter }) {
   const passesFilter = brk => holidayFilter.length === 0 || holidayNamesIn(brk).some(n => holidayFilter.includes(n))
 
   function look(date, brk) {
@@ -78,6 +78,16 @@ export function buildMonthDays({ months, breaks, colourBy, holidayFilter, picksO
     if (!passesFilter(brk)) return FADED
     const bg = colourBy === 'multiplier' ? getColourForMultiplier(brk.multiplier) : getColourForDaysOff(brk.daysOff)
     return { bg, fg: '#0f172a' }
+  }
+
+  // Saved breaks glow (see .saved-glow in index.css); a break's first day
+  // breathes. Off while previewing a plan, and with "Selected" on only the
+  // first days glow, since every coloured day is saved then.
+  function saved(date) {
+    if (previewDayTypes) return null
+    if (savedStarts.has(date)) return 'start'
+    if (!picksOnly && savedDayTypes.has(date)) return 'day'
+    return null
   }
 
   function school(date) {
@@ -99,6 +109,7 @@ export function buildMonthDays({ months, breaks, colourBy, holidayFilter, picksO
         date,
         dayNumber: Number(date.slice(8)),
         look: look(date, brk),
+        saved: saved(date),
         isHoliday: brk?.days[0].type === 'public_holiday',
         disabled: !brk,
         ariaLabel: brk

@@ -102,6 +102,7 @@ export function MobileApp() {
             holidayFilter={p.holidayFilter}
             picksOnly={p.picksOnly}
             savedDayTypes={p.savedDayTypes}
+            savedStarts={p.savedStarts}
             previewDayTypes={p.previewOnly ? p.previewDays.dayTypes : null}
             schoolDates={p.schoolDates}
             daysOffFilter={p.activeDaysOff}
