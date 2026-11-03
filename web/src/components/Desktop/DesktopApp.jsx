@@ -5,7 +5,7 @@ import { ThemeToggle } from './ThemeToggle'
 import { HelpPanel } from './HelpPanel'
 import { HelpButton } from '../Help/HelpButton'
 import { GuidedTour } from '../Help/GuidedTour'
-import { tourSteps, plannerTourSteps } from '../Help/tourSteps'
+import { calendarTourSteps, plannerTourSteps } from '../Help/tourSteps'
 import { useSettings } from '../../hooks/useSettings'
 import { useWelcome } from '../../hooks/useWelcome'
 import { ControlRail } from './Rail/ControlRail'
@@ -52,7 +52,9 @@ export function DesktopApp() {
     detailBreak, bestNote, equalStarts, overlaps, combined,
     selectDay, openBreak, addBreaks, addDetailBreak, replaceOverlaps, removeBreak,
   } = useLeavePlanner({ leaveLimit: leaveTotal, onLeaveLimitChange: setLeaveTotal })
-  const { showWelcome, closeWelcome, replayWelcome } = useWelcome()
+  // Each page has its own first-visit tour.
+  const overviewTour = useWelcome()
+  const calendarTour = useWelcome('stretchmyleave.calendarTourSeen')
   const [helpOpen, setHelpOpen] = useState(false)
   // A first visit opens on the Overview with the planner tour.
   const [page, setPage] = useState('overview')
@@ -91,6 +93,13 @@ export function DesktopApp() {
     try {
       localStorage.setItem(RAIL_KEY, String(next))
     } catch { /* storage unavailable — just don't remember it */ }
+  }
+
+  // The Calendar tour points at both side columns, so it opens them if collapsed.
+  function openColumns() {
+    if (railCollapsed) toggleRail()
+    if (panelCollapsed) setPanel(false)
+    setTab('details')
   }
 
   const railControls = { ...controls, collapsed: railCollapsed, onToggleCollapsed: toggleRail, activeCount: activeFilters.length, onClearAll: clearAllFilters }
@@ -234,17 +243,17 @@ export function DesktopApp() {
         {page === 'holidays' && <HolidaysList months={months} showSchoolHolidays={false} provinceCode="GP" />}
       </main>
       )}
-      {helpOpen && <HelpPanel onClose={() => setHelpOpen(false)} onReplay={() => { setHelpOpen(false); if (!fullScreen) setPage('overview'); replayWelcome() }} />}
+      {helpOpen && <HelpPanel onClose={() => setHelpOpen(false)} onReplay={() => { setHelpOpen(false); if (calendarPage) calendarTour.replayWelcome(); else { setPage('overview'); overviewTour.replayWelcome() } }} />}
       {/* The tour for the page you're on: the planner journey on the Overview, the calendar tour on the Calendar. */}
-      {showWelcome && page === 'overview' && <GuidedTour steps={plannerTourSteps()} onClose={closeWelcome} />}
-      {showWelcome && calendarPage && (
+      {overviewTour.showWelcome && page === 'overview' && <GuidedTour steps={plannerTourSteps(false, { openPanel: () => setPanel(false) })} onClose={overviewTour.closeWelcome} />}
+      {calendarTour.showWelcome && calendarPage && !overviewTour.showWelcome && (
         <GuidedTour
-          steps={tourSteps(false, breaks[demoDate], {
-            reset: () => setTab('details'),
-            showDate: () => { selectDay(demoDate); setTab('details') },
-            showSummary: () => setTab('summary'),
+          steps={calendarTourSteps(breaks[demoDate], {
+            reset: openColumns,
+            showDate: () => { openColumns(); selectDay(demoDate) },
+            showSummary: () => { openColumns(); setTab('summary') },
           })}
-          onClose={() => { closeWelcome(); setTab('details') }}
+          onClose={() => { calendarTour.closeWelcome(); setTab('details') }}
         />
       )}
     </div>

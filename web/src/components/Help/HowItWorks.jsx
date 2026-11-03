@@ -1,4 +1,5 @@
-import { PLAN_STEPS, EXPLORE_STEPS } from './helpSteps'
+import { PLAN_STEPS, EXPLORE_STEPS, EXPLORE_STEPS_DESKTOP } from './helpSteps'
+import { BreakDiagram, OverviewDiagram, CalendarDiagram } from './HelpDiagrams'
 
 const heading = 'm-0 text-[13px] font-extrabold text-slate-900 uppercase tracking-wide'
 
@@ -41,8 +42,11 @@ export function HowItWorks({ phone = false, onReplay }) {
         <strong>The idea:</strong> take leave next to weekends and public holidays, and a few leave days turn into a much longer break.
       </p>
 
+      {!phone && <BreakDiagram />}
       {steps('Plan it (Overview)', PLAN_STEPS)}
-      {steps('Explore it (Calendar)', EXPLORE_STEPS)}
+      {!phone && <OverviewDiagram />}
+      {steps('Explore it (Calendar)', phone ? EXPLORE_STEPS : EXPLORE_STEPS_DESKTOP)}
+      {!phone && <CalendarDiagram />}
 
       <section className="flex flex-col gap-2">
         <h3 className={heading}>Two ways to colour</h3>

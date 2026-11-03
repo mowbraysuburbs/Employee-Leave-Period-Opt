@@ -32,6 +32,7 @@ export function RailExpanded({ c }) {
     <aside aria-label="Calendar controls" className="w-[236px] shrink-0 h-full overflow-y-auto flex flex-col gap-2 pr-1">
       <button
         type="button"
+        data-tour="collapse"
         onClick={c.onToggleCollapsed}
         className="shrink-0 h-7 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs font-bold"
       >
@@ -83,11 +84,11 @@ export function RailExpanded({ c }) {
         )}
       </section>
 
-      <section className={card}>
+      <section data-tour="dates" className={card}>
         <PeriodPicker stacked idPrefix="rail-period" {...c.period} />
       </section>
 
-      <section className={card}>
+      <section data-tour="show" className={card}>
         <div className="text-[13px] font-bold">Show</div>
         <HolidayFilterMenu inline options={c.holidayOptions} selected={c.holidayFilter} onChange={c.onHolidayFilterChange} />
         {c.previewCount > 0 && (

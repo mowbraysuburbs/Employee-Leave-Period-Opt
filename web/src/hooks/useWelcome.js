@@ -2,25 +2,26 @@ import { useState } from 'react'
 
 const STORAGE_KEY = 'stretchmyleave.welcomeSeen'
 
-function seenBefore() {
+function seenBefore(key) {
   try {
-    return localStorage.getItem(STORAGE_KEY) === '1'
+    return localStorage.getItem(key) === '1'
   } catch {
     return false
   }
 }
 
 /**
- * The welcome walkthrough shows once, on a first visit; "Show the walkthrough
- * again" in How it works brings it back.
+ * A tour that shows once, the first time; "Take the tour" in How it works
+ * brings it back. `key` lets each page remember its own tour (the desktop has
+ * one for the Overview and one for the Calendar).
  */
-export function useWelcome() {
-  const [showWelcome, setShowWelcome] = useState(() => !seenBefore())
+export function useWelcome(key = STORAGE_KEY) {
+  const [showWelcome, setShowWelcome] = useState(() => !seenBefore(key))
 
   function closeWelcome() {
     setShowWelcome(false)
     try {
-      localStorage.setItem(STORAGE_KEY, '1')
+      localStorage.setItem(key, '1')
     } catch { /* storage unavailable — it may show again next visit */ }
   }
 
