@@ -30,29 +30,71 @@ A mobile-first React web app for South African employees to find optimal leave p
 ```
 src/
   components/
-    Desktop/      # Desktop layout (≥640px): year calendar, hover card, break details, My breaks
-      Overview/   # Landing page: 3-step planner (leave period list left; leave days, breaks, results right)
-      Rail/       # Calendar control rail (expanded / collapsed to icons)
-    Mobile/       # Phone layout (<640px): calendar, bottom panel, day / Filters / My breaks sheets
-    Features/     # HolidaysList (used by both layouts)
+    Desktop/            # Desktop layout (≥640px wide and ≥500px tall)
+      DesktopApp.jsx    # Pages (Overview, Calendar, Public holidays, Events), side panel, collapse state
+      YearCalendar.jsx, MonthCard.jsx   # Calendar grid (shared MonthCard with the phone)
+      HoverCard.jsx, CalendarKey.jsx    # Hover stats tiles; the Key popover (Overview + Calendar)
+      SidePanel.jsx     # Details | Summary tabs (calendar and Overview)
+      PanelCollapsed.jsx# Side panel collapsed to a slim strip (mirrors the left rail)
+      BreakDetailHead/Panel.jsx, StartDateChips.jsx, BreakWeeks.jsx, BreakDaysTable.jsx  # Details tab
+      MyBreaksPanel.jsx, SavedBreaksTable.jsx, CalendarExport.jsx  # Summary tab + Apple/Google export
+      LeaveCard.jsx     # Calendar leave card: "5 / 10▾ limit", blocks, Snap to days left switch
+      LeaveBlocks.jsx   # Shared LeaveBlocks + LeaveFraction (calendar card and Overview step 2)
+      StatTile.jsx      # Coloured stat tiles (leave, free, days off, multiplier, breaks)
+      Overview/         # The 3-step planner page
+        OverviewPage.jsx, PeriodList.jsx (step 1), LeaveControl.jsx (step 2), GoalChoice.jsx (step 3)
+        MoreOptions.jsx (Advanced options), PlannerResults.jsx, PlannerTable.jsx, PlanMonths.jsx (calendar view)
+      Rail/             # Calendar control rail: RailExpanded / RailCollapsed (icons act directly, pop-outs)
+    Mobile/             # Phone layout: MobileApp, MobileCalendar, BottomPanel, BottomSheet, FiltersSheet,
+                        # SettingsSheet, MobileOverview, MobileTabBar
+    Help/               # GuidedTour (welcome tour), HowItWorks, HelpButton, step texts
+    Features/           # HolidaysList (both layouts)
   hooks/
-    useLeavePlanner.js  # Planning state shared by DesktopApp and MobileApp
+    useLeavePlanner.js  # Planning state shared by DesktopApp and MobileApp (calendar, saved breaks,
+                        # leave limit / leave left / Snap, filters, Overview planner via usePlanner)
     usePlanner.js       # Overview planner settings and results
+    useSettings.js      # Theme, phone calendar size, leave limit (localStorage)
+    useWelcome.js       # First-visit welcome tour flag
   data/
-    publicHolidays.js   # Hardcoded SA public holidays 2025–2026
-    schoolHolidays.js   # SA school term breaks by province
+    publicHolidays.js   # SA public holidays 2025–2028 (data runs out after 2028)
+    schoolHolidays.js   # SA school holidays by province 2025–2028
   utils/
     leaveCalculator.js  # Core algorithm — JS port of the Python notebook
-    breaks.js           # Break building, equal starts, combining overlaps
-    planner.js          # Overview planner: leave periods + best breaks (DP, breaks ≥ one working week apart)
-    plans.js            # School-holiday helpers
-    calendarDays.js     # Day cells (colours, bands) for both calendars
-    colorScale.js       # Maps days-off count → distinct colour
-    shareCard.js        # Canvas share image + Web Share (kept for the parked Share feature)
-  App.jsx               # Picks DesktopApp or MobileApp by screen width
-  main.jsx
-  index.css
+    breaks.js           # Build a break, equal start dates, combining overlaps, totals
+    planner.js          # Overview planner: leave periods + best plan (DP), MAX_LEAVE = 10
+    plans.js            # School-holiday helpers (schoolBreaksFor, provinceLabel)
+    calendarDays.js     # Day cells for both calendars (colours, bands, saved boxes, row hiding)
+    colorScale.js       # Days off / multiplier → colour
+    dateFormat.js       # Date labels (incl. short years "Sat 12 Dec '26" and numeric "12–17 / Dec")
+    dayTypes.js, calendarExport.js, shareCard.js (parked Share feature)
+  App.jsx               # Picks DesktopApp or MobileApp by screen size
 ```
+
+---
+
+## How the App Works
+
+**Pages:** Overview (the planner, opens first), Calendar, Public holidays, Events (coming soon).
+
+**Leave limit and leave days**
+- One **leave limit** for the whole site (1–10, never more than 10 — `MAX_LEAVE` in `utils/planner.js`), saved in settings.
+- **Leave left** = limit − leave in the Summary.
+- Leave days are shown as **"5 / 10▾ limit"** (the limit is a dropdown) with **numbered blocks**, one per day up to the limit.
+- **📍 Snap to days left** is one on/off switch: on = the calendar uses the leave left; picking a block turns it off (exploring is allowed past what's left, with a note).
+
+**Calendar page**
+- Colours show days off (or the multiplier) if leave starts that day.
+- Click a day: its break gets a grey pill and opens in Details; saved breaks become joined rectangles with white numbers and a start dot.
+- Left rail and right Details | Summary panel both collapse to slim strips ("Collapse to icons"); collapsed icons act directly (toggles, pop-outs for leave days and dates).
+- Days-off and public-holiday filters hide whole rows of months with no match (rows stay whole at 2–4 columns).
+
+**Overview planner (3 steps)**
+1. Pick a leave period: Custom, or themed cards (Up next, Christmas, Easter, School holidays, Next 3/6 months, Rest of the year, next year). Each card shows its plan in 2×2 stat tiles.
+2. Leave days (same blocks + limit as the calendar; capped at the period's workdays).
+3. What matters most? Maximise (best rate) · Mix (up to 3 breaks) · Longest (one break) — shared by every period.
+- Breaks never run past the period's end and are **at least one working week apart**.
+- Advanced options: plan around school holidays; months to avoid / include.
+- Results table (Start / End with short years, a dropdown for equal start dates), Add / Export, and the same Details | Summary panel as the calendar.
 
 ---
 
@@ -101,6 +143,11 @@ For each day `D` in the year:
 
 Returns an array of 365/366 scores, one per calendar day.
 
+### Overview Planner (`utils/planner.js`)
+- Candidate breaks: every start day in the period (the day after a workday, so equal starts collapse) with 1..N leave days, never past the period's end.
+- Dynamic programming picks the most days off within the leave budget and a maximum number of breaks, with breaks at least 5 workdays apart; months can be avoided or required.
+- Goals map to break counts: Maximise = as many as help, Mix = up to 3, Longest = 1.
+
 ### Colour Scale (`utils/colorScale.js`)
 - Each distinct `totalDaysOff` value maps to a unique colour from a categorical palette
 - The palette is perceptually distinct (not a gradient) so each value is clearly different
@@ -111,6 +158,16 @@ Returns an array of 365/366 scores, one per calendar day.
 ## Design Decisions
 
 - **No external heatmap library** — custom cell rendering gives full control over colours, dots, tooltips, and mobile layout
-- **Vertical month scroll on mobile** — one month per row, 7-column grid; controls in a bottom panel, details in bottom sheets
-- **White bold text on holiday cells** — makes public holidays immediately visible without a separate legend
-- **Bottom tab bar on mobile, top tabs + control rail on desktop**
+- **One screen tall on desktop** — Calendar and Overview fit the window; columns scroll on their own
+- **Both side columns collapse the same way** — matching "Collapse to icons" bars and slim icon strips
+- **Phone: bottom panel + sheets** — controls within thumb reach; Overview has a colourful period strip above the tabs
+- **Dark mode** swaps the palette variables in `index.css` rather than adding `dark:` classes everywhere
+- **Nothing hard-coded past 10 leave days**
+
+---
+
+## Workflow
+
+- Mock new designs first (Claude Design canvas), then build.
+- One branch per change; squash-merge PRs only when the user says "merge".
+- Check changes in the browser (Playwright) on desktop (1280×800) and phones (390×844, 360×740); there's no unit test suite.
