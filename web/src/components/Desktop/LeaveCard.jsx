@@ -13,15 +13,14 @@ function Note({ c }) {
 
 /**
  * The calendar's one leave card: "5 / 10▾ limit", how much is left after your
- * Summary, ten blocks to pick the leave days the calendar shows, and Snap
- * (follow what's left) or Manual (explore up to your limit).
+ * Summary, ten blocks to pick the leave days the calendar shows, and a
+ * "Snap to days left" toggle (on = follow what's left; picking a block turns it off).
  *
  * Props: c – calendar controls (leaveDays, leaveMode, leaveLimit, leaveLeft,
  *            leaveInSummary and their setters); idPrefix keeps ids unique
  */
 export function LeaveCard({ c, idPrefix = 'rail' }) {
   const snap = c.leaveMode === 'snap'
-  const seg = on => `flex-1 py-1 rounded-lg text-xs font-bold ${on ? 'bg-white text-slate-900 shadow' : 'text-slate-600'}`
 
   return (
     <section data-tour="leave" aria-label="Leave days" className="bg-white border-2 border-sky-700 rounded-2xl px-3 py-2.5 flex flex-col gap-2">
@@ -33,10 +32,19 @@ export function LeaveCard({ c, idPrefix = 'rail' }) {
       </div>
       <LeaveFraction value={c.leaveDays} limit={c.leaveLimit} onLimitChange={c.onLeaveLimitChange} idPrefix={idPrefix} />
       <LeaveBlocks value={c.leaveDays} onChange={c.onLeaveDaysChange} left={c.leaveLeft} max={c.leaveLimit} />
-      <div role="radiogroup" aria-label="Leave days mode" className="flex p-[3px] gap-[3px] rounded-xl bg-slate-100">
-        <button type="button" role="radio" aria-checked={snap} onClick={() => c.onLeaveModeChange('snap')} className={seg(snap)}>📍 Snap to left</button>
-        <button type="button" role="radio" aria-checked={!snap} onClick={() => c.onLeaveModeChange('manual')} className={seg(!snap)}>✋ Manual</button>
-      </div>
+      {/* One on/off switch: on = follow your days left; picking a block turns it off. */}
+      <button
+        type="button"
+        role="switch"
+        aria-checked={snap}
+        onClick={() => c.onLeaveModeChange(snap ? 'manual' : 'snap')}
+        className="flex items-center justify-between gap-2 py-1 text-[12.5px] font-bold text-slate-800"
+      >
+        📍 Snap to days left
+        <span className={`relative w-9 h-5 rounded-full transition-colors ${snap ? 'bg-sky-700' : 'bg-slate-300'}`}>
+          <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${snap ? 'left-[18px]' : 'left-0.5'}`} />
+        </span>
+      </button>
       <Note c={c} />
     </section>
   )

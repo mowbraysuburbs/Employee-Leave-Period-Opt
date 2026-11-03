@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { LeaveCard } from '../LeaveCard'
+import { PeriodPicker } from '../PeriodPicker'
 const svgProps = {
   width: 18,
   height: 18,
@@ -93,7 +94,7 @@ function monthsInPeriod(from, to) {
  * The calendar's control column collapsed to a thin strip: one icon per
  * control showing its current state, so the calendar gets an extra column.
  * Most icons act straight away (colour by, days-off chips, public holidays,
- * Selected, school, plan dates); leave days pops out a small card; dates open the rail. See ControlRail for props.
+ * Selected, school, plan dates); leave days and dates pop out a small window beside the strip. See ControlRail for props.
  */
 export function RailCollapsed({ c }) {
   const open = c.onToggleCollapsed
@@ -107,20 +108,22 @@ export function RailCollapsed({ c }) {
   // can't live inside it), lined up with the leave icon.
   const wrapRef = useRef(null)
   const leaveRef = useRef(null)
-  const [leaveTop, setLeaveTop] = useState(null)
+  const datesRef = useRef(null)
+  // The open pop-out: { kind: 'leave' | 'dates', top } or null.
+  const [popout, setPopout] = useState(null)
   useEffect(() => {
-    if (leaveTop === null) return
-    const close = e => { if (!wrapRef.current?.contains(e.target)) setLeaveTop(null) }
-    const esc = e => { if (e.key === 'Escape') setLeaveTop(null) }
+    if (!popout) return
+    const close = e => { if (!wrapRef.current?.contains(e.target)) setPopout(null) }
+    const esc = e => { if (e.key === 'Escape') setPopout(null) }
     document.addEventListener('mousedown', close)
     document.addEventListener('keydown', esc)
     return () => { document.removeEventListener('mousedown', close); document.removeEventListener('keydown', esc) }
-  }, [leaveTop])
-  function toggleLeave() {
-    if (leaveTop !== null) return setLeaveTop(null)
-    const icon = leaveRef.current.getBoundingClientRect()
+  }, [popout])
+  function togglePopout(kind, ref) {
+    if (popout?.kind === kind) return setPopout(null)
+    const icon = ref.current.getBoundingClientRect()
     const wrap = wrapRef.current.getBoundingClientRect()
-    setLeaveTop(icon.top - wrap.top)
+    setPopout({ kind, top: icon.top - wrap.top })
   }
 
   return (
@@ -129,7 +132,7 @@ export function RailCollapsed({ c }) {
         <button type="button" onClick={open} aria-label="Expand calendar controls" title="Expand controls" className="w-10 h-9 rounded-[10px] bg-slate-900 text-white text-[15px] font-bold">»</button>
         <span aria-hidden="true" className="w-8 h-px bg-slate-200 my-0.5" />
         <span ref={leaveRef}>
-          <RailIcon tour="leave" icon="leave" label={`Leave days: ${c.leaveDays} of your ${c.leaveLimit} limit (${c.leaveLeft} left). Change`} value={<>{c.leaveDays}<span className="opacity-60">|{c.leaveLimit}</span></>} onClick={toggleLeave} className={`border-2 border-sky-700 ${leaveTop !== null ? 'bg-sky-700 text-white' : 'text-sky-800'}`} />
+          <RailIcon tour="leave" icon="leave" label={`Leave days: ${c.leaveDays} of your ${c.leaveLimit} limit (${c.leaveLeft} left). Change`} value={<>{c.leaveDays}<span className="opacity-60">|{c.leaveLimit}</span></>} onClick={() => togglePopout('leave', leaveRef)} className={`border-2 border-sky-700 ${popout?.kind === 'leave' ? 'bg-sky-700 text-white' : 'text-sky-800'}`} />
         </span>
         <RailIcon
           tour="colours"
@@ -157,14 +160,16 @@ export function RailCollapsed({ c }) {
             </button>
           )}
         </div>
-        <RailIcon
-          icon="dates"
-          label={`Dates: ${c.period.from} to ${c.period.to}. Open to change`}
-          value={monthsInPeriod(c.period.from, c.period.to)}
-          onClick={open}
-          className={c.period.changed ? 'bg-sky-100 text-sky-800' : 'bg-slate-100 text-slate-700'}
-          dot={c.period.changed}
-        />
+        <span ref={datesRef}>
+          <RailIcon
+            icon="dates"
+            label={`Dates: ${c.period.from} to ${c.period.to}. Change`}
+            value={monthsInPeriod(c.period.from, c.period.to)}
+            onClick={() => togglePopout('dates', datesRef)}
+            className={popout?.kind === 'dates' ? 'bg-sky-700 text-white' : c.period.changed ? 'bg-sky-100 text-sky-800' : 'bg-slate-100 text-slate-700'}
+            dot={c.period.changed}
+          />
+        </span>
         {/* Holidays: one tap shows only breaks that include a public holiday (any
             of them); tap again for all breaks. Picking particular holidays is in the rail. */}
         <RailIcon
@@ -205,9 +210,11 @@ export function RailCollapsed({ c }) {
           className={c.activeCount ? 'mt-auto border border-red-300 text-red-700 hover:bg-red-50' : 'mt-auto text-slate-300'}
         />
       </aside>
-      {leaveTop !== null && (
-        <div role="dialog" aria-label="Leave days" className="absolute left-full ml-2 z-40 w-[260px] p-2 bg-white rounded-2xl shadow-xl border border-slate-200" style={{ top: Math.max(0, leaveTop - 8) }}>
-          <LeaveCard c={c} idPrefix="flyout" />
+      {popout && (
+        <div role="dialog" aria-label={popout.kind === 'leave' ? 'Leave days' : 'Dates'} className="absolute left-full ml-2 z-40 w-[260px] p-2 bg-white rounded-2xl shadow-xl border border-slate-200" style={{ top: Math.max(0, popout.top - 8) }}>
+          {popout.kind === 'leave'
+            ? <LeaveCard c={c} idPrefix="flyout" />
+            : <div className="p-2"><PeriodPicker stacked idPrefix="flyout-period" {...c.period} /></div>}
         </div>
       )}
     </div>
