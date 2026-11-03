@@ -9,9 +9,10 @@ import { addDays } from '../utils/dateFormat'
  * leave days and breaks, months to avoid or include, and which result rows
  * are ticked. Shared by the desktop and phone Overview.
  *
- * Args: { today, province }
+ * Args: { today, province, leaveLimit, onLeaveLimitChange } – the same leave
+ * limit as the calendar caps the planner's leave days
  */
-export function usePlanner({ today, province }) {
+export function usePlanner({ today, province, leaveLimit = MAX_LEAVE, onLeaveLimitChange = () => {} }) {
   const periods = useMemo(() => planPeriods({ today, provinceCode: province }), [today, province])
   const [periodId, setPeriodId] = useState('next')
   const [custom, setCustom] = useState({ from: addDays(today, 1), to: addDays(today, 28) })
@@ -29,8 +30,8 @@ export function usePlanner({ today, province }) {
     ? { id: 'custom', kind: 'custom', title: 'Custom', subtitle: 'Your own dates', ...custom }
     : periods.find(p => p.id === periodId) ?? periods[0]
 
-  // Never more than 10, and never more than the workdays in the period.
-  const maxLeave = Math.max(1, Math.min(MAX_LEAVE, workdaysIn(period.from, period.to)))
+  // Never more than your leave limit (10 at most), or the workdays in the period.
+  const maxLeave = Math.max(1, Math.min(leaveLimit, workdaysIn(period.from, period.to)))
   const leaveUsed = Math.min(leave, maxLeave)
 
   // School holidays inside the period, for "Plan around school holidays" (any period).
@@ -57,12 +58,12 @@ export function usePlanner({ today, province }) {
     for (const p of periods) {
       const spans = matchSchool ? schoolHolidaysIn(province, p.from, p.to) : []
       stats[p.id] = summarise(planLeave({
-        from: p.from, to: p.to, leave: Math.min(leave, MAX_LEAVE), maxBreaks: GOAL_BREAKS[goalWanted],
+        from: p.from, to: p.to, leave: Math.min(leave, leaveLimit), maxBreaks: GOAL_BREAKS[goalWanted],
         avoidMonths, includeMonths, within: spans.length ? spans : null,
       }))
     }
     return stats
-  }, [periods, leave, goalWanted, avoidMonths, includeMonths, matchSchool, province])
+  }, [periods, leave, leaveLimit, goalWanted, avoidMonths, includeMonths, matchSchool, province])
 
   // Apply any start-date swaps (only to equal options, so the totals stay the same).
   const breaks = useMemo(() => chosen.breaks.map(b => {
@@ -92,6 +93,8 @@ export function usePlanner({ today, province }) {
     custom,
     setCustom: reset(setCustom),
     leave: leaveUsed,
+    leaveLimit,
+    setLeaveLimit: onLeaveLimitChange,
     maxLeave,
     setLeave: reset(n => setLeave(Math.max(1, Math.min(n, maxLeave)))),
     goals,
