@@ -27,7 +27,6 @@ export const STRIP_THEMES = {
 
 // What each leave period means, in a few words.
 export const PERIOD_DESCRIPTIONS = {
-  custom: 'Choose your own first and last day',
   next: 'The next public holiday',
   xmas: 'Christmas, Day of Goodwill & New Year',
   easter: 'Human Rights Day, Good Friday & Family Day',

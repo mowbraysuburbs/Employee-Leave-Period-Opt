@@ -3,6 +3,7 @@ import { StatTile } from '../StatTile'
 import { StepHeading } from './StepHeading'
 import { formatMultiplier } from '../../../utils/breaks'
 import { PERIOD_DESCRIPTIONS } from './periodThemes'
+import { PeriodDates } from './PeriodDates'
 
 // The card's plan at a glance: days off, multiplier, breaks and leave as small tiles.
 function QuickStats({ stats }) {
@@ -25,7 +26,7 @@ function PeriodCard({ id, kind, title, subtitle, stats, selected, onSelect }) {
       onClick={() => onSelect(id)}
       className={[
         'w-full flex items-start gap-2.5 px-3 py-2.5 rounded-2xl text-left border-2 bg-white',
-        selected ? 'border-slate-900 shadow-md' : kind === 'custom' ? 'border-dashed border-slate-300 hover:border-slate-400' : 'border-transparent shadow-sm hover:border-slate-300',
+        selected ? 'border-slate-900 shadow-md' : 'border-transparent shadow-sm hover:border-slate-300',
       ].join(' ')}
     >
       <PlanIcon kind={kind} size={30} />
@@ -39,23 +40,39 @@ function PeriodCard({ id, kind, title, subtitle, stats, selected, onSelect }) {
   )
 }
 
+// Custom dates: Start / End always show the dates being planned (greyed when
+// another period is picked); changing one, or tapping the title, picks Custom.
+function CustomCard({ period, selected, onSelect, onChangeDates }) {
+  return (
+    <div className={`w-full flex flex-col gap-2 px-3 py-2.5 rounded-2xl bg-white border-2 ${selected ? 'border-slate-900 shadow-md' : 'border-dashed border-slate-300'}`}>
+      <button type="button" aria-current={selected ? 'true' : undefined} onClick={() => onSelect('custom')} className="flex items-center gap-2.5 text-left">
+        <PlanIcon kind="custom" size={30} />
+        <span className="text-[13.5px] font-extrabold">Custom dates</span>
+      </button>
+      <PeriodDates period={period} onChange={onChangeDates} active={selected} />
+    </div>
+  )
+}
+
 /**
- * Step 1 of the Overview planner: Custom first, then the ready-made leave
- * periods, each saying what it is, its dates, and its plan's quick stats.
- * The list scrolls on its own.
+ * Step 1 of the Overview planner: the Custom dates card (Start / End), then the
+ * ready-made leave periods, each saying what it is, its dates, and its plan's
+ * quick stats. The list scrolls on its own.
  *
  * Props:
  *   periods    – planPeriods() result
+ *   period     – the period being planned (for Start / End)
+ *   onChangeDates – ({ from, to }) => void; makes the plan Custom
  *   selectedId – 'custom' or a period id
  *   onSelect   – (id) => void
  *   cardStats  – { [periodId]: { breaks, leave, daysOff, multiplier } }
  */
-export function PeriodList({ periods, selectedId, onSelect, cardStats }) {
+export function PeriodList({ periods, period, onChangeDates, selectedId, onSelect, cardStats }) {
   return (
-    <div className="w-[250px] shrink-0 flex flex-col gap-2 lg:h-full min-h-0">
+    <div className="w-[270px] shrink-0 flex flex-col gap-2 lg:h-full min-h-0">
       <div className="h-10 shrink-0 flex items-center"><StepHeading number={1}>Pick a leave period</StepHeading></div>
       <nav data-tour="period" aria-label="Leave periods" className="flex-1 min-h-0 flex flex-col gap-1.5 lg:overflow-y-auto lg:pr-1 lg:pb-2 [&>*]:shrink-0">
-        <PeriodCard id="custom" kind="custom" title="Custom dates" selected={selectedId === 'custom'} onSelect={onSelect} />
+        <CustomCard period={period} selected={selectedId === 'custom'} onSelect={onSelect} onChangeDates={onChangeDates} />
         {periods.map(p => (
           <PeriodCard key={p.id} {...p} stats={cardStats[p.id]} selected={p.id === selectedId} onSelect={onSelect} />
         ))}

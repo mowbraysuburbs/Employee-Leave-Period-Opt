@@ -161,3 +161,12 @@ export function fmtGroupRangeFull(group) {
     endLabel: fmtSubRangeFull(group[0].endDate, group[group.length - 1].endDate),
   }
 }
+
+/** A period's dates with full years, e.g. "9 Dec 2026 – 13 Jan 2027". */
+export function fmtLongRange(startDate, endDate) {
+  const one = dateStr => {
+    const [y, m, d] = dateStr.split('-')
+    return `${Number(d)} ${SHORT_MONTH[Number(m) - 1]} ${y}`
+  }
+  return `${one(startDate)} – ${one(endDate)}`
+}

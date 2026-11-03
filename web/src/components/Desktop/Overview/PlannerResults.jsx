@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { PlanStats } from './PlanStats'
 import { PlannerTable } from './PlannerTable'
-import { PeriodDates } from './PeriodDates'
 import { PERIOD_DESCRIPTIONS } from './periodThemes'
+import { fmtLongRange } from '../../../utils/dateFormat'
 
 /**
  * The plan the planner found: a title, the breaks table, and Add / Export
@@ -72,10 +72,11 @@ export function PlannerResults({ planner, isSaved, onAdd, onExport, onView, onHo
           <div className="flex flex-col gap-2">
             <div className="flex flex-wrap items-center gap-x-2.5 gap-y-2">
               <div className="flex-1 min-w-[124px]">
-                <h3 className="m-0 text-base leading-tight font-extrabold">{period.title}</h3>
-                <span className="block text-[12px] leading-snug text-slate-500">{PERIOD_DESCRIPTIONS[period.kind]}</span>
+                <h3 className="m-0 text-[17px] leading-tight font-extrabold">{period.title}</h3>
+                <span className="block text-[12px] leading-snug text-slate-500">
+                  {[PERIOD_DESCRIPTIONS[period.kind], fmtLongRange(period.from, period.to)].filter(Boolean).join(' · ')}
+                </span>
               </div>
-              <PeriodDates period={period} onChange={planner.changeDates} />
               <button
                 data-tour="plan-add"
                 type="button"

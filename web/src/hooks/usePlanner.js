@@ -27,7 +27,7 @@ export function usePlanner({ today, province, leaveLimit = MAX_LEAVE, onLeaveLim
   const [unticked, setUnticked] = useState([])
 
   const period = periodId === 'custom'
-    ? { id: 'custom', kind: 'custom', title: 'Custom', subtitle: 'Your own dates', ...custom }
+    ? { id: 'custom', kind: 'custom', title: 'Custom dates', subtitle: 'Your own dates', ...custom }
     : periods.find(p => p.id === periodId) ?? periods[0]
 
   // Never more than your leave limit (10 at most), or the workdays in the period.
