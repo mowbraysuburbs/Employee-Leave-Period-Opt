@@ -15,7 +15,7 @@ function TabButton({ on, label, children, onClick }) {
  * The Details / Summary panel collapsed to a slim strip on the right, built like
  * the collapsed left rail: « opens it again, and the tiles keep the numbers in
  * view. Details shows the clicked break (dates as numbers, its four stats, and
- * ⇆ when it can start on other days); Summary shows your saved breaks' totals.
+ * ⇆ with how many start dates give the same break); Summary shows your saved breaks' totals.
  *
  * Props:
  *   tab, onTabChange   – 'details' | 'summary'
@@ -54,7 +54,7 @@ export function PanelCollapsed({ tab, onTabChange, onExpand, brk, flexibleStarts
           {flexibleStarts > 1 && (
             <button type="button" onClick={() => onExpand('details')} title="Flexible start: other start dates give the same days off" aria-label={`Flexible start: ${flexibleStarts} start dates give the same days off`} className="w-11 py-1.5 rounded-[10px] bg-sky-50 text-sky-800 flex flex-col items-center gap-0.5">
               <span className="text-[14px] font-extrabold leading-none">⇆</span>
-              <span className="text-[9.5px] font-extrabold leading-none">flexible</span>
+              <span className="text-[11px] font-extrabold leading-none">{flexibleStarts}</span>
             </button>
           )}
         </>
