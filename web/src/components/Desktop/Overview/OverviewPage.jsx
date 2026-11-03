@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { PlannerBar } from './PlannerBar'
 import { PeriodList } from './PeriodList'
 import { PlanDetailHead } from './PlanDetailHead'
-import { CustomDates } from './CustomDates'
 import { PlanMonths } from './PlanMonths'
 import { SidePanel } from '../SidePanel'
 import { PanelCollapsed } from '../PanelCollapsed'
@@ -40,9 +39,8 @@ export function OverviewPage({ planner, isSaved, onAdd, onExport, onView, provin
         <div className="flex-[999_1_480px] min-w-0 flex flex-col gap-2 lg:h-full">
           <PlannerBar planner={planner} moreOpen={moreOpen} onMoreToggle={() => setMoreOpen(o => !o)} />
           <article data-tour="results" aria-label={`Plan: ${period.title}`} className="flex-1 min-h-0 rounded-[20px] shadow-sm bg-white flex flex-col overflow-hidden">
-            {period.id === 'custom' && <div className="px-[22px] pt-4"><CustomDates value={planner.custom} onChange={planner.setCustom} /></div>}
             {moreOpen && <MoreOptions planner={planner} province={province} onProvinceChange={onProvinceChange} />}
-            <div className="px-[22px] py-4 flex-1 min-h-0 flex flex-col">
+            <div className="px-4 py-4 flex-1 min-h-0 flex flex-col">
               <PlannerResults planner={planner} isSaved={isSaved} onAdd={list => { onAdd(list); setTab('summary') }} onExport={onExport} onView={onView} onHover={setHovered} />
             </div>
           </article>

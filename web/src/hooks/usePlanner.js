@@ -92,6 +92,8 @@ export function usePlanner({ today, province, leaveLimit = MAX_LEAVE, onLeaveLim
     selectPeriod: reset(setPeriodId),
     custom,
     setCustom: reset(setCustom),
+    // Any period's dates changed by hand: it becomes Custom with those dates.
+    changeDates: reset(dates => { setCustom(dates); setPeriodId('custom') }),
     leave: leaveUsed,
     leaveLimit,
     setLeaveLimit: onLeaveLimitChange,

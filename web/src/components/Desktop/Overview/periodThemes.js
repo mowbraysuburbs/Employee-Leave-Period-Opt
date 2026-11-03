@@ -24,3 +24,16 @@ export const STRIP_THEMES = {
   rest: 'bg-linear-to-r from-amber-100 to-white',
   year: 'bg-linear-to-r from-indigo-100 to-white',
 }
+
+// What each leave period means, in a few words.
+export const PERIOD_DESCRIPTIONS = {
+  custom: 'Choose your own first and last day',
+  next: 'The next public holiday',
+  xmas: 'Christmas, Day of Goodwill & New Year',
+  easter: 'Human Rights Day, Good Friday & Family Day',
+  school: 'The next school holidays in your province',
+  three: 'Every holiday from today',
+  six: 'Every holiday from today',
+  rest: "What's left of this year",
+  year: 'Plan next year ahead',
+}

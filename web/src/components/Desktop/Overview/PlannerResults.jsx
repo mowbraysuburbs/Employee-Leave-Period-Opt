@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { PlanStats } from './PlanStats'
 import { PlannerTable } from './PlannerTable'
+import { PeriodDates } from './PeriodDates'
+import { PERIOD_DESCRIPTIONS } from './periodThemes'
 
 /**
  * The plan the planner found: a title, the breaks table, and Add / Export
@@ -16,7 +18,7 @@ import { PlannerTable } from './PlannerTable'
  */
 export function PlannerResults({ planner, isSaved, onAdd, onExport, onView, onHover, calendar, phone = false }) {
   const [showCalendar, setShowCalendar] = useState(false)
-  const { breaks, startOptions, ticked, toggleTick, swapStart, leave } = planner
+  const { period, breaks, startOptions, ticked, toggleTick, swapStart, leave } = planner
   const chosen = breaks.filter(b => ticked.has(b.startDate))
   const none = chosen.length === 0
   const allSaved = !none && chosen.every(isSaved)
@@ -68,15 +70,18 @@ export function PlannerResults({ planner, isSaved, onAdd, onExport, onView, onHo
           // Desktop: a plain title and one Add to summary button (export is in the
           // Summary tab); the plan's stats are in Details. Then the dropdown note.
           <div className="flex flex-col gap-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className="m-0 text-[17px] font-extrabold whitespace-nowrap">Your breaks</h3>
-              <span className="text-[12.5px] text-slate-500">Untick any you don't want</span>
+            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-2">
+              <div className="flex-1 min-w-[124px]">
+                <h3 className="m-0 text-base leading-tight font-extrabold">{period.title}</h3>
+                <span className="block text-[12px] leading-snug text-slate-500">{PERIOD_DESCRIPTIONS[period.kind]}</span>
+              </div>
+              <PeriodDates period={period} onChange={planner.changeDates} />
               <button
                 data-tour="plan-add"
                 type="button"
                 disabled={none || allSaved}
                 onClick={() => onAdd(chosen)}
-                className={`ml-auto h-9 px-4 rounded-xl text-sm font-bold whitespace-nowrap disabled:opacity-50 ${allSaved ? 'bg-green-100 text-green-800 border border-green-300' : 'bg-sky-700 text-white'}`}
+                className={`h-9 px-3 rounded-xl text-[13px] font-bold whitespace-nowrap disabled:opacity-50 ${allSaved ? 'bg-green-100 text-green-800 border border-green-300' : 'bg-sky-700 text-white'}`}
               >
                 {allSaved ? 'Added ✓' : `Add to summary (${chosen.length})`}
               </button>
