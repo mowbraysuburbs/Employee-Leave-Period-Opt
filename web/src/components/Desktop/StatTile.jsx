@@ -77,10 +77,19 @@ const KINDS = {
  *   label   – optional text after the value (used by the key, not the card)
  *   caption – optional word under the value (the Details stats)
  *   tiny    – small chip for the Overview period cards
+ *   stacked – icon over the value, for the collapsed side panel (a button when onClick is given)
  *   title   – tooltip / accessible description
  */
-export function StatTile({ kind, value, label, caption, tiny = false, title }) {
+export function StatTile({ kind, value, label, caption, tiny = false, stacked = false, title, onClick }) {
   const { className, Icon, small } = KINDS[kind]
+  if (stacked) {
+    return (
+      <button type="button" title={title} aria-label={title} onClick={onClick} className={`w-11 py-1.5 rounded-[10px] flex flex-col items-center gap-0.5 ${className}`}>
+        <Icon size={15} />
+        <span className="text-[11px] font-extrabold leading-none">{value}</span>
+      </button>
+    )
+  }
   if (tiny) {
     return (
       <span title={title} className={`inline-flex items-center gap-[3px] h-[19px] px-1.5 rounded-md text-[11px] font-extrabold ${className}`}>

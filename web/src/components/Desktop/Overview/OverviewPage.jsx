@@ -50,7 +50,7 @@ export function OverviewPage({ planner, isSaved, onAdd, onExport, onView, provin
               {period.id === 'custom' && <CustomDates value={planner.custom} onChange={planner.setCustom} />}
               {/* Step 2 with Advanced options on the right, then step 3 with the gap rule after it. */}
               <div className="relative z-10 flex items-center gap-3">
-                <LeaveControl value={planner.leave} max={planner.maxLeave} onChange={planner.setLeave} idPrefix="planner" />
+                <LeaveControl value={planner.leave} max={planner.maxLeave} limit={planner.leaveLimit} onLimitChange={planner.setLeaveLimit} onChange={planner.setLeave} idPrefix="planner" />
                 <button
                   type="button"
                   aria-expanded={moreOpen}

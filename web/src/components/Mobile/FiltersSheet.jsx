@@ -1,6 +1,6 @@
 import { BottomSheet } from './BottomSheet'
 import { PeriodPicker } from '../Desktop/PeriodPicker'
-import { LeaveLimit } from '../Desktop/LeaveLimit'
+import { LeaveCard } from '../Desktop/LeaveCard'
 import { HolidayFilterMenu } from '../Desktop/HolidayFilterMenu'
 import { ProvincePicker } from '../Desktop/ProvincePicker'
 
@@ -17,7 +17,7 @@ export function FiltersSheet({ c, onClose }) {
   return (
     <BottomSheet label="Filters" title="Filters" backdrop onClose={onClose}>
       <div className="flex flex-col gap-4 pt-1">
-        <div className="rounded-2xl border border-slate-200"><LeaveLimit c={c} /></div>
+        <LeaveCard c={c} idPrefix="sheet" />
         <section className="flex flex-col gap-1.5">
           <PeriodPicker stacked idPrefix="mobile-period" {...c.period} />
         </section>

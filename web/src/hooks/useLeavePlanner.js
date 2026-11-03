@@ -42,6 +42,8 @@ function monthsBetween(from, to) {
  */
 export function useLeavePlanner({ leaveLimit = MAX_LEAVE, onLeaveLimitChange = () => {} } = {}) {
   const [leaveDays, setLeaveDays] = useState(3)
+  // 'snap' follows your leave left; 'manual' lets you explore any amount up to 10.
+  const [leaveMode, setLeaveMode] = useState('manual')
   const [colourBy, setColourBy] = useState('daysOff')
   // One date period, shared by Overview and Calendar.
   const [from, setFrom] = useState(TODAY)
@@ -64,12 +66,11 @@ export function useLeavePlanner({ leaveLimit = MAX_LEAVE, onLeaveLimitChange = (
   const [justAddedKey, setJustAddedKey] = useState(null)
   const { saved, remove, replaceAll } = useSavedBreaks()
 
-  // Leave left = your limit minus the leave in your Summary. It caps the leave
-  // days for one break, so the calendar always shows what you can still take.
+  // Leave left = your limit minus the leave in your Summary. Snapped, the
+  // calendar shows breaks using exactly what's left; manual can explore past it.
   const leaveInSummary = saved.reduce((t, s) => t + s.leaveDays, 0)
   const leaveLeft = Math.max(0, leaveLimit - leaveInSummary)
-  const maxPerBreak = Math.max(1, Math.min(MAX_LEAVE, leaveLeft))
-  const leaveDaysUsed = Math.min(leaveDays, maxPerBreak)
+  const leaveDaysUsed = leaveMode === 'snap' ? Math.max(1, Math.min(MAX_LEAVE, leaveLeft)) : leaveDays
 
   const months = useMemo(() => monthsBetween(from, to), [from, to])
   // Multiplier mode colours each day by its best deal using up to leaveDays.
@@ -88,7 +89,7 @@ export function useLeavePlanner({ leaveLimit = MAX_LEAVE, onLeaveLimitChange = (
     return best
   }, [months, breaks])
   // The Overview planner (period, leave days, breaks, results).
-  const planner = usePlanner({ today: TODAY, province })
+  const planner = usePlanner({ today: TODAY, province, leaveLimit, onLeaveLimitChange })
   const schoolDates = useMemo(() => {
     if (!schoolOn) return null
     const dates = new Set()
@@ -184,6 +185,14 @@ export function useLeavePlanner({ leaveLimit = MAX_LEAVE, onLeaveLimitChange = (
   // The days-off values change with leave days, so a new amount clears the filter.
   function changeLeaveDays(v) {
     setLeaveDays(v)
+    setLeaveMode('manual')
+    setDaysOffFilter([])
+  }
+
+  // Snap uses your leave left; going back to manual starts from that number.
+  function changeLeaveMode(mode) {
+    if (mode === 'manual') setLeaveDays(leaveDaysUsed)
+    setLeaveMode(mode)
     setDaysOffFilter([])
   }
 
@@ -257,10 +266,10 @@ export function useLeavePlanner({ leaveLimit = MAX_LEAVE, onLeaveLimitChange = (
   // The calendar controls as one object, for the desktop rail and the mobile Filters sheet.
   const controls = {
     leaveDays: leaveDaysUsed,
-    maxLeave: maxPerBreak,
+    maxLeave: MAX_LEAVE,
     onLeaveDaysChange: changeLeaveDays,
-    // Set higher than the leave left, so the calendar uses the leave left instead.
-    leaveCapped: leaveDays > maxPerBreak,
+    leaveMode,
+    onLeaveModeChange: changeLeaveMode,
     leaveLimit,
     leaveLeft,
     leaveInSummary,

@@ -35,7 +35,7 @@ export function MobileOverview({ planner, isSaved, onAdd, onExport, onView, prov
             </button>
           </div>
           {period.id === 'custom' && <CustomDates phone value={planner.custom} onChange={planner.setCustom} />}
-          <LeaveControl phone value={planner.leave} max={planner.maxLeave} onChange={planner.setLeave} idPrefix="phone-planner" />
+          <LeaveControl phone value={planner.leave} max={planner.maxLeave} limit={planner.leaveLimit} onLimitChange={planner.setLeaveLimit} onChange={planner.setLeave} idPrefix="phone-planner" />
           <GoalChoice phone goals={planner.goals} value={planner.goal} onChange={planner.setGoal} />
         </section>
 

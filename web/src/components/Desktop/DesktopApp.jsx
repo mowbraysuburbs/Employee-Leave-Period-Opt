@@ -11,6 +11,7 @@ import { useWelcome } from '../../hooks/useWelcome'
 import { ControlRail } from './Rail/ControlRail'
 import { YearCalendar } from './YearCalendar'
 import { SidePanel } from './SidePanel'
+import { PanelCollapsed } from './PanelCollapsed'
 import { BreakDetailPanel } from './BreakDetailPanel'
 import { BreakDetailHead } from './BreakDetailHead'
 import { MyBreaksPanel } from './MyBreaksPanel'
@@ -21,6 +22,7 @@ import { HolidaysList } from '../Features/HolidaysList'
 import { useLeavePlanner } from '../../hooks/useLeavePlanner'
 
 const RAIL_KEY = 'stretchmyleave.railCollapsed'
+const PANEL_KEY = 'stretchmyleave.panelCollapsed'
 
 // Remembered between visits; on first visit, narrower windows start collapsed.
 function initialRailCollapsed() {
@@ -29,6 +31,15 @@ function initialRailCollapsed() {
     if (stored !== null) return stored === 'true'
   } catch { /* storage unavailable — fall back to the window width */ }
   return window.innerWidth < 1200
+}
+
+// The Details / Summary panel starts open unless it was collapsed last time.
+function initialPanelCollapsed() {
+  try {
+    return localStorage.getItem(PANEL_KEY) === 'true'
+  } catch {
+    return false
+  }
 }
 
 export function DesktopApp() {
@@ -47,6 +58,7 @@ export function DesktopApp() {
   const [page, setPage] = useState(showWelcome ? 'calendar' : 'overview')
   const [railCollapsed, setRailCollapsed] = useState(initialRailCollapsed)
   const [tab, setTab] = useState('details')
+  const [panelCollapsed, setPanelCollapsed] = useState(initialPanelCollapsed)
   // The day under the mouse only drives the hover card and band; Details
   // changes when a day is clicked, so people can read it while moving around.
   const [hoveredDate, setHoveredDate] = useState(null)
@@ -62,6 +74,15 @@ export function DesktopApp() {
     openPreview(list)
     setTab('details')
     setPage('calendar')
+  }
+
+  // Collapses / opens the calendar's Details / Summary panel (remembered), optionally on a tab.
+  function setPanel(collapsed, onTab) {
+    setPanelCollapsed(collapsed)
+    if (onTab) setTab(onTab)
+    try {
+      localStorage.setItem(PANEL_KEY, String(collapsed))
+    } catch { /* storage unavailable — just don't remember it */ }
   }
 
   function toggleRail() {
@@ -120,7 +141,28 @@ export function DesktopApp() {
             />
           </div>
 
+          {panelCollapsed ? (
+            <PanelCollapsed
+              tab={tab}
+              onTabChange={setTab}
+              onExpand={onTab => setPanel(false, onTab)}
+              brk={detailBreak}
+              flexibleStarts={equalStarts?.length ?? 1}
+              savedBreaks={savedBreaks}
+            />
+          ) : (
+          // A full-width "Collapse to icons" bar above the panel, mirroring the left rail's.
+          <div className="w-[300px] xl:w-[340px] shrink-0 h-full flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={() => setPanel(true)}
+            aria-label="Collapse details and summary"
+            className="shrink-0 h-7 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs font-bold"
+          >
+            Collapse to icons »
+          </button>
           <SidePanel
+            width="w-full flex-1 min-h-0"
             tab={tab}
             onTabChange={setTab}
             savedCount={saved.length}
@@ -155,6 +197,8 @@ export function DesktopApp() {
               />
             }
           />
+          </div>
+          )}
         </main>
       )}
       {page === 'overview' && (

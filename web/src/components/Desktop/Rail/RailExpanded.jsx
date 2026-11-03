@@ -1,5 +1,4 @@
-import { LeaveLimit } from '../LeaveLimit'
-import { MAX_LEAVE } from '../../../hooks/useLeavePlanner'
+import { LeaveCard } from '../LeaveCard'
 import { PeriodPicker } from '../PeriodPicker'
 import { HolidayFilterMenu } from '../HolidayFilterMenu'
 import { ProvincePicker } from '../ProvincePicker'
@@ -24,18 +23,6 @@ function helpText(colourBy, picksOnly, leaveDays) {
 /**
  * The calendar's control column, fully open. See ControlRail for props.
  */
-// Under the leave days: why the most you can pick is lower than 10.
-function LeaveCapNote({ c }) {
-  if (c.leaveLeft === 0) {
-    return <span className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-2 py-1"><b>No leave left.</b> Remove a break from your Summary or raise your limit to plan more.</span>
-  }
-  if (c.leaveCapped) {
-    return <span className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-md px-2 py-1">Set to <b>{c.leaveDays}</b>, your leave left. The calendar shows the best breaks with {c.leaveDays}.</span>
-  }
-  if (c.maxLeave < MAX_LEAVE) return <span className="text-[11px] text-slate-600">Up to <b>{c.maxLeave}</b> (your leave left)</span>
-  return null
-}
-
 export function RailExpanded({ c }) {
   // The days-off filter only applies in Days off mode for now.
   const filterable = c.colourBy === 'daysOff' && !c.picksOnly
@@ -51,28 +38,7 @@ export function RailExpanded({ c }) {
         « Collapse to icons
       </button>
 
-      <LeaveLimit c={c} />
-
-      <section data-tour="leave" className="bg-white border-2 border-sky-700 rounded-2xl px-3 py-2.5 flex flex-col gap-1.5">
-        <div className="flex items-center justify-between gap-2">
-          <label htmlFor="rail-leave-days" className="text-[13px] font-bold leading-tight">Leave days<br /><span className="font-semibold text-slate-500 text-[11px]">for this break</span></label>
-          <div className="flex items-center gap-2">
-            <button type="button" aria-label="Fewer leave days" disabled={c.leaveDays <= 1} onClick={() => c.onLeaveDaysChange(c.leaveDays - 1)} className="w-7 h-7 rounded-full bg-slate-200 text-base font-semibold disabled:opacity-40">−</button>
-            <span className="w-7 text-center text-2xl font-extrabold">{c.leaveDays}</span>
-            <button type="button" aria-label="More leave days" disabled={c.leaveDays >= c.maxLeave} onClick={() => c.onLeaveDaysChange(c.leaveDays + 1)} className="w-7 h-7 rounded-full bg-sky-700 text-white text-base font-semibold disabled:opacity-40">+</button>
-          </div>
-        </div>
-        <input
-          id="rail-leave-days"
-          type="range"
-          min={1}
-          max={c.maxLeave}
-          value={c.leaveDays}
-          onChange={e => c.onLeaveDaysChange(Number(e.target.value))}
-          className="w-full accent-sky-700"
-        />
-        <LeaveCapNote c={c} />
-      </section>
+      <LeaveCard c={c} />
 
       <section data-tour="colours" className={card}>
         <div className="text-[13px] font-bold">Colour by</div>

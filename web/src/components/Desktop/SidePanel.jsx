@@ -14,7 +14,7 @@ const TABS = [
  *   details, summary – the content for each tab
  *   head             – pinned under the tabs (e.g. Add + dates on Details)
  *   footer           – pinned at the bottom (the leave bar)
- *   width            – Tailwind width classes (the Overview uses a slimmer panel)
+ *   width            – Tailwind width classes
  */
 export function SidePanel({ tab, onTabChange, savedCount, details, summary, head, footer, width = 'w-[300px] xl:w-[340px]' }) {
   return (

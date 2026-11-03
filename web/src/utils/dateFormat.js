@@ -66,6 +66,17 @@ export function fmtDayYear(dateStr) {
   return `${fmtDay(dateStr)} ${dateStr.slice(0, 4)}`
 }
 
+// A break's dates as numbers on two short lines, for narrow spaces:
+// { days: '12–17', months: 'Dec' }, or { days: '30–4', months: 'Dec–Jan' } across months.
+export function fmtNumericRange(startDate, endDate) {
+  const [, sm, sd] = startDate.split('-').map(Number)
+  const [, em, ed] = endDate.split('-').map(Number)
+  return {
+    days: `${sd}–${ed}`,
+    months: sm === em ? SHORT_MONTH[sm - 1] : `${SHORT_MONTH[sm - 1]}–${SHORT_MONTH[em - 1]}`,
+  }
+}
+
 // "Sat 20 Mar '27": weekday, day, month and short year, for tables that can
 // span two years (the Overview plan and the Summary).
 export function fmtDayShortYear(dateStr) {
