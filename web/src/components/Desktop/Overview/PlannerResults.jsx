@@ -34,7 +34,6 @@ export function PlannerResults({ planner, isSaved, onAdd, onExport, onView, onHo
   const actions = (
     <>
       <button
-        data-tour="plan-add"
         type="button"
         disabled={none || allSaved}
         onClick={() => onAdd(chosen)}
@@ -66,11 +65,28 @@ export function PlannerResults({ planner, isSaved, onAdd, onExport, onView, onHo
           </div>
         )
         : (
-          // Desktop: a plain title and Add / Export; the plan's stats are in Details.
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="m-0 text-[17px] font-extrabold whitespace-nowrap">Your breaks</h3>
-            <span className="text-[12.5px] text-slate-500">Untick any you don't want</span>
-            <span className="ml-auto flex gap-2">{actions}</span>
+          // Desktop: a plain title and one Add to summary button (export is in the
+          // Summary tab); the plan's stats are in Details. Then the dropdown note.
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="m-0 text-[17px] font-extrabold whitespace-nowrap">Your breaks</h3>
+              <span className="text-[12.5px] text-slate-500">Untick any you don't want</span>
+              <button
+                data-tour="plan-add"
+                type="button"
+                disabled={none || allSaved}
+                onClick={() => onAdd(chosen)}
+                className={`ml-auto h-9 px-4 rounded-xl text-sm font-bold whitespace-nowrap disabled:opacity-50 ${allSaved ? 'bg-green-100 text-green-800 border border-green-300' : 'bg-sky-700 text-white'}`}
+              >
+                {allSaved ? 'Added ✓' : `Add to summary (${chosen.length})`}
+              </button>
+            </div>
+            {startOptions.some(o => o.length > 1) && (
+              <p className="m-0 flex items-center gap-2 px-3 py-2 rounded-xl bg-sky-50 text-[12.5px] text-slate-700">
+                <span aria-hidden="true" className="shrink-0 w-8 h-8 rounded-lg border border-sky-300 bg-white text-sky-700 flex items-center justify-center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg></span>
+                <span>A <b>dropdown</b> on a start date means the break can start on other days for the same days off. Pick one; the end date follows.</span>
+              </p>
+            )}
           </div>
         )}
       {phone && <PlanStats breaks={chosen} total={breaks.length} compact />}

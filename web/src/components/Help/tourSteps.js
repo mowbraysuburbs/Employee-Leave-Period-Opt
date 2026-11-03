@@ -74,7 +74,7 @@ export function plannerTourSteps() {
     {
       target: 'plan-add',
       title: 'Add it to your Summary',
-      text: 'Keep the ticked breaks, or export them straight to your calendar.',
+      text: 'Keep the ticked breaks in your Summary. From there you can add them to Apple or Google Calendar.',
     },
     {
       target: 'panel',
