@@ -129,7 +129,7 @@ export function RailCollapsed({ c }) {
         <button type="button" onClick={open} aria-label="Expand calendar controls" title="Expand controls" className="w-10 h-9 rounded-[10px] bg-slate-900 text-white text-[15px] font-bold">»</button>
         <span aria-hidden="true" className="w-8 h-px bg-slate-200 my-0.5" />
         <span ref={leaveRef}>
-          <RailIcon tour="leave" icon="leave" label={`Leave days: ${c.leaveDays} of your ${c.leaveLimit} limit (${c.leaveLeft} left). Change`} value={c.leaveDays} onClick={toggleLeave} className={`border-2 border-sky-700 ${leaveTop !== null ? 'bg-sky-700 text-white' : 'text-sky-800'}`} />
+          <RailIcon tour="leave" icon="leave" label={`Leave days: ${c.leaveDays} of your ${c.leaveLimit} limit (${c.leaveLeft} left). Change`} value={<>{c.leaveDays}<span className="opacity-60">|{c.leaveLimit}</span></>} onClick={toggleLeave} className={`border-2 border-sky-700 ${leaveTop !== null ? 'bg-sky-700 text-white' : 'text-sky-800'}`} />
         </span>
         <RailIcon
           tour="colours"
