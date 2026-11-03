@@ -24,6 +24,7 @@ export function PlannerBar({ planner, moreOpen, onMoreToggle }) {
       <div data-tour="goal"><GoalChoice plain label="Aim" goals={planner.goals} value={planner.goal} onChange={planner.setGoal} /></div>
       <button
         type="button"
+        data-tour="advanced"
         aria-expanded={moreOpen}
         onClick={onMoreToggle}
         aria-label={planner.moreCount ? `Advanced options (${planner.moreCount} on)` : 'Advanced options'}

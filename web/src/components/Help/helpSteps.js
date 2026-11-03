@@ -11,3 +11,11 @@ export const EXPLORE_STEPS = [
   { title: 'Tap a date', text: 'Its whole break lights up, with the details and other start dates that give the same.' },
   { title: 'Add it to your summary', text: 'Overlapping breaks combine into one.' },
 ]
+
+// The desktop Calendar, which has more on screen than the phone.
+export const EXPLORE_STEPS_DESKTOP = [
+  { title: 'Set your leave days', text: 'In the Leave days card: click a block for the leave days on one break. The dropdown is your limit; Snap to days left uses what is left after your Summary.' },
+  { title: 'Read the colours', text: 'Each date is coloured by the days off you get if leave starts then (or the multiplier). Hover a date for its stats; click a colour number to show only those dates.' },
+  { title: 'Click a date', text: 'Its whole break lights up and opens in Details, with other start dates that give the same.' },
+  { title: 'Add to summary', text: 'Saved breaks become rectangles with white numbers. Overlapping breaks can be combined.' },
+]
