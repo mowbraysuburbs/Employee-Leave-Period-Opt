@@ -89,7 +89,11 @@ export function usePlanner({ today, province, leaveLimit = MAX_LEAVE, onLeaveLim
   return {
     periods,
     period,
-    selectPeriod: reset(setPeriodId),
+    // A whole year (2027) has room for many breaks, so it starts on Maximise.
+    selectPeriod: reset(id => {
+      setPeriodId(id)
+      if (id === 'year') setGoalWanted('max')
+    }),
     custom,
     setCustom: reset(setCustom),
     // Any period's dates changed by hand: it becomes Custom with those dates.
