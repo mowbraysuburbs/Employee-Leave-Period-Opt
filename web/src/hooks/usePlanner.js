@@ -27,7 +27,7 @@ export function usePlanner({ today, province, leaveLimit = MAX_LEAVE, onLeaveLim
   const [unticked, setUnticked] = useState([])
 
   const period = periodId === 'custom'
-    ? { id: 'custom', kind: 'custom', title: 'Custom', subtitle: 'Your own dates', ...custom }
+    ? { id: 'custom', kind: 'custom', title: 'Custom dates', subtitle: 'Your own dates', ...custom }
     : periods.find(p => p.id === periodId) ?? periods[0]
 
   // Never more than your leave limit (10 at most), or the workdays in the period.
@@ -92,11 +92,15 @@ export function usePlanner({ today, province, leaveLimit = MAX_LEAVE, onLeaveLim
     selectPeriod: reset(setPeriodId),
     custom,
     setCustom: reset(setCustom),
+    // Any period's dates changed by hand: it becomes Custom with those dates.
+    changeDates: reset(dates => { setCustom(dates); setPeriodId('custom') }),
     leave: leaveUsed,
     leaveLimit,
     setLeaveLimit: onLeaveLimitChange,
     maxLeave,
     setLeave: reset(n => setLeave(Math.max(1, Math.min(n, maxLeave)))),
+    // The Overview's "Days off limit": sets your limit and plans with all of it.
+    setLimitAndLeave: reset(n => { onLeaveLimitChange(n); setLeave(n) }),
     goals,
     goal: goalWanted,
     setGoal: reset(setGoalWanted),

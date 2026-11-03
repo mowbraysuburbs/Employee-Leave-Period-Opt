@@ -73,9 +73,10 @@ export function PlannerTable({ breaks, startOptions, ticked, onToggle, onSwap, o
           </div>
         )
       })}
-      {startOptions.some(o => o.length > 1) && (
+      {/* Desktop shows this note above the table instead. */}
+      {phone && startOptions.some(o => o.length > 1) && (
         <p className="m-0 mt-1.5 pt-2 px-1.5 border-t border-slate-100 text-[11.5px] text-slate-600">
-          <b className="text-sky-700">▾</b> {phone ? 'Same days off from another start date. Tap to swap.' : 'This break can start on other days for the same days off. Open it to swap the date; the end date follows.'}
+          <b className="text-sky-700">▾</b> Same days off from another start date. Tap to swap.
         </p>
       )}
     </div>

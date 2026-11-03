@@ -5,7 +5,7 @@ import { ThemeToggle } from './ThemeToggle'
 import { HelpPanel } from './HelpPanel'
 import { HelpButton } from '../Help/HelpButton'
 import { GuidedTour } from '../Help/GuidedTour'
-import { tourSteps } from '../Help/tourSteps'
+import { tourSteps, plannerTourSteps } from '../Help/tourSteps'
 import { useSettings } from '../../hooks/useSettings'
 import { useWelcome } from '../../hooks/useWelcome'
 import { ControlRail } from './Rail/ControlRail'
@@ -54,8 +54,8 @@ export function DesktopApp() {
   } = useLeavePlanner({ leaveLimit: leaveTotal, onLeaveLimitChange: setLeaveTotal })
   const { showWelcome, closeWelcome, replayWelcome } = useWelcome()
   const [helpOpen, setHelpOpen] = useState(false)
-  // A first visit opens on the calendar so the tour can point at it.
-  const [page, setPage] = useState(showWelcome ? 'calendar' : 'overview')
+  // A first visit opens on the Overview with the planner tour.
+  const [page, setPage] = useState('overview')
   const [railCollapsed, setRailCollapsed] = useState(initialRailCollapsed)
   const [tab, setTab] = useState('details')
   const [panelCollapsed, setPanelCollapsed] = useState(initialPanelCollapsed)
@@ -235,7 +235,9 @@ export function DesktopApp() {
         {page === 'holidays' && <HolidaysList months={months} showSchoolHolidays={false} provinceCode="GP" />}
       </main>
       )}
-      {helpOpen && <HelpPanel onClose={() => setHelpOpen(false)} onReplay={() => { setHelpOpen(false); setPage('calendar'); replayWelcome() }} />}
+      {helpOpen && <HelpPanel onClose={() => setHelpOpen(false)} onReplay={() => { setHelpOpen(false); if (!fullScreen) setPage('overview'); replayWelcome() }} />}
+      {/* The tour for the page you're on: the planner journey on the Overview, the calendar tour on the Calendar. */}
+      {showWelcome && page === 'overview' && <GuidedTour steps={plannerTourSteps()} onClose={closeWelcome} />}
       {showWelcome && calendarPage && (
         <GuidedTour
           steps={tourSteps(false, breaks[demoDate], {

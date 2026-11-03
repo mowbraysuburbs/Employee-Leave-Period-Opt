@@ -18,6 +18,7 @@ export function DesktopHeader({ page, onPageChange, rightSlot }) {
             <button
               key={p.id}
               type="button"
+              data-tour={`nav-${p.id}`}
               onClick={() => onPageChange(p.id)}
               aria-current={page === p.id ? 'page' : undefined}
               className={[

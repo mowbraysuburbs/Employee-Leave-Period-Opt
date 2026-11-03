@@ -1,18 +1,19 @@
 import { PlanIcon } from './PlanIcon'
-import { PERIOD_THEMES } from './periodThemes'
 import { StatTile } from '../StatTile'
 import { StepHeading } from './StepHeading'
 import { formatMultiplier } from '../../../utils/breaks'
+import { PERIOD_DESCRIPTIONS } from './periodThemes'
+import { PeriodDates } from './PeriodDates'
 
-// The card's plan at a glance, in a 2×2 grid of the calendar's stat tiles.
-function CardStats({ stats }) {
+// The card's plan at a glance: days off, multiplier, breaks and leave as small tiles.
+function QuickStats({ stats }) {
   if (!stats || stats.breaks === 0) return null
   return (
-    <span className="shrink-0 grid grid-cols-2 gap-[3px]" aria-label={`${stats.breaks} breaks, ${stats.leave} leave days, ${stats.daysOff} days off, ${formatMultiplier(stats.multiplier)} multiplier`}>
-      <StatTile tiny kind="breaks" value={stats.breaks} title="Breaks" />
-      <StatTile tiny kind="leave" value={stats.leave} title="Leave days used" />
+    <span className="flex flex-wrap gap-[3px] mt-1" aria-label={`${stats.daysOff} days off, ${formatMultiplier(stats.multiplier)} multiplier, ${stats.breaks} breaks, ${stats.leave} leave days`}>
       <StatTile tiny kind="total" value={stats.daysOff} title="Days off" />
       <StatTile tiny kind="multiplier" value={formatMultiplier(stats.multiplier)} title="Multiplier" />
+      <StatTile tiny kind="breaks" value={stats.breaks} title="Breaks" />
+      <StatTile tiny kind="leave" value={stats.leave} title="Leave days used" />
     </span>
   )
 }
@@ -24,56 +25,58 @@ function PeriodCard({ id, kind, title, subtitle, stats, selected, onSelect }) {
       aria-current={selected ? 'true' : undefined}
       onClick={() => onSelect(id)}
       className={[
-        'relative overflow-hidden w-full flex items-center gap-2.5 px-3 py-2.5 rounded-2xl text-left border-2',
-        PERIOD_THEMES[kind],
-        selected ? 'border-slate-900 shadow-md' : kind === 'custom' ? '' : 'border-transparent shadow-sm hover:border-slate-300',
+        'w-full flex items-start gap-2.5 px-3 py-2.5 rounded-2xl text-left border-2 bg-white',
+        selected ? 'border-slate-900 shadow-md' : 'border-transparent shadow-sm hover:border-slate-300',
       ].join(' ')}
     >
-      <PlanIcon kind={kind} />
-      <span className="flex-1 min-w-0 flex flex-col gap-0.5">
-        <span className="text-sm font-extrabold truncate">{title}</span>
-        <span className="text-xs text-slate-600 truncate">{subtitle}</span>
+      <PlanIcon kind={kind} size={30} />
+      <span className="flex-1 min-w-0 flex flex-col">
+        <span className="text-[13.5px] font-extrabold">{title}</span>
+        <span className="text-[11.5px] leading-snug text-slate-600">{PERIOD_DESCRIPTIONS[kind]}</span>
+        {subtitle && <span className="text-[11px] text-slate-400">{subtitle}</span>}
+        <QuickStats stats={stats} />
       </span>
-      <CardStats stats={stats} />
     </button>
   )
 }
 
+// Custom dates: Start / End always show the dates being planned (greyed when
+// another period is picked); changing one, or tapping the title, picks Custom.
+function CustomCard({ period, selected, onSelect, onChangeDates }) {
+  return (
+    <div className={`w-full flex flex-col gap-2 px-3 py-2.5 rounded-2xl bg-white border-2 ${selected ? 'border-slate-900 shadow-md' : 'border-dashed border-slate-300'}`}>
+      <button type="button" aria-current={selected ? 'true' : undefined} onClick={() => onSelect('custom')} className="flex items-center gap-2.5 text-left">
+        <PlanIcon kind="custom" size={30} />
+        <span className="text-[13.5px] font-extrabold">Custom dates</span>
+      </button>
+      <PeriodDates period={period} onChange={onChangeDates} active={selected} />
+    </div>
+  )
+}
+
 /**
- * Step 1 of the Overview planner: Custom first, then the ready-made leave
- * periods as colourful themed cards, then the coming-soon Events row.
+ * Step 1 of the Overview planner: the Custom dates card (Start / End), then the
+ * ready-made leave periods, each saying what it is, its dates, and its plan's
+ * quick stats. The list scrolls on its own.
  *
  * Props:
- *   periods            – planPeriods() result
- *   selectedId         – 'custom', a period id, or 'events'
- *   onSelect           – (id) => void
- *   cardStats          – { [periodId]: { breaks, leave, daysOff, multiplier } }
+ *   periods    – planPeriods() result
+ *   period     – the period being planned (for Start / End)
+ *   onChangeDates – ({ from, to }) => void; makes the plan Custom
+ *   selectedId – 'custom' or a period id
+ *   onSelect   – (id) => void
+ *   cardStats  – { [periodId]: { breaks, leave, daysOff, multiplier } }
  */
-export function PeriodList({ periods, selectedId, onSelect, cardStats }) {
+export function PeriodList({ periods, period, onChangeDates, selectedId, onSelect, cardStats }) {
   return (
-    <nav aria-label="Leave periods" className="flex-[1_1_300px] max-w-[330px] min-w-0 flex flex-col gap-1.5 lg:h-full lg:overflow-y-auto lg:pr-1 lg:pb-2 [&>*]:shrink-0">
-      <div className="mb-1"><StepHeading number={1}>Pick a leave period</StepHeading></div>
-      <PeriodCard id="custom" kind="custom" title="Custom" subtitle="Choose your first and last day" selected={selectedId === 'custom'} onSelect={onSelect} />
-      <span className="ml-1 text-[11px] font-bold text-slate-400">or pick one</span>
-      {periods.map(p => (
-        <PeriodCard key={p.id} {...p} stats={cardStats[p.id]} selected={p.id === selectedId} onSelect={onSelect} />
-      ))}
-      <button
-        type="button"
-        aria-current={selectedId === 'events' ? 'true' : undefined}
-        onClick={() => onSelect('events')}
-        className={[
-          'mt-1.5 w-full flex items-center gap-2.5 px-3 py-2.5 rounded-2xl text-left border-2',
-          selectedId === 'events' ? 'bg-teal-50 border-teal-600' : 'bg-white border-dashed border-slate-300 hover:border-slate-400',
-        ].join(' ')}
-      >
-        <PlanIcon kind="events" />
-        <span className="flex-1 min-w-0 flex flex-col gap-0.5">
-          <span className="text-sm font-extrabold truncate">Events</span>
-          <span className="text-xs text-slate-600 truncate">What's on during your breaks</span>
-        </span>
-        <span className="shrink-0 px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[11px] font-bold">Coming soon</span>
-      </button>
-    </nav>
+    <div className="w-[270px] shrink-0 flex flex-col gap-2 lg:h-full min-h-0">
+      <div className="h-10 shrink-0 flex items-center"><StepHeading number={1}>Pick a leave period</StepHeading></div>
+      <nav data-tour="period" aria-label="Leave periods" className="flex-1 min-h-0 flex flex-col gap-1.5 lg:overflow-y-auto lg:pr-1 lg:pb-2 [&>*]:shrink-0">
+        <CustomCard period={period} selected={selectedId === 'custom'} onSelect={onSelect} onChangeDates={onChangeDates} />
+        {periods.map(p => (
+          <PeriodCard key={p.id} {...p} stats={cardStats[p.id]} selected={p.id === selectedId} onSelect={onSelect} />
+        ))}
+      </nav>
+    </div>
   )
 }

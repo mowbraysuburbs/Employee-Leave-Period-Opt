@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { PlanStats } from './PlanStats'
 import { PlannerTable } from './PlannerTable'
-import { summarise } from '../../../utils/planner'
-import { formatMultiplier } from '../../../utils/breaks'
+import { PERIOD_DESCRIPTIONS } from './periodThemes'
+import { fmtLongRange } from '../../../utils/dateFormat'
 
 /**
- * The plan the planner found: a title, the stat tiles (following the ticked
- * breaks), the breaks table, and Add / Export / View on calendar.
+ * The plan the planner found: a title, the breaks table, and Add / Export
+ * (plus View on calendar on phones). Desktop shows the plan's stats in Details.
  *
  * Props:
  *   planner                 – usePlanner() result
@@ -33,7 +33,6 @@ export function PlannerResults({ planner, isSaved, onAdd, onExport, onView, onHo
   }
 
   const button = phone ? 'flex-1' : ''
-  const totals = summarise(chosen)
   const actions = (
     <>
       <button
@@ -68,15 +67,32 @@ export function PlannerResults({ planner, isSaved, onAdd, onExport, onView, onHo
           </div>
         )
         : (
-          // Desktop: title, the totals as small pills, and Add / Export on the right.
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="m-0 text-[17px] font-extrabold whitespace-nowrap">{period.title}: {count}</h3>
-            <span className="flex gap-1 text-[11.5px] font-extrabold whitespace-nowrap">
-              <span className="px-2 py-1 rounded-lg bg-indigo-100 text-indigo-800">{totals.daysOff} off</span>
-              <span className="px-2 py-1 rounded-lg bg-sky-100 text-sky-800">{totals.leave} leave</span>
-              <span className="px-2 py-1 rounded-lg bg-amber-100 text-amber-800">{formatMultiplier(totals.multiplier)}</span>
-            </span>
-            <span className="ml-auto flex gap-2">{actions}</span>
+          // Desktop: a plain title and one Add to summary button (export is in the
+          // Summary tab); the plan's stats are in Details. Then the dropdown note.
+          <div className="flex flex-col gap-2">
+            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-2">
+              <div className="flex-1 min-w-[124px]">
+                <h3 className="m-0 text-[17px] leading-tight font-extrabold">{period.title}</h3>
+                <span className="block text-[12px] leading-snug text-slate-500">
+                  {[PERIOD_DESCRIPTIONS[period.kind], fmtLongRange(period.from, period.to)].filter(Boolean).join(' · ')}
+                </span>
+              </div>
+              <button
+                data-tour="plan-add"
+                type="button"
+                disabled={none || allSaved}
+                onClick={() => onAdd(chosen)}
+                className={`h-9 px-3 rounded-xl text-[13px] font-bold whitespace-nowrap disabled:opacity-50 ${allSaved ? 'bg-green-100 text-green-800 border border-green-300' : 'bg-sky-700 text-white'}`}
+              >
+                {allSaved ? 'Added ✓' : `Add to summary (${chosen.length})`}
+              </button>
+            </div>
+            {startOptions.some(o => o.length > 1) && (
+              <p className="m-0 flex items-center gap-2 px-3 py-2 rounded-xl bg-sky-50 text-[12.5px] text-slate-700">
+                <span aria-hidden="true" className="shrink-0 w-8 h-8 rounded-lg border border-sky-300 bg-white text-sky-700 flex items-center justify-center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg></span>
+                <span>A <b>dropdown</b> on a start date means the break can start on other days for the same days off. Pick one; the end date follows.</span>
+              </p>
+            )}
           </div>
         )}
       {phone && <PlanStats breaks={chosen} total={breaks.length} compact />}
