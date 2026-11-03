@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
 
-function label(selected) {
-  if (selected.length === 0) return 'All'
+// Nothing ticked = no filter ("Off"); everything ticked = only breaks with any holiday.
+function label(selected, total) {
+  if (selected.length === 0) return 'Off'
+  if (selected.length >= total) return 'All holidays'
   if (selected.length === 1) return selected[0]
   return `${selected.length} selected`
 }
@@ -45,13 +47,24 @@ export function HolidayFilterMenu({ options, selected, onChange, inline = false 
           active ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-900 border-slate-300 shadow-sm',
         ].join(' ')}
       >
-        Public holidays: <strong>{label(selected)}</strong>
+        Public holidays: <strong>{label(selected, options.length)}</strong>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9" /></svg>
       </button>
 
       {open && (
         <div className={inline ? 'mt-1.5 bg-white border border-slate-200 rounded-xl p-1.5' : 'absolute z-40 top-13 left-0 w-[300px] bg-white border border-slate-200 rounded-2xl shadow-xl p-2'}>
           <div className="px-2.5 pt-2 pb-1.5 text-xs font-bold text-slate-500 uppercase tracking-wider">Show breaks that include</div>
+          {/* Ticks (or unticks) every holiday at once: only breaks that include any public holiday. */}
+          <label className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm font-bold cursor-pointer hover:bg-slate-50 border-b border-slate-100">
+            <input
+              type="checkbox"
+              checked={options.length > 0 && selected.length >= options.length}
+              ref={el => { if (el) el.indeterminate = selected.length > 0 && selected.length < options.length }}
+              onChange={() => onChange(selected.length >= options.length ? [] : options.map(o => o.name))}
+              className="w-4 h-4 accent-sky-700"
+            />
+            <span className="flex-1">All holidays</span>
+          </label>
           <div className="max-h-[300px] overflow-y-auto">
             {options.map(o => (
               <label key={o.name} className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-sm cursor-pointer hover:bg-slate-50">
