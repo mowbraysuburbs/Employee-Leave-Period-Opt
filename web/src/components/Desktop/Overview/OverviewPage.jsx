@@ -17,13 +17,13 @@ import { PlannerResults } from './PlannerResults'
  * Props:
  *   planner                    – usePlanner() result
  *   isSaved                    – (break) => bool
- *   onAdd, onExport, onView    – (breaks) => void
+ *   onAdd, onView              – (breaks) => void
  *   province, onProvinceChange – school province
  *   savedCount, summary        – the Summary tab's count and panel (shared with the calendar)
  *   savedBreaks                – for the collapsed strip's Summary totals
  *   collapsed, onCollapsedChange – the panel collapsed to a strip (shared with the calendar)
  */
-export function OverviewPage({ planner, isSaved, onAdd, onExport, onView, province, onProvinceChange, savedCount, summary, savedBreaks, collapsed, onCollapsedChange }) {
+export function OverviewPage({ planner, isSaved, onAdd, onView, province, onProvinceChange, savedCount, summary, savedBreaks, collapsed, onCollapsedChange }) {
   const [tab, setTab] = useState('details')
   const [moreOpen, setMoreOpen] = useState(false)
   // The break whose table row is hovered, highlighted in the calendar column.
@@ -41,7 +41,7 @@ export function OverviewPage({ planner, isSaved, onAdd, onExport, onView, provin
           <article data-tour="results" aria-label={`Plan: ${period.title}`} className="flex-1 min-h-0 rounded-[20px] shadow-sm bg-white flex flex-col overflow-hidden">
             {moreOpen && <MoreOptions planner={planner} province={province} onProvinceChange={onProvinceChange} />}
             <div className="px-4 py-4 flex-1 min-h-0 flex flex-col">
-              <PlannerResults planner={planner} isSaved={isSaved} onAdd={list => { onAdd(list); setTab('summary') }} onExport={onExport} onView={onView} onHover={setHovered} />
+              <PlannerResults planner={planner} isSaved={isSaved} onAdd={list => { onAdd(list); setTab('summary') }} onView={onView} onHover={setHovered} />
             </div>
           </article>
         </div>

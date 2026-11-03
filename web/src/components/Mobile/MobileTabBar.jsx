@@ -16,6 +16,7 @@ export function MobileTabBar({ page, onPageChange }) {
             key={t.id}
             type="button"
             aria-current={on ? 'page' : undefined}
+            data-tour={`nav-${t.id}`}
             onClick={() => onPageChange(t.id)}
             className={`flex flex-col items-center justify-center gap-1 text-[11px] font-bold ${on ? 'text-sky-700' : 'text-slate-500'}`}
           >

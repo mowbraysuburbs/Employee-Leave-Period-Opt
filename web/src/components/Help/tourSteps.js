@@ -47,25 +47,38 @@ export function tourSteps(phone, demo, { reset, showDate, showSummary }) {
   ]
 }
 
-// The first-visit journey on the desktop Overview: the planner's three steps,
-// the plan, adding it, then where to go next.
-export function plannerTourSteps() {
+// The first-visit journey on the Overview: the planner's steps, the plan,
+// adding it, then where to go next. Phones have the days off limit and aim
+// behind one settings button by the period slider.
+export function plannerTourSteps(phone = false) {
+  const act = phone ? 'Tap' : 'Click'
+  const settings = phone
+    ? [{
+        target: 'settings',
+        title: '2 · Days off limit and aim',
+        text: 'This button shows your days off limit and aim. Tap it to change them, or for Advanced options (school holidays, months to avoid). A number on it shows how many advanced options are on.',
+      }]
+    : [
+        {
+          target: 'limit',
+          title: '2 · Your days off limit',
+          text: 'How many leave days you want to spend (up to 10). The planner finds the best way to use them.',
+        },
+        {
+          target: 'goal',
+          title: '3 · Your aim',
+          text: 'Maximise gets the most days off per leave day, Mix gives 2 or 3 proper holidays, Longest one long break. Hover each to see its result.',
+        },
+      ]
   return [
     {
       target: 'period',
       title: '1 · Pick a leave period',
-      text: 'Christmas, Easter, school holidays, the next few months, or your own dates. The plan below updates straight away.',
+      text: phone
+        ? 'Slide along and tap Christmas, Easter, school holidays, the next few months, or Custom for your own dates. The plan updates straight away.'
+        : 'Christmas, Easter, school holidays, the next few months, or your own Start and End dates. The plan updates straight away.',
     },
-    {
-      target: 'limit',
-      title: '2 · Your days off limit',
-      text: 'How many leave days you want to spend (up to 10). The planner finds the best way to use them.',
-    },
-    {
-      target: 'goal',
-      title: '3 · Your aim',
-      text: 'Maximise gets the most days off per leave day, Mix gives 2 or 3 proper holidays, Longest one long break. Hover each to see its result.',
-    },
+    ...settings,
     {
       target: 'results',
       title: 'Your plan',
@@ -77,19 +90,21 @@ export function plannerTourSteps() {
       text: 'Keep the ticked breaks in your Summary. From there you can add them to Apple or Google Calendar.',
     },
     {
-      target: 'panel',
-      title: 'Details and Summary',
-      text: 'Details shows the plan on a calendar. Summary lists the breaks you added, with your totals and leave left.',
+      target: phone ? 'summary' : 'panel',
+      title: phone ? 'Your Summary' : 'Details and Summary',
+      text: phone
+        ? 'Your saved breaks, totals and leave left. The number shows how many breaks you have.'
+        : 'Details shows the plan on a calendar. Summary lists the breaks you added, with your totals and leave left.',
     },
     {
       target: 'nav-calendar',
       title: 'Explore every day',
-      text: 'The Calendar colours every date by how many days off you would get if leave starts then. Click any day to see its break.',
+      text: `The Calendar colours every date by how many days off you would get if leave starts then. ${act} any day to see its break.`,
     },
     {
       target: 'help',
       title: 'Help any time',
-      text: 'Click ? for How it works, or to take this tour again.',
+      text: `${act} ? for How it works, or to take this tour again.`,
     },
   ]
 }

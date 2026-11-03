@@ -8,7 +8,7 @@ import { SettingsSheet } from './SettingsSheet'
 import { HelpButton } from '../Help/HelpButton'
 import { HowItWorks } from '../Help/HowItWorks'
 import { GuidedTour } from '../Help/GuidedTour'
-import { tourSteps } from '../Help/tourSteps'
+import { tourSteps, plannerTourSteps } from '../Help/tourSteps'
 import { useSettings } from '../../hooks/useSettings'
 import { useWelcome } from '../../hooks/useWelcome'
 import { CalendarKey } from '../Desktop/CalendarKey'
@@ -30,7 +30,7 @@ import { summariseBreaks } from '../../utils/breaks'
 export function MobileApp() {
   const settings = useSettings()
   const p = useLeavePlanner({ leaveLimit: settings.leaveTotal, onLeaveLimitChange: settings.setLeaveTotal })
-  const [page, setPage] = useState('calendar')
+  const [page, setPage] = useState('overview')
   const { showWelcome, closeWelcome, replayWelcome } = useWelcome()
   // Which bottom sheet is open: 'day' | 'filters' | 'summary' | 'settings' | 'help' | null.
   const [sheet, setSheet] = useState(null)
@@ -78,7 +78,8 @@ export function MobileApp() {
           planner={p.planner}
           isSaved={p.isSaved}
           onAdd={p.addBreaks}
-          onExport={p.exportBreaks}
+          savedCount={p.saved.length}
+          onOpenSummary={() => setSheet('summary')}
           onView={viewOnCalendar}
           province={p.province}
           onProvinceChange={p.setProvince}
@@ -162,10 +163,12 @@ export function MobileApp() {
 
       {sheet === 'help' && (
         <BottomSheet label="How it works" title="How it works" backdrop onClose={closeSheet}>
-          <HowItWorks phone onReplay={() => { setSheet(null); setPage('calendar'); replayWelcome() }} />
+          <HowItWorks phone onReplay={() => { setSheet(null); if (page !== 'calendar') setPage('overview'); replayWelcome() }} />
         </BottomSheet>
       )}
 
+      {/* The tour for the page you're on: the planner journey on the Overview, the calendar tour on the Calendar. */}
+      {showWelcome && page === 'overview' && <GuidedTour steps={plannerTourSteps(true)} onClose={() => { closeWelcome(); setSheet(null) }} />}
       {showWelcome && calendarPage && (
         <GuidedTour
           steps={tourSteps(true, p.breaks[p.demoDate], {
