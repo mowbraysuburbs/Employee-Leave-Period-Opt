@@ -1,12 +1,10 @@
 import { useState } from 'react'
 import { PlanStats } from './PlanStats'
 import { PlannerTable } from './PlannerTable'
-import { summarise } from '../../../utils/planner'
-import { formatMultiplier } from '../../../utils/breaks'
 
 /**
- * The plan the planner found: a title, the stat tiles (following the ticked
- * breaks), the breaks table, and Add / Export / View on calendar.
+ * The plan the planner found: a title, the breaks table, and Add / Export
+ * (plus View on calendar on phones). Desktop shows the plan's stats in Details.
  *
  * Props:
  *   planner                 – usePlanner() result
@@ -18,7 +16,7 @@ import { formatMultiplier } from '../../../utils/breaks'
  */
 export function PlannerResults({ planner, isSaved, onAdd, onExport, onView, onHover, calendar, phone = false }) {
   const [showCalendar, setShowCalendar] = useState(false)
-  const { period, breaks, startOptions, ticked, toggleTick, swapStart, leave } = planner
+  const { breaks, startOptions, ticked, toggleTick, swapStart, leave } = planner
   const chosen = breaks.filter(b => ticked.has(b.startDate))
   const none = chosen.length === 0
   const allSaved = !none && chosen.every(isSaved)
@@ -33,7 +31,6 @@ export function PlannerResults({ planner, isSaved, onAdd, onExport, onView, onHo
   }
 
   const button = phone ? 'flex-1' : ''
-  const totals = summarise(chosen)
   const actions = (
     <>
       <button
@@ -69,14 +66,10 @@ export function PlannerResults({ planner, isSaved, onAdd, onExport, onView, onHo
           </div>
         )
         : (
-          // Desktop: title, the totals as small pills, and Add / Export on the right.
+          // Desktop: a plain title and Add / Export; the plan's stats are in Details.
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="m-0 text-[17px] font-extrabold whitespace-nowrap">{period.title}: {count}</h3>
-            <span className="flex gap-1 text-[11.5px] font-extrabold whitespace-nowrap">
-              <span className="px-2 py-1 rounded-lg bg-indigo-100 text-indigo-800">{totals.daysOff} off</span>
-              <span className="px-2 py-1 rounded-lg bg-sky-100 text-sky-800">{totals.leave} leave</span>
-              <span className="px-2 py-1 rounded-lg bg-amber-100 text-amber-800">{formatMultiplier(totals.multiplier)}</span>
-            </span>
+            <h3 className="m-0 text-[17px] font-extrabold whitespace-nowrap">Your breaks</h3>
+            <span className="text-[12.5px] text-slate-500">Untick any you don't want</span>
             <span className="ml-auto flex gap-2">{actions}</span>
           </div>
         )}
