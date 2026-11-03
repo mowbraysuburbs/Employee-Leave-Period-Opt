@@ -46,7 +46,7 @@ export function DesktopApp() {
   const { theme, setTheme, leaveTotal, setLeaveTotal } = useSettings()
   const {
     controls, activeFilters, clearAllFilters, colourBy, holidayFilter, picksOnly, setPicksOnly, activeDaysOff, province, setProvince, schoolDates,
-    months, breaks, demoDate, planner, exportBreaks,
+    months, breaks, demoDate, planner,
     preview, setPreview, previewOnly, previewDays, previewLabel, openPreview,
     saved, savedBreaks, savedDayTypes, savedStarts, isSaved, justAddedKey,
     detailBreak, bestNote, equalStarts, overlaps, combined,
@@ -207,7 +207,6 @@ export function DesktopApp() {
               planner={planner}
               isSaved={isSaved}
               onAdd={addBreaks}
-              onExport={exportBreaks}
               onView={viewOnCalendar}
               province={province}
               onProvinceChange={setProvince}

@@ -1,5 +1,7 @@
 import { useState } from 'react'
-import { PlanStats } from './PlanStats'
+import { StatTile } from '../StatTile'
+import { summarise } from '../../../utils/planner'
+import { formatMultiplier } from '../../../utils/breaks'
 import { PlannerTable } from './PlannerTable'
 import { PERIOD_DESCRIPTIONS } from './periodThemes'
 import { fmtLongRange } from '../../../utils/dateFormat'
@@ -11,14 +13,14 @@ import { fmtLongRange } from '../../../utils/dateFormat'
  * Props:
  *   planner                 – usePlanner() result
  *   isSaved                 – (break) => bool
- *   onAdd, onExport, onView – (tickedBreaks) => void (View is phone only; desktop has it on the calendar column)
+ *   onAdd, onView           – (tickedBreaks) => void (View is phone only; desktop has it in Details)
  *   onHover                 – optional (startDate | null) => void as a row is hovered
  *   calendar                – phone only: the 2-month view, shown instead of the table when switched on
  *   phone
  */
-export function PlannerResults({ planner, isSaved, onAdd, onExport, onView, onHover, calendar, phone = false }) {
+export function PlannerResults({ planner, isSaved, onAdd, onView, onHover, calendar, phone = false }) {
   const [showCalendar, setShowCalendar] = useState(false)
-  const { period, breaks, startOptions, ticked, toggleTick, swapStart, leave } = planner
+  const { period, breaks, startOptions, ticked, toggleTick, swapStart } = planner
   const chosen = breaks.filter(b => ticked.has(b.startDate))
   const none = chosen.length === 0
   const allSaved = !none && chosen.every(isSaved)
@@ -32,34 +34,29 @@ export function PlannerResults({ planner, isSaved, onAdd, onExport, onView, onHo
     )
   }
 
-  const button = phone ? 'flex-1' : ''
+  // Phones: Add to summary and a jump to the calendar, under the table.
   const actions = (
     <>
       <button
         type="button"
         disabled={none || allSaved}
         onClick={() => onAdd(chosen)}
-        className={`${button} ${phone ? 'h-11' : 'h-9 px-3.5'} rounded-xl text-sm font-bold whitespace-nowrap disabled:opacity-50 ${allSaved ? 'bg-green-100 text-green-800 border border-green-300' : 'bg-sky-700 text-white'}`}
+        className={`flex-[1.6] h-11 rounded-xl text-sm font-bold whitespace-nowrap disabled:opacity-50 ${allSaved ? 'bg-green-100 text-green-800 border border-green-300' : 'bg-sky-700 text-white'}`}
       >
-        {allSaved ? 'Added ✓' : `Add (${chosen.length})`}
+        {allSaved ? 'Added ✓' : `Add to summary (${chosen.length})`}
       </button>
-      <button type="button" disabled={none} onClick={() => onExport(chosen)} className={`${button} ${phone ? 'h-11' : 'h-9 px-3.5'} rounded-xl bg-slate-900 text-white text-sm font-bold whitespace-nowrap disabled:opacity-50`}>
-        {phone ? 'Export' : 'Export .ics'}
+      <button type="button" disabled={none} onClick={() => onView(chosen)} className="flex-1 h-11 rounded-xl border border-slate-300 bg-white text-sm font-bold whitespace-nowrap disabled:opacity-50">
+        Calendar →
       </button>
-      {/* On desktop, "Open in calendar" sits on the calendar column instead. */}
-      {phone && (
-        <button type="button" disabled={none} onClick={() => onView(chosen)} className={`${button} ${phone ? 'h-11' : 'h-9 px-3.5'} rounded-xl border border-slate-300 bg-white text-sm font-bold whitespace-nowrap disabled:opacity-50`}>
-          Calendar →
-        </button>
-      )}
-          </>
+    </>
   )
+  const t = summarise(chosen)
   return (
     <div className={`flex flex-col flex-1 min-h-0 ${phone ? 'gap-2.5' : 'gap-3'}`}>
       {phone
         ? (
           <div className="flex items-center justify-between gap-2">
-            <b className="text-sm">{count} · {leave} leave</b>
+            <b className="text-sm">{count}</b>
             <div role="radiogroup" aria-label="Show plan as" className="flex p-0.5 rounded-lg bg-slate-100 text-[11.5px] font-bold">
               <button type="button" role="radio" aria-checked={!showCalendar} onClick={() => setShowCalendar(false)} className={`px-2 h-6 rounded-md ${showCalendar ? 'text-slate-600' : 'bg-white shadow'}`}>List</button>
               <button type="button" role="radio" aria-checked={showCalendar} onClick={() => setShowCalendar(true)} className={`px-2 h-6 rounded-md ${showCalendar ? 'bg-white shadow' : 'text-slate-600'}`}>Calendar</button>
@@ -95,14 +92,22 @@ export function PlannerResults({ planner, isSaved, onAdd, onExport, onView, onHo
             )}
           </div>
         )}
-      {phone && <PlanStats breaks={chosen} total={breaks.length} compact />}
+      {/* Phones: the plan's stats as the calendar's four tiles (desktop shows them in Details). */}
+      {phone && (
+        <div className="grid grid-cols-4 gap-1.5">
+          <StatTile kind="leave" value={t.leave} caption="leave" />
+          <StatTile kind="free" value={`+${t.daysOff - t.leave}`} caption="free" />
+          <StatTile kind="total" value={t.daysOff} caption="days off" />
+          <StatTile kind="multiplier" value={formatMultiplier(t.multiplier)} caption="mult." />
+        </div>
+      )}
       {/* The table scrolls on its own (header row stays), so the page doesn't have to. */}
       <div className={phone ? 'flex-1 min-h-0 overflow-y-auto' : 'flex-1 min-h-[200px] overflow-y-auto rounded-xl border border-slate-100'}>
         {phone && showCalendar
           ? calendar
           : <PlannerTable breaks={breaks} startOptions={startOptions} ticked={ticked} onToggle={toggleTick} onSwap={swapStart} onHover={onHover} phone={phone} />}
       </div>
-      {phone && <div className="flex gap-2 shrink-0">{actions}</div>}
+      {phone && <div data-tour="plan-add" className="flex gap-2 shrink-0">{actions}</div>}
     </div>
   )
 }
