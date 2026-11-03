@@ -23,7 +23,7 @@ export function MobileCalendar({ selectedBreak, onDayClick, compact = false, ...
   )
   // The days-off filter hides rows (one or two months) without a match.
   const columns = compact ? 2 : 1
-  const visibleMonths = useMemo(() => keepMatchingRows(monthDays, breaks, daysOffFilter, columns), [monthDays, breaks, daysOffFilter, columns])
+  const visibleMonths = useMemo(() => keepMatchingRows(monthDays, breaks, { daysOffFilter, holidayFilter }, columns), [monthDays, breaks, daysOffFilter, holidayFilter, columns])
 
   // Bring the tapped break's first day near the top, above the sheet.
   const scrollRef = useRef(null)

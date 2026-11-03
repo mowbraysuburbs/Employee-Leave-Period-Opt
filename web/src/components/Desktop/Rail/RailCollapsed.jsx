@@ -92,9 +92,8 @@ function monthsInPeriod(from, to) {
 /**
  * The calendar's control column collapsed to a thin strip: one icon per
  * control showing its current state, so the calendar gets an extra column.
- * Most icons act straight away (colour by, days-off chips, Selected, school,
- * plan dates); leave days pops out a small card; dates and public holidays
- * open the rail. See ControlRail for props.
+ * Most icons act straight away (colour by, days-off chips, public holidays,
+ * Selected, school, plan dates); leave days pops out a small card; dates open the rail. See ControlRail for props.
  */
 export function RailCollapsed({ c }) {
   const open = c.onToggleCollapsed
@@ -166,11 +165,17 @@ export function RailCollapsed({ c }) {
           className={c.period.changed ? 'bg-sky-100 text-sky-800' : 'bg-slate-100 text-slate-700'}
           dot={c.period.changed}
         />
+        {/* Holidays: one tap shows only breaks that include a public holiday (any
+            of them); tap again for all breaks. Picking particular holidays is in the rail. */}
         <RailIcon
           icon="holiday"
-          label={c.holidayFilter.length ? `Public holidays filter: ${c.holidayFilter.join(', ')}. Open to change` : 'Public holidays filter: all. Open to change'}
-          value={c.holidayFilter.length || null}
-          onClick={open}
+          label={
+            c.holidayFilter.length === 0 ? 'Only breaks with a public holiday: off'
+              : c.holidayFilter.length >= c.holidayOptions.length ? 'Only breaks with a public holiday: on'
+                : `Public holidays filter: ${c.holidayFilter.join(', ')}. Tap to clear`
+          }
+          value={c.holidayFilter.length && c.holidayFilter.length < c.holidayOptions.length ? c.holidayFilter.length : null}
+          onClick={() => c.onHolidayFilterChange(c.holidayFilter.length ? [] : c.holidayOptions.map(o => o.name))}
           className={c.holidayFilter.length ? 'bg-slate-900 text-white' : off}
           dot={c.holidayFilter.length > 0}
         />

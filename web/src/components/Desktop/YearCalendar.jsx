@@ -57,8 +57,8 @@ export function YearCalendar({
   }, [])
 
   const visibleMonths = useMemo(
-    () => keepMatchingRows(monthDays, breaks, daysOffFilter, columns),
-    [monthDays, daysOffFilter, columns, breaks]
+    () => keepMatchingRows(monthDays, breaks, { daysOffFilter, holidayFilter }, columns),
+    [monthDays, daysOffFilter, holidayFilter, columns, breaks]
   )
 
   const hoverBreak = hoveredDate ? breaks[hoveredDate] : null

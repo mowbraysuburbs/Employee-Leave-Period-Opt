@@ -102,16 +102,22 @@ export function buildMonthDays({ months, breaks, colourBy, holidayFilter, picksO
 }
 
 /**
- * With a days-off filter, keeps only rows of months that contain a match, but
- * keeps each such row (`columns` months wide) whole so the grid never has gaps.
+ * With a days-off or public-holiday filter on, keeps only rows of months that
+ * contain a matching day, but keeps each such row (`columns` months wide) whole
+ * so the grid never has gaps. A day matches when its break passes every filter
+ * that's on.
+ *
+ * filters: { daysOffFilter: Set | null, holidayFilter: string[] }
  */
-export function keepMatchingRows(monthDays, breaks, daysOffFilter, columns) {
-  if (!daysOffFilter) return monthDays
+export function keepMatchingRows(monthDays, breaks, { daysOffFilter = null, holidayFilter = [] }, columns) {
+  if (!daysOffFilter && holidayFilter.length === 0) return monthDays
+  const matches = brk => brk
+    && (!daysOffFilter || daysOffFilter.has(brk.daysOff))
+    && (holidayFilter.length === 0 || holidayNamesIn(brk).some(n => holidayFilter.includes(n)))
   const kept = []
   for (let i = 0; i < monthDays.length; i += columns) {
     const row = monthDays.slice(i, i + columns)
-    const hasMatch = row.some(m => m.days.some(d => breaks[d.date] && daysOffFilter.has(breaks[d.date].daysOff)))
-    if (hasMatch) kept.push(...row)
+    if (row.some(m => m.days.some(d => matches(breaks[d.date])))) kept.push(...row)
   }
   return kept
 }
