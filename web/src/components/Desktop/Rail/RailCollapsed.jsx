@@ -58,7 +58,7 @@ function RailIcon({ icon, label, value, className, onClick, tour, dot = false, d
 function DaysOffKey({ legend, picked, onToggle }) {
   const filtering = picked.length > 0
   return (
-    <div className={`relative w-11 py-1.5 rounded-[10px] flex flex-col items-center gap-1 ${filtering ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-400'}`}>
+    <div className={`relative w-11 h-full py-1.5 rounded-[10px] flex flex-col items-center gap-1 ${filtering ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-400'}`}>
       {filtering && <ActiveDot />}
       <svg {...svgProps} width={16} height={16}>{ICONS.filter}</svg>
       <span className="grid grid-cols-2 gap-[3px]">
@@ -140,11 +140,24 @@ export function RailCollapsed({ c }) {
           onClick={() => c.onColourByChange(multiplier ? 'daysOff' : 'multiplier')}
           className={multiplier ? 'bg-amber-100 text-amber-800' : 'bg-indigo-100 text-indigo-800'}
         />
-        {filterable ? (
-          <DaysOffKey legend={c.legend} picked={picked} onToggle={c.onToggleDaysOff} />
-        ) : (
-          <RailIcon icon="filter" label="Days off filter: only with Total days" onClick={open} className={off} />
-        )}
+        {/* A fixed height (room for the most chips there can be, 9), so switching
+            mode or leave days never moves the icons below. */}
+        <div className="shrink-0 h-[124px]">
+          {filterable ? (
+            <DaysOffKey legend={c.legend} picked={picked} onToggle={c.onToggleDaysOff} />
+          ) : (
+            <button
+              type="button"
+              onClick={() => c.onColourByChange('daysOff')}
+              aria-label="Days off filter: only with Total days. Switch to Total days"
+              title="The days-off filter works with Total days"
+              className="w-11 h-full rounded-[10px] bg-slate-50 text-slate-400 hover:bg-slate-100 flex flex-col items-center justify-center gap-1"
+            >
+              <svg {...svgProps} width={16} height={16}>{ICONS.filter}</svg>
+              <span className="text-[9px] font-bold leading-tight text-center">Total days<br />only</span>
+            </button>
+          )}
+        </div>
         <RailIcon
           icon="dates"
           label={`Dates: ${c.period.from} to ${c.period.to}. Open to change`}
