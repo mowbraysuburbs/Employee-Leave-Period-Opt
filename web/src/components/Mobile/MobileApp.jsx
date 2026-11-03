@@ -6,12 +6,11 @@ import { BottomSheet } from './BottomSheet'
 import { FiltersSheet } from './FiltersSheet'
 import { SettingsSheet } from './SettingsSheet'
 import { HelpButton } from '../Help/HelpButton'
-import { HowItWorks } from '../Help/HowItWorks'
+import { HelpSheet } from './HelpSheet'
 import { GuidedTour } from '../Help/GuidedTour'
 import { tourSteps, plannerTourSteps } from '../Help/tourSteps'
 import { useSettings } from '../../hooks/useSettings'
 import { useWelcome } from '../../hooks/useWelcome'
-import { CalendarKey } from '../Desktop/CalendarKey'
 import { BreakDetailPanel } from '../Desktop/BreakDetailPanel'
 import { BreakDetailHead } from '../Desktop/BreakDetailHead'
 import { MyBreaksPanel } from '../Desktop/MyBreaksPanel'
@@ -20,7 +19,6 @@ import { MobileOverview } from './MobileOverview'
 import { EventsComingSoon } from '../Desktop/EventsComingSoon'
 import { HolidaysList } from '../Features/HolidaysList'
 import { useLeavePlanner } from '../../hooks/useLeavePlanner'
-import { summariseBreaks } from '../../utils/breaks'
 
 /**
  * The phone layout. Same planning logic as the desktop (useLeavePlanner);
@@ -59,7 +57,6 @@ export function MobileApp() {
         <span className="text-lg font-extrabold tracking-tight">Stretch<span className="text-sky-700">My</span>Leave</span>
         <span className="flex-1" />
         <HelpButton onClick={() => setSheet('help')} />
-        {(calendarPage || page === 'overview') && <CalendarKey />}
         <button
           type="button"
           aria-label="Settings"
@@ -71,6 +68,18 @@ export function MobileApp() {
             <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z" />
           </svg>
         </button>
+        {/* Summary at the far right of the header, the same on every page (the Key is inside Help on phones). */}
+        <button
+          type="button"
+          data-tour="summary"
+          onClick={() => setSheet('summary')}
+          aria-label={`Summary: ${p.saved.length} break${p.saved.length === 1 ? '' : 's'}`}
+          className="relative h-9 px-3 rounded-full border border-sky-200 bg-sky-50 text-sky-800 inline-flex items-center gap-1.5 text-[13px] font-bold"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="7" width="16" height="13" rx="2" /><path d="M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7" /></svg>
+          Summary
+          {p.saved.length > 0 && <span aria-hidden="true" className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-sky-500 border-2 border-white text-white text-[10px] font-extrabold leading-[14px]">{p.saved.length}</span>}
+        </button>
       </header>
 
       {page === 'overview' ? (
@@ -78,7 +87,6 @@ export function MobileApp() {
           planner={p.planner}
           isSaved={p.isSaved}
           onAdd={p.addBreaks}
-          savedCount={p.saved.length}
           onOpenSummary={() => setSheet('summary')}
           onView={viewOnCalendar}
           province={p.province}
@@ -107,24 +115,10 @@ export function MobileApp() {
             onDayClick={handleDayClick}
           />
           <BottomPanel
-            colourBy={p.colourBy}
-            onColourByChange={p.setColourBy}
-            legend={p.legend}
+            c={p.controls}
             filterable={p.colourBy === 'daysOff' && !p.picksOnly}
-            daysOffFilter={p.daysOffFilter}
-            onToggleDaysOff={p.toggleDaysOff}
-            onClearDaysOff={p.clearDaysOff}
-            leaveDays={p.leaveDays}
-            maxLeave={p.controls.maxLeave}
-            leaveLeft={p.leaveLeft}
-            leaveLimit={p.leaveLimit}
-            onLeaveDaysChange={p.changeLeaveDays}
-            savedCount={p.saved.length}
-            savedDaysOff={summariseBreaks(p.savedBreaks).daysOff}
-            savedLeave={summariseBreaks(p.savedBreaks).leaveUsed}
-            onOpenFilters={() => setSheet('filters')}
-            onOpenSummary={() => setSheet('summary')}
             activeCount={p.activeFilters.length}
+            onOpenFilters={() => setSheet('filters')}
           />
         </main>
       ) : (
@@ -140,6 +134,7 @@ export function MobileApp() {
         <BottomSheet label="Day details" onClose={closeSheet} maxHeight="max-h-[58dvh]">
           <div className="flex flex-col gap-4">
             <BreakDetailHead
+              row
               brk={p.detailBreak}
               isSaved={p.isSaved(p.detailBreak)}
               onAdd={p.addDetailBreak}
@@ -159,13 +154,9 @@ export function MobileApp() {
         </BottomSheet>
       )}
 
-      {sheet === 'filters' && <FiltersSheet c={p.controls} onClose={closeSheet} />}
+      {sheet === 'filters' && <FiltersSheet c={p.controls} activeCount={p.activeFilters.length} onClearAll={p.clearAllFilters} onClose={closeSheet} />}
 
-      {sheet === 'help' && (
-        <BottomSheet label="How it works" title="How it works" backdrop onClose={closeSheet}>
-          <HowItWorks phone onReplay={() => { setSheet(null); if (page !== 'calendar') setPage('overview'); replayWelcome() }} />
-        </BottomSheet>
-      )}
+      {sheet === 'help' && <HelpSheet onReplay={() => { setSheet(null); if (page !== 'calendar') setPage('overview'); replayWelcome() }} onClose={closeSheet} />}
 
       {/* The tour for the page you're on: the planner journey on the Overview, the calendar tour on the Calendar. */}
       {showWelcome && page === 'overview' && <GuidedTour steps={plannerTourSteps(true)} onClose={() => { closeWelcome(); setSheet(null) }} />}

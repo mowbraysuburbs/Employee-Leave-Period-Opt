@@ -12,15 +12,15 @@ const SHORT = { custom: 'Custom', next: 'Up next', xmas: 'Christmas', easter: 'E
 const AIM_LABEL = { max: 'Maximise', mix: 'Mix', long: 'Longest' }
 
 /**
- * The phone Overview: the period's card on top (name, description, dates, and a
- * Summary button), the plan underneath, and the period slider above the bottom
+ * The phone Overview: the period's card on top (name, description and dates;
+ * Summary is in the header), the plan underneath, and the period slider above the bottom
  * tabs. The slider starts with a "10 days | Mix" button that opens the plan
  * settings (days off limit, aim, Advanced), with a badge when Advanced options are on.
  *
  * Props: planner, isSaved, onAdd, onView, province, onProvinceChange,
- *        savedCount, onOpenSummary – the My breaks sheet
+ *        onOpenSummary – the My breaks sheet (from the Added note)
  */
-export function MobileOverview({ planner, isSaved, onAdd, onView, province, onProvinceChange, savedCount, onOpenSummary }) {
+export function MobileOverview({ planner, isSaved, onAdd, onView, province, onProvinceChange, onOpenSummary }) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   // "Added N breaks · View summary" for a few seconds after adding.
   const [added, setAdded] = useState(0)
@@ -45,17 +45,6 @@ export function MobileOverview({ planner, isSaved, onAdd, onView, province, onPr
                 {[PERIOD_DESCRIPTIONS[period.kind], fmtShortRange(period.from, period.to)].filter(Boolean).join(' · ')}
               </p>
             </div>
-            <button
-              type="button"
-              data-tour="summary"
-              onClick={onOpenSummary}
-              aria-label={`Summary: ${savedCount} break${savedCount === 1 ? '' : 's'}`}
-              className="relative shrink-0 w-[58px] h-11 rounded-xl bg-sky-100 text-sky-800 flex flex-col items-center justify-center text-[10.5px] font-extrabold leading-tight"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="7" width="16" height="13" rx="2" /><path d="M9 7V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V7" /></svg>
-              Summary
-              {savedCount > 0 && <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-sky-500 border-2 border-white text-white text-[10px] leading-[14px]">{savedCount}</span>}
-            </button>
           </div>
           {custom && <PeriodDates period={period} onChange={planner.changeDates} active />}
         </section>
