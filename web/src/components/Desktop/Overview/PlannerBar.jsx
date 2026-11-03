@@ -6,8 +6,8 @@ const select = 'h-9 border border-slate-300 rounded-xl px-2.5 text-sm font-bold 
 
 /**
  * Steps 2 and 3 of the Overview on one line (in line with step 1's heading):
- * the days off limit (a dropdown) and the aim, with Advanced options (⚙) on
- * the right.
+ * the days off limit (a dropdown) and the aim, with Advanced options (a down
+ * arrow, with a count of options on) on the right.
  *
  * Props: planner – usePlanner() result; moreOpen, onMoreToggle – Advanced options
  */
@@ -26,12 +26,13 @@ export function PlannerBar({ planner, moreOpen, onMoreToggle }) {
         type="button"
         aria-expanded={moreOpen}
         onClick={onMoreToggle}
-        aria-label="Advanced options"
+        aria-label={planner.moreCount ? `Advanced options (${planner.moreCount} on)` : 'Advanced options'}
         title="Advanced options: school holidays, months to avoid or include"
         className={`relative ml-auto w-9 h-9 rounded-xl border text-base ${moreOpen ? 'bg-slate-900 border-slate-900 text-white' : 'bg-white border-slate-300 text-slate-700 hover:border-slate-500'}`}
       >
-        ⚙
-        {planner.moreCount > 0 && <span className="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-1 rounded-full bg-sky-700 text-white text-[10px] font-bold leading-4">{planner.moreCount}</span>}
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={`mx-auto transition-transform ${moreOpen ? 'rotate-180' : ''}`}><polyline points="6 9 12 15 18 9" /></svg>
+        {/* How many options are on, like the calendar's filter dots. */}
+        {planner.moreCount > 0 && <span className="absolute -top-2 -right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-sky-500 border-2 border-white text-white text-[10px] font-extrabold leading-[14px]">{planner.moreCount}</span>}
       </button>
     </section>
   )
