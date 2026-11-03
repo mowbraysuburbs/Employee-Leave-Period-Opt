@@ -11,6 +11,19 @@ function TabButton({ on, label, children, onClick }) {
   )
 }
 
+// A set of breaks as totals: breaks, leave used, days off, overall multiplier.
+function Totals({ breaks, onClick }) {
+  const totals = summariseBreaks(breaks)
+  return (
+    <>
+      <StatTile stacked kind="breaks" value={breaks.length} title={`${breaks.length} breaks`} onClick={onClick} />
+      <StatTile stacked kind="leave" value={totals.leaveUsed} title={`${totals.leaveUsed} leave used`} onClick={onClick} />
+      <StatTile stacked kind="total" value={totals.daysOff} title={`${totals.daysOff} days off`} onClick={onClick} />
+      <StatTile stacked kind="multiplier" value={formatMultiplier(totals.multiplier)} title={`${formatMultiplier(totals.multiplier)} overall multiplier`} onClick={onClick} />
+    </>
+  )
+}
+
 /**
  * The Details / Summary panel collapsed to a slim strip on the right, built like
  * the collapsed left rail: « opens it again, and the tiles keep the numbers in
@@ -23,9 +36,9 @@ function TabButton({ on, label, children, onClick }) {
  *   brk                – the Details break, or null
  *   flexibleStarts     – how many start dates give the same break (1 = none)
  *   savedBreaks
+ *   planBreaks         – the Overview: Details shows the plan's totals instead of one break
  */
-export function PanelCollapsed({ tab, onTabChange, onExpand, brk, flexibleStarts, savedBreaks }) {
-  const totals = summariseBreaks(savedBreaks)
+export function PanelCollapsed({ tab, onTabChange, onExpand, brk, flexibleStarts, savedBreaks, planBreaks }) {
   const range = brk && fmtNumericRange(brk.startDate, brk.endDate)
 
   return (
@@ -40,7 +53,11 @@ export function PanelCollapsed({ tab, onTabChange, onExpand, brk, flexibleStarts
       </div>
       <span aria-hidden="true" className="w-8 h-px bg-slate-200 my-0.5" />
 
-      {tab === 'details' && (brk ? (
+      {tab === 'details' && planBreaks && (planBreaks.length
+        ? <Totals breaks={planBreaks} onClick={() => onExpand('details')} />
+        : <span className="px-1 text-[10px] text-slate-500 text-center leading-tight">No plan</span>)}
+
+      {tab === 'details' && !planBreaks && (brk ? (
         <>
           {/* Dates as numbers: "12–17 / Dec", or "30–4 / Dec–Jan" when it runs into the next month. */}
           <button type="button" onClick={() => onExpand('details')} aria-label={`Break ${range.days} ${range.months}`} className="w-11 py-1 rounded-[10px] border border-slate-300 text-center leading-tight">
@@ -62,16 +79,9 @@ export function PanelCollapsed({ tab, onTabChange, onExpand, brk, flexibleStarts
         <span className="px-1 text-[10px] text-slate-500 text-center leading-tight">Click a day</span>
       ))}
 
-      {tab === 'summary' && (savedBreaks.length ? (
-        <>
-          <StatTile stacked kind="breaks" value={savedBreaks.length} title={`${savedBreaks.length} breaks`} onClick={() => onExpand('summary')} />
-          <StatTile stacked kind="leave" value={totals.leaveUsed} title={`${totals.leaveUsed} leave used`} onClick={() => onExpand('summary')} />
-          <StatTile stacked kind="total" value={totals.daysOff} title={`${totals.daysOff} days off`} onClick={() => onExpand('summary')} />
-          <StatTile stacked kind="multiplier" value={formatMultiplier(totals.multiplier)} title={`${formatMultiplier(totals.multiplier)} overall multiplier`} onClick={() => onExpand('summary')} />
-        </>
-      ) : (
-        <span className="px-1 text-[10px] text-slate-500 text-center leading-tight">No breaks yet</span>
-      ))}
+      {tab === 'summary' && (savedBreaks.length
+        ? <Totals breaks={savedBreaks} onClick={() => onExpand('summary')} />
+        : <span className="px-1 text-[10px] text-slate-500 text-center leading-tight">No breaks yet</span>)}
     </aside>
   )
 }

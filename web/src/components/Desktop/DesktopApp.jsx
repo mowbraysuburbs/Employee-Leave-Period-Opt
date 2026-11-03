@@ -212,6 +212,9 @@ export function DesktopApp() {
               province={province}
               onProvinceChange={setProvince}
               savedCount={saved.length}
+              savedBreaks={savedBreaks}
+              collapsed={panelCollapsed}
+              onCollapsedChange={collapsed => setPanel(collapsed)}
               summary={
                 <MyBreaksPanel
                   breaks={savedBreaks}
