@@ -21,11 +21,13 @@ const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`
  *   value    – the goal in use
  *   onChange – (goal) => void
  *   phone    – compact three-part toggle
+ *   label    – the step's heading (the desktop bar says "Aim")
+ *   plain    – words only, no emoji (the desktop bar)
  */
-export function GoalChoice({ goals, value, onChange, phone = false }) {
+export function GoalChoice({ goals, value, onChange, phone = false, label = 'What matters most?', plain = false }) {
   return (
     <div className={phone ? 'flex flex-col gap-1.5' : 'flex items-center gap-2.5'}>
-      <StepHeading number={3} phone={phone}>What matters most?</StepHeading>
+      <StepHeading number={3} phone={phone}>{label}</StepHeading>
       <div role="radiogroup" aria-label="What matters most" className="flex p-[3px] gap-[3px] rounded-xl bg-slate-100">
         {GOALS.map(id => {
           const { breaks } = goals[id]
@@ -37,11 +39,11 @@ export function GoalChoice({ goals, value, onChange, phone = false }) {
               type="button"
               role="radio"
               aria-checked={on}
-              title={`${GOAL_TEXT[id].text} ${t.daysOff} days off · ${formatMultiplier(t.multiplier)} · ${plural(t.breaks, 'break')}`}
+              title={`${GOAL_TEXT[id].text} Breaks are at least one working week apart. ${t.daysOff} days off · ${formatMultiplier(t.multiplier)} · ${plural(t.breaks, 'break')}`}
               onClick={() => onChange(id)}
               className={`rounded-[9px] font-bold leading-tight whitespace-nowrap ${phone ? 'flex-1 py-1.5 px-1 text-[12px]' : 'h-8 px-3 text-[13px]'} ${on ? 'bg-white text-slate-900 shadow' : 'text-slate-600 hover:text-slate-900'}`}
             >
-              {GOAL_TEXT[id].short}
+              {plain ? GOAL_TEXT[id].short.split(' ').slice(1).join(' ') : GOAL_TEXT[id].short}
               {/* Phones have no hover, so they show each result under the label. */}
               {phone && <span className="block font-semibold text-[10.5px] text-indigo-800">{t.daysOff} off · {formatMultiplier(t.multiplier)}</span>}
             </button>

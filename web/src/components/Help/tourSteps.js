@@ -46,3 +46,50 @@ export function tourSteps(phone, demo, { reset, showDate, showSummary }) {
     },
   ]
 }
+
+// The first-visit journey on the desktop Overview: the planner's three steps,
+// the plan, adding it, then where to go next.
+export function plannerTourSteps() {
+  return [
+    {
+      target: 'period',
+      title: '1 · Pick a leave period',
+      text: 'Christmas, Easter, school holidays, the next few months, or your own dates. The plan below updates straight away.',
+    },
+    {
+      target: 'limit',
+      title: '2 · Your days off limit',
+      text: 'How many leave days you want to spend (up to 10). The planner finds the best way to use them.',
+    },
+    {
+      target: 'goal',
+      title: '3 · Your aim',
+      text: 'Maximise gets the most days off per leave day, Mix gives 2 or 3 proper holidays, Longest one long break. Hover each to see its result.',
+    },
+    {
+      target: 'results',
+      title: 'Your plan',
+      text: "Each row is a break: when it starts and ends, the holiday it's built around, and how many days off you get. Untick any you don't want.",
+    },
+    {
+      target: 'plan-add',
+      title: 'Add it to your Summary',
+      text: 'Keep the ticked breaks, or export them straight to your calendar.',
+    },
+    {
+      target: 'panel',
+      title: 'Details and Summary',
+      text: 'Details shows the plan on a calendar. Summary lists the breaks you added, with your totals and leave left.',
+    },
+    {
+      target: 'nav-calendar',
+      title: 'Explore every day',
+      text: 'The Calendar colours every date by how many days off you would get if leave starts then. Click any day to see its break.',
+    },
+    {
+      target: 'help',
+      title: 'Help any time',
+      text: 'Click ? for How it works, or to take this tour again.',
+    },
+  ]
+}

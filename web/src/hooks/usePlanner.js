@@ -97,6 +97,8 @@ export function usePlanner({ today, province, leaveLimit = MAX_LEAVE, onLeaveLim
     setLeaveLimit: onLeaveLimitChange,
     maxLeave,
     setLeave: reset(n => setLeave(Math.max(1, Math.min(n, maxLeave)))),
+    // The Overview's "Days off limit": sets your limit and plans with all of it.
+    setLimitAndLeave: reset(n => { onLeaveLimitChange(n); setLeave(n) }),
     goals,
     goal: goalWanted,
     setGoal: reset(setGoalWanted),

@@ -37,6 +37,7 @@ export function PlannerResults({ planner, isSaved, onAdd, onExport, onView, onHo
   const actions = (
     <>
       <button
+        data-tour="plan-add"
         type="button"
         disabled={none || allSaved}
         onClick={() => onAdd(chosen)}
