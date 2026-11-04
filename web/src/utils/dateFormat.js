@@ -5,6 +5,31 @@ export function addDays(dateStr, n) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+// Whole days from a to b (YYYY-MM-DD), negative if b is earlier.
+export function daysBetween(a, b) {
+  return Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 86400000)
+}
+
+/**
+ * A date period after changing one end. Either end can move on its own: if
+ * Start passes End, End moves on by the same number of days (and vice versa),
+ * so the period keeps its length. Nothing goes outside min..max; if it would,
+ * that end stops at the limit and the period gets shorter.
+ *
+ * period { from, to }; change { from } or { to }; limits { min, max }.
+ */
+export function movePeriod({ from, to }, change, { min, max }) {
+  const clamp = (d, lo, hi) => (d < lo ? lo : d > hi ? hi : d)
+  if (change.from !== undefined) {
+    const nextFrom = clamp(change.from, min, max)
+    const nextTo = nextFrom > to ? clamp(addDays(to, daysBetween(from, nextFrom)), nextFrom, max) : to
+    return { from: nextFrom, to: nextTo }
+  }
+  const nextTo = clamp(change.to, min, max)
+  const nextFrom = nextTo < from ? clamp(addDays(from, daysBetween(to, nextTo)), min, nextTo) : from
+  return { from: nextFrom, to: nextTo }
+}
+
 export function fmt(dateStr) {
   const [y, m, d] = dateStr.split('-')
   return `${d}/${m}/${y.slice(2)}`
