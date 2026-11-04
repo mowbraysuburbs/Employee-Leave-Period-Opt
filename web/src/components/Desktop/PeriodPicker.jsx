@@ -1,3 +1,5 @@
+import { movePeriod } from '../../utils/dateFormat'
+
 const dateInput = 'h-8 border border-slate-200 rounded-lg px-2 text-sm font-medium text-slate-900'
 
 function DateInput({ id, min, max, value, onChange, className = '' }) {
@@ -19,7 +21,8 @@ function DateInput({ id, min, max, value, onChange, className = '' }) {
  *
  * Props:
  *   from, to, minDate, maxDate – YYYY-MM-DD
- *   onFromChange, onToChange   – (YYYY-MM-DD) => void
+ *   onFromChange, onToChange   – (YYYY-MM-DD) => void; either date can move on its
+ *                                own: the other follows to keep the period's length
  *   changed, onReset           – shows a Reset button once the period moves
  *   idPrefix                   – keeps label/input ids unique per page
  *   stacked                    – narrow layout for the rail and phone Filters: a
@@ -27,6 +30,11 @@ function DateInput({ id, min, max, value, onChange, className = '' }) {
  *                                and End labels on the left with the boxes aligned
  */
 export function PeriodPicker({ from, to, minDate, maxDate, onFromChange, onToChange, changed, onReset, idPrefix, stacked = false }) {
+  function change(edge) {
+    const next = movePeriod({ from, to }, edge, { min: minDate, max: maxDate })
+    if (next.from !== from) onFromChange(next.from)
+    if (next.to !== to) onToChange(next.to)
+  }
   if (stacked) {
     // Changed dates tint blue, so it's clear the period isn't the default.
     const tint = changed ? 'w-full border-sky-300 bg-sky-50' : 'w-full'
@@ -40,9 +48,9 @@ export function PeriodPicker({ from, to, minDate, maxDate, onFromChange, onToCha
         </div>
         <div className="grid grid-cols-[42px_minmax(0,1fr)] gap-x-2 gap-y-1.5 items-center text-[13px]">
           <label htmlFor={`${idPrefix}-from`} className="font-semibold text-slate-700">Start</label>
-          <DateInput id={`${idPrefix}-from`} min={minDate} max={to} value={from} onChange={onFromChange} className={tint} />
+          <DateInput id={`${idPrefix}-from`} min={minDate} max={maxDate} value={from} onChange={d => change({ from: d })} className={tint} />
           <label htmlFor={`${idPrefix}-to`} className="font-semibold text-slate-700">End</label>
-          <DateInput id={`${idPrefix}-to`} min={from} max={maxDate} value={to} onChange={onToChange} className={tint} />
+          <DateInput id={`${idPrefix}-to`} min={minDate} max={maxDate} value={to} onChange={d => change({ to: d })} className={tint} />
         </div>
       </div>
     )
@@ -51,9 +59,9 @@ export function PeriodPicker({ from, to, minDate, maxDate, onFromChange, onToCha
   return (
     <div role="group" aria-label="Date period" className="min-h-11 flex flex-wrap items-center gap-2 pl-3.5 pr-1.5 py-1 rounded-xl bg-white border border-slate-300 shadow-sm text-sm">
       <label htmlFor={`${idPrefix}-from`} className="font-semibold">From</label>
-      <DateInput id={`${idPrefix}-from`} min={minDate} max={to} value={from} onChange={onFromChange} />
+      <DateInput id={`${idPrefix}-from`} min={minDate} max={maxDate} value={from} onChange={d => change({ from: d })} />
       <label htmlFor={`${idPrefix}-to`} className="font-semibold">to</label>
-      <DateInput id={`${idPrefix}-to`} min={from} max={maxDate} value={to} onChange={onToChange} />
+      <DateInput id={`${idPrefix}-to`} min={minDate} max={maxDate} value={to} onChange={d => change({ to: d })} />
       {changed && (
         <button type="button" onClick={onReset} className="h-8 px-2.5 rounded-lg bg-slate-100 text-sky-700 text-[13px] font-bold">
           Reset
