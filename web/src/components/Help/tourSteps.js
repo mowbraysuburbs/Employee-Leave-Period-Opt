@@ -144,7 +144,7 @@ export function calendarTourSteps(demo, { reset, showDate, showSummary }) {
       target: 'dates',
       enter: reset,
       title: 'Which dates',
-      text: 'The calendar shows these months. Change Start or End to look further ahead (holiday data runs to 2028).',
+      text: 'The calendar shows these months. Change Start or End to look further ahead: up to the end of January after next year.',
     },
     {
       target: 'show',

@@ -9,7 +9,6 @@ import { getColourForDaysOff, getColourForMultiplier, multiplierBucket } from '.
 import { fmtDay, fmtShortYear, addDays } from '../utils/dateFormat'
 
 export { MAX_LEAVE }
-const LAST_DATE = '2028-01-01'
 
 function localToday() {
   const d = new Date()
@@ -17,6 +16,9 @@ function localToday() {
 }
 // Today's date (YYYY-MM-DD, local time); also marks today on the calendars.
 export const TODAY = localToday()
+// The last date you can plan to: the rest of this year, all of next year, and
+// the January after (a late-December break can run into it). Rolls each year.
+export const LAST_DATE = `${Number(TODAY.slice(0, 4)) + 2}-01-31`
 
 function monthsBetween(from, to) {
   const result = []
@@ -70,13 +72,15 @@ export function useLeavePlanner({ leaveLimit = MAX_LEAVE, onLeaveLimitChange = (
   // calendar shows breaks using exactly what's left; manual can explore past it.
   const leaveInSummary = saved.reduce((t, s) => t + s.leaveDays, 0)
   const leaveLeft = Math.max(0, leaveLimit - leaveInSummary)
-  const leaveDaysUsed = leaveMode === 'snap' ? Math.max(1, Math.min(MAX_LEAVE, leaveLeft)) : leaveDays
+  // Snapped with nothing left is 0: the calendar then only shows public holidays.
+  const leaveDaysUsed = leaveMode === 'snap' ? Math.min(MAX_LEAVE, leaveLeft) : leaveDays
+  const holidayView = leaveDaysUsed === 0
 
   const months = useMemo(() => monthsBetween(from, to), [from, to])
   // Multiplier mode colours each day by its best deal using up to leaveDays.
   const breaks = useMemo(
-    () => buildBreaksInRange(from, to, leaveDaysUsed, { best: colourBy === 'multiplier' }),
-    [from, to, leaveDaysUsed, colourBy]
+    () => (holidayView ? {} : buildBreaksInRange(from, to, leaveDaysUsed, { best: colourBy === 'multiplier' })),
+    [from, to, leaveDaysUsed, colourBy, holidayView]
   )
   // The guided tour taps this date as its example: the longest break in the
   // first month (earliest on a tie).
@@ -303,7 +307,7 @@ export function useLeavePlanner({ leaveLimit = MAX_LEAVE, onLeaveLimitChange = (
     holidayFilter, setHolidayFilter, holidayOptions, picksOnly, setPicksOnly,
     daysOffFilter, toggleDaysOff, clearDaysOff: () => setDaysOffFilter([]), activeDaysOff, legend,
     province, setProvince, schoolOn, setSchoolOn, schoolDates,
-    months, breaks, demoDate, planner, exportBreaks,
+    months, breaks, holidayView, demoDate, planner, exportBreaks,
     preview, setPreview, previewOnly, setPreviewOnly, previewDays, previewLabel, openPreview,
     saved, savedBreaks, savedDayTypes, savedStarts, isSaved, justAddedKey, setJustAddedKey,
     detailBreak, bestNote, equalStarts, overlaps, combined,
