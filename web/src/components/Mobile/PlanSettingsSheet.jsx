@@ -39,7 +39,11 @@ export function PlanSettingsSheet({ planner, province, onProvinceChange, onClose
               </button>
             ))}
           </div>
-          {planner.maxLeave < planner.leaveLimit && <span className="text-[11.5px] text-slate-600">Uses {planner.maxLeave}: all the workdays in these dates.</span>}
+          {planner.maxLeave < planner.leaveLimit && (
+            <span className="text-[11.5px] text-slate-600">
+              {planner.leaveLeft < planner.leaveLimit && planner.maxLeave === Math.min(planner.leaveLeft, 10) ? `Uses ${planner.maxLeave}: what's left after your Summary.` : `Uses ${planner.maxLeave}: all the workdays in these dates.`}
+            </span>
+          )}
         </section>
         <div className="h-px bg-slate-200" />
         <section className="flex flex-col gap-2">

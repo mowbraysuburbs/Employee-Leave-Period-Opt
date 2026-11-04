@@ -54,7 +54,7 @@ export function MobileOverview({ planner, isSaved, onAdd, onView, province, onPr
             phone
             planner={planner}
             isSaved={isSaved}
-            onAdd={list => { onAdd(list); setAdded(list.length) }}
+            onAdd={list => { planner.markAdded(list); onAdd(list); setAdded(list.length) }}
             onView={onView}
             calendar={<PlanMonths phone period={period} breaks={planner.breaks} ticked={planner.ticked} />}
           />
