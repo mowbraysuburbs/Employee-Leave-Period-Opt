@@ -1,6 +1,7 @@
 import { getColourForDaysOff, getColourForMultiplier } from './colorScale'
 import { DAY_TYPE_COLOUR } from './dayTypes'
 import { holidayNamesIn, formatMultiplier, hasGain } from './breaks'
+import { getHolidayName } from '../data/publicHolidays'
 import { fmtDay, addDays } from './dateFormat'
 
 // Builds the coloured day cells for the calendar month grids, shared by the
@@ -39,11 +40,14 @@ export function withBand(day, brk, selected = false) {
 /**
  * Every month's day cells with their colour, ring, school bar and label.
  *
+ * holidayView: no leave left, so there are no breaks: only public holidays
+ * are coloured (a view; nothing can be tapped or added as leave).
+ *
  * Options: months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes,
  * savedStarts, previewDayTypes, schoolDates, daysOffFilter
  * (see YearCalendar for what each means).
  */
-export function buildMonthDays({ months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, schoolDates, daysOffFilter }) {
+export function buildMonthDays({ months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, schoolDates, daysOffFilter, holidayView = false }) {
   const passesFilter = brk => holidayFilter.length === 0 || holidayNamesIn(brk).some(n => holidayFilter.includes(n))
 
   function look(date, brk) {
@@ -85,6 +89,19 @@ export function buildMonthDays({ months, breaks, colourBy, holidayFilter, picksO
     month,
     days: datesInMonth(year, month).map(date => {
       const brk = breaks[date]
+      if (holidayView) {
+        const name = getHolidayName(date, Number(date.slice(0, 4)))
+        return {
+          school: school(date),
+          date,
+          dayNumber: Number(date.slice(8)),
+          look: name ? typeLook('public_holiday') : OUTSIDE,
+          saved: saved(date),
+          isHoliday: !!name,
+          disabled: true,
+          ariaLabel: name ? `${fmtDay(date)}: ${name}` : fmtDay(date),
+        }
+      }
       return {
         school: school(date),
         date,

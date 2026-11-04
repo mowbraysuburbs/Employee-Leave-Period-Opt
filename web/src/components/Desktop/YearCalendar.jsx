@@ -32,6 +32,7 @@ export function YearCalendar({
   previewDayTypes,
   schoolDates,
   daysOffFilter,
+  holidayView,
   hoveredDate,
   selectedBreak,
   onDayHover,
@@ -39,8 +40,8 @@ export function YearCalendar({
 }) {
   // Colours depend on everything except the hover, so hovering stays cheap.
   const monthDays = useMemo(
-    () => buildMonthDays({ months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, schoolDates, daysOffFilter }),
-    [months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, schoolDates, daysOffFilter]
+    () => buildMonthDays({ months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, schoolDates, daysOffFilter, holidayView }),
+    [months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, schoolDates, daysOffFilter, holidayView]
   )
 
   // How many month cards fit per row, matching the grid's minmax(260px, 1fr) and 16px gap.

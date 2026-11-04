@@ -43,9 +43,9 @@ function DaysLeft({ left, usedShare, snapped, onSnap }) {
         </svg>
         <span className="relative">{left} left</span>
       </button>
-      {hint && (
+      {hint && !snapped && (
         <span role="status" className="absolute bottom-[38px] left-0 z-30 whitespace-nowrap px-2.5 py-1.5 rounded-lg bg-slate-900 text-white text-[11.5px] font-bold shadow-lg">
-          Hold to use all {left}
+          {left ? `Hold to use all ${left}` : 'No leave left: hold to see public holidays only'}
         </span>
       )}
     </span>

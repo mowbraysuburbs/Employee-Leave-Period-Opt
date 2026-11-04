@@ -110,6 +110,7 @@ export function MobileApp() {
             previewDayTypes={p.previewOnly ? p.previewDays.dayTypes : null}
             schoolDates={p.schoolDates}
             daysOffFilter={p.activeDaysOff}
+            holidayView={p.holidayView}
             compact={settings.calendarSize === 'compact'}
             selectedBreak={sheet === 'day' ? p.detailBreak : null}
             onDayClick={handleDayClick}

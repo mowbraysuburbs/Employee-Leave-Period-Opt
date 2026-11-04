@@ -46,7 +46,7 @@ export function DesktopApp() {
   const { theme, setTheme, leaveTotal, setLeaveTotal } = useSettings()
   const {
     controls, activeFilters, clearAllFilters, colourBy, holidayFilter, picksOnly, setPicksOnly, activeDaysOff, province, setProvince, schoolDates,
-    months, breaks, demoDate, planner,
+    months, breaks, holidayView, demoDate, planner,
     preview, setPreview, previewOnly, previewDays, previewLabel, openPreview,
     saved, savedBreaks, savedDayTypes, savedStarts, isSaved, justAddedKey,
     detailBreak, bestNote, equalStarts, overlaps, combined,
@@ -143,6 +143,7 @@ export function DesktopApp() {
               previewDayTypes={previewOnly ? previewDays.dayTypes : null}
               schoolDates={schoolDates}
               daysOffFilter={activeDaysOff}
+              holidayView={holidayView}
               hoveredDate={hoveredDate}
               selectedBreak={detailBreak}
               onDayHover={setHoveredDate}

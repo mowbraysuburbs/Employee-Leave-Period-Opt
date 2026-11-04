@@ -19,7 +19,7 @@ export function HowItWorks({ phone = false, onReplay }) {
     phone
       ? <>Filters (days off, public holidays, Selected only) are under the calendar. Settings (⚙): Compact calendar or Dark mode.</>
       : <>Filters: days off, public holidays (or All holidays), Selected only. Both side panels collapse to icons. The moon button switches to dark mode.</>,
-    <>Your breaks are saved on this device. Holiday data runs to the end of 2028.</>,
+    <>Your breaks are saved on this device. You can plan the rest of this year, next year and the January after.</>,
   ]
 
   const steps = (title, list) => (
