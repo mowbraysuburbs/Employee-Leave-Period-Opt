@@ -14,6 +14,7 @@ Each file prints `PASS` / `FAIL` lines; `run.cjs` adds them up and fails if any 
 | `zero-left.cjs` | 0 days left: public-holidays-only view (phone and desktop), and the date range |
 | `dates.cjs` | Start / End move independently, within the last date (desktop, Overview, phone) |
 | `overview-left.cjs` | The Overview plans with what's left after the Summary; adding a plan doesn't re-plan the list; nothing left shows a message |
+| `start-over.cjs` | The Summary as the one plan: move a kept break to an equal start date; Clear all with a "Start over?" check (desktop and phone) |
 | `desktop-tours.cjs` | Desktop first-visit tours (Overview and Calendar), How it works diagrams, replay |
 
 Dates are worked out from today, so the tests keep working as time moves on.

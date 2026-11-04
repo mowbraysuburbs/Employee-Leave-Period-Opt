@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { SavedBreaksTable } from './SavedBreaksTable'
 import { CalendarExport } from './CalendarExport'
 import { summariseBreaks, formatMultiplier } from '../../utils/breaks'
@@ -21,8 +22,10 @@ function Total({ value, suffix, label, highlight }) {
  *   onOpen, onRemove – (brk) => void
  *   mineOnly, onMineOnlyChange – same value as the rail's "Selected"
  */
-export function MyBreaksPanel({ breaks, justAddedKey, onOpen, onRemove, mineOnly, onMineOnlyChange }) {
+export function MyBreaksPanel({ breaks, justAddedKey, onOpen, onRemove, mineOnly, onMineOnlyChange, onClearAll }) {
   const totals = summariseBreaks(breaks)
+  // "Start over?" shows in place before anything is cleared.
+  const [confirming, setConfirming] = useState(false)
 
   return (
     <div className="flex flex-col gap-4">
@@ -55,6 +58,21 @@ export function MyBreaksPanel({ breaks, justAddedKey, onOpen, onRemove, mineOnly
       ) : (
         <SavedBreaksTable breaks={breaks} justAddedKey={justAddedKey} onOpen={onOpen} onRemove={onRemove} />
       )}
+
+      {breaks.length > 0 && onClearAll && (confirming ? (
+        <div role="alertdialog" aria-label="Start over?" className="p-3.5 rounded-2xl border border-red-200 bg-red-50 flex flex-col gap-2.5">
+          <b className="text-[15px]">Start over?</b>
+          <p className="m-0 text-[13px] text-slate-700">This removes all {breaks.length} break{breaks.length === 1 ? '' : 's'} from your Summary. Your limit, aim and province stay.</p>
+          <div className="flex justify-end gap-2">
+            <button type="button" onClick={() => setConfirming(false)} className="h-9 px-3.5 rounded-xl text-sm font-bold text-slate-700">Cancel</button>
+            <button type="button" onClick={() => { setConfirming(false); onClearAll() }} className="h-9 px-3.5 rounded-xl bg-red-600 text-white text-sm font-bold">Clear all</button>
+          </div>
+        </div>
+      ) : (
+        <button type="button" onClick={() => setConfirming(true)} className="h-10 rounded-xl border border-red-300 bg-white text-red-700 text-sm font-bold">
+          Clear all
+        </button>
+      ))}
 
     </div>
   )

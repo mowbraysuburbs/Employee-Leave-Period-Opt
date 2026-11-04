@@ -150,7 +150,7 @@ export function MobileApp() {
               bestNote={p.bestNote}
               label={p.previewLabel}
               equalStarts={p.equalStarts}
-              onPickStart={startDate => p.openBreak({ startDate, leaveDays: p.detailBreak.leaveDays })}
+              onPickStart={startDate => (p.isSaved(p.detailBreak) ? p.moveBreak(p.detailBreak, startDate) : p.openBreak({ startDate, leaveDays: p.detailBreak.leaveDays }))}
             />
           </div>
         </BottomSheet>
@@ -190,6 +190,7 @@ export function MobileApp() {
             justAddedKey={p.justAddedKey}
             onOpen={b => { p.openBreak(b); setPage('calendar'); setSheet('day') }}
             onRemove={p.removeBreak}
+            onClearAll={p.clearSummary}
             mineOnly={p.picksOnly}
             onMineOnlyChange={p.setPicksOnly}
           />

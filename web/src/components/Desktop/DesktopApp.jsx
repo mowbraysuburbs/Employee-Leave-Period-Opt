@@ -50,7 +50,7 @@ export function DesktopApp() {
     preview, setPreview, previewOnly, previewDays, previewLabel, openPreview,
     saved, savedBreaks, savedDayTypes, savedStarts, isSaved, justAddedKey,
     detailBreak, bestNote, equalStarts, overlaps, combined,
-    selectDay, openBreak, addBreaks, addDetailBreak, replaceOverlaps, removeBreak,
+    selectDay, openBreak, addBreaks, addDetailBreak, replaceOverlaps, removeBreak, clearSummary, moveBreak,
   } = useLeavePlanner({ leaveLimit: leaveTotal, onLeaveLimitChange: setLeaveTotal })
   // Each page has its own first-visit tour.
   const overviewTour = useWelcome()
@@ -193,7 +193,7 @@ export function DesktopApp() {
                 bestNote={bestNote}
                 label={previewLabel}
                 equalStarts={equalStarts}
-                onPickStart={startDate => openBreak({ startDate, leaveDays: detailBreak.leaveDays })}
+                onPickStart={startDate => (isSaved(detailBreak) ? moveBreak(detailBreak, startDate) : openBreak({ startDate, leaveDays: detailBreak.leaveDays }))}
               />
             }
             summary={
@@ -202,6 +202,7 @@ export function DesktopApp() {
                 justAddedKey={justAddedKey}
                 onOpen={b => { openBreak(b); setTab('details') }}
                 onRemove={removeBreak}
+                onClearAll={clearSummary}
                 mineOnly={picksOnly}
                 onMineOnlyChange={setPicksOnly}
               />
@@ -230,6 +231,7 @@ export function DesktopApp() {
                   justAddedKey={justAddedKey}
                   onOpen={b => { openBreak(b); setTab('details'); setPage('calendar') }}
                   onRemove={removeBreak}
+                  onClearAll={clearSummary}
                   mineOnly={picksOnly}
                   onMineOnlyChange={setPicksOnly}
                 />
