@@ -11,7 +11,7 @@ export function tourSteps(phone, demo, { reset, showDate, showSummary }) {
       enter: reset,
       title: 'Set your leave days',
       text: phone
-        ? 'Tap a number to choose how many leave days to spend on one break. 📍 shows how many you have left: tap it to use exactly those.'
+        ? 'Swipe the numbers to choose how many leave days to spend on one break. Tap the limit to change it. "7 left" shows what is left: press and hold it to use exactly that many.'
         : 'Choose how many leave days you want to spend on one break.',
     },
     {
@@ -19,7 +19,7 @@ export function tourSteps(phone, demo, { reset, showDate, showSummary }) {
       enter: reset,
       title: 'Colours show days off',
       text: phone
-        ? 'Each colour is how many days off in a row you get if leave starts that day. Tap Days off to see the colours (tap one to show only those dates); tap it again for Multiplier.'
+        ? 'Each colour is how many days off in a row you get if leave starts that day. Tap a colour to show only those dates, or Total days to switch to Multiplier.'
         : `Each colour is how many days off in a row you get if leave starts that day. ${act} a number to show only those dates, or switch to Multiplier for days off per leave day.`,
     },
     {
