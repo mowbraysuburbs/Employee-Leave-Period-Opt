@@ -119,6 +119,7 @@ export function MobileApp() {
             filterable={p.colourBy === 'daysOff' && !p.picksOnly}
             activeCount={p.activeFilters.length}
             onOpenFilters={() => setSheet('filters')}
+            onClearAll={p.clearAllFilters}
           />
         </main>
       ) : (
