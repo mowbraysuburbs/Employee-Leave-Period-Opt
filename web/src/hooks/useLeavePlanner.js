@@ -241,6 +241,20 @@ export function useLeavePlanner({ leaveLimit = MAX_LEAVE, onLeaveLimitChange = (
     if (breakKey(entry) === justAddedKey) setJustAddedKey(null)
   }
 
+  // Start over: empties the Summary (your limit, aim and province stay).
+  function clearSummary() {
+    replaceAll([])
+    setPinned(null)
+    setJustAddedKey(null)
+  }
+
+  // A kept break moved to an equal start date: the Summary entry moves with it.
+  function moveBreak(brk, startDate) {
+    const moved = { startDate, leaveDays: brk.leaveDays }
+    replaceAll(saved.map(s => (breakKey(s) === breakKey(brk) ? moved : s)))
+    setPinned(moved)
+  }
+
   function exportBreaks(list) {
     downloadIcs(buildIcs(list.map(toCalendarEvent)), `${planner.period.id}-leave.ics`)
   }
@@ -311,6 +325,6 @@ export function useLeavePlanner({ leaveLimit = MAX_LEAVE, onLeaveLimitChange = (
     preview, setPreview, previewOnly, setPreviewOnly, previewDays, previewLabel, openPreview,
     saved, savedBreaks, savedDayTypes, savedStarts, isSaved, justAddedKey, setJustAddedKey,
     detailBreak, bestNote, equalStarts, overlaps, combined,
-    selectDay, openBreak, addBreaks, addDetailBreak, replaceOverlaps, removeBreak,
+    selectDay, openBreak, addBreaks, addDetailBreak, replaceOverlaps, removeBreak, clearSummary, moveBreak,
   }
 }

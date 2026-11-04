@@ -23,9 +23,12 @@ function overlapText(overlaps) {
 export function AddBreakControls({ isSaved, overlaps, combined, onAdd, onRemove, onReplace }) {
   if (isSaved) {
     return (
-      <button type="button" onClick={onRemove} className="h-11 rounded-xl bg-white text-red-700 border border-red-300 text-[15px] font-bold">
-        Remove from summary
-      </button>
+      <div className="flex flex-col gap-2">
+        <span className="self-center px-2.5 py-1 rounded-lg bg-green-50 text-green-800 text-[12.5px] font-bold">✓ In your Summary</span>
+        <button type="button" onClick={onRemove} className="h-11 rounded-xl bg-white text-red-700 border border-red-300 text-[15px] font-bold">
+          Remove from summary
+        </button>
+      </div>
     )
   }
 
