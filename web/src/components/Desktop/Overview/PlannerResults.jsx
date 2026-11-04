@@ -29,7 +29,9 @@ export function PlannerResults({ planner, isSaved, onAdd, onView, onHover, calen
   if (breaks.length === 0) {
     return (
       <div className="p-5 border-[1.5px] border-dashed border-slate-300 rounded-2xl text-sm text-slate-600 text-center">
-        No breaks fit these settings. Try more leave days, or avoid fewer months.
+        {planner.leaveLeft === 0
+          ? 'No leave left: your Summary already uses your whole limit. Raise your limit or remove a break from your Summary.'
+          : 'No breaks fit these settings. Try more leave days, or avoid fewer months.'}
       </div>
     )
   }
