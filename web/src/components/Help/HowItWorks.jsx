@@ -14,10 +14,11 @@ const heading = 'm-0 text-[13px] font-extrabold text-slate-900 uppercase trackin
 export function HowItWorks({ phone = false, onReplay }) {
   const tips = [
     <><b>Days left:</b> your limit minus the leave in your Summary. Turn on <b>Snap to days left</b> and the calendar follows what you have left.</>,
-    <><b>Summary:</b> your saved breaks and totals. Add them to Apple / iPhone (also Outlook) or Google Calendar from there.</>,
+    <><b>Summary:</b> your saved breaks and totals. Add them to Apple / iPhone (also Outlook) or Google Calendar from there. <b>Clear all</b> starts over; your limit, aim and province stay.</>,
+    <>A break you've kept shows <b>✓ In your Summary</b>. Pick another start date with the same days off and the kept break moves there.</>,
     <><b>Advanced options</b>: plan around school holidays, or avoid / include months. A number shows how many are on.</>,
     phone
-      ? <>Filters (days off, public holidays, Selected only) are under the calendar. Settings (⚙): Compact calendar or Dark mode.</>
+      ? <>Tap <b>Filters</b> for quick filters (Selected only, public holidays, school holidays) or More… for the rest. Hold Filters to remove them all. Settings (⚙): Compact calendar or Dark mode.</>
       : <>Filters: days off, public holidays (or All holidays), Selected only. Both side panels collapse to icons. The moon button switches to dark mode.</>,
     <>Your breaks are saved on this device. You can plan the rest of this year, next year and the January after.</>,
   ]
