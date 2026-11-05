@@ -101,7 +101,14 @@ export function planPeriods({ today, provinceCode = 'GP' }) {
 
   periods.push({ id: 'year', kind: 'year', title: String(year + 1), subtitle: 'Jan – Dec', from: `${year + 1}-01-01`, to: `${year + 1}-12-31` })
 
-  return periods.filter(p => p.from <= p.to)
+  const valid = periods.filter(p => p.from <= p.to)
+
+  // When the next holiday IS Christmas or Easter, that card replaces Up next
+  // at the top (only if its dates hold the holiday, so it's the right one).
+  const leadId = next && { Christmas: 'xmas', Easter: 'easter' }[groupName(holidays.get(next))]
+  const lead = valid.find(p => p.id === leadId && p.from <= next && next <= p.to)
+  if (!lead) return valid
+  return [lead, ...valid.filter(p => p !== lead && p.id !== 'next')]
 }
 
 /** How many workdays (so the most leave days you can use) fall in [from, to]. */
