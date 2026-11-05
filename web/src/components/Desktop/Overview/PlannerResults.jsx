@@ -67,7 +67,7 @@ export function PlannerResults({ planner, isSaved, onAdd, onView, onHover, calen
         )
         : (
           // Desktop: a plain title and one Add to summary button (export is in the
-          // Summary tab); the plan's stats are in Details. Then the dropdown note.
+          // Summary tab); the plan's stats are in Details. The dropdown note is under the table.
           <div className="flex flex-col gap-2">
             <div className="flex flex-wrap items-center gap-x-2.5 gap-y-2">
               <div className="flex-1 min-w-[124px]">
@@ -86,12 +86,6 @@ export function PlannerResults({ planner, isSaved, onAdd, onView, onHover, calen
                 {allSaved ? 'Added ✓' : `Add to summary (${chosen.length})`}
               </button>
             </div>
-            {startOptions.some(o => o.length > 1) && (
-              <p className="m-0 flex items-center gap-2 px-3 py-2 rounded-xl bg-sky-50 text-[12.5px] text-slate-700">
-                <span aria-hidden="true" className="shrink-0 w-8 h-8 rounded-lg border border-sky-300 bg-white text-sky-700 flex items-center justify-center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg></span>
-                <span>A <b>dropdown</b> on a start date means the break can start on other days for the same days off. Pick one; the end date follows.</span>
-              </p>
-            )}
           </div>
         )}
       {/* Phones: the plan's stats as the calendar's four tiles (desktop shows them in Details). */}
@@ -109,6 +103,13 @@ export function PlannerResults({ planner, isSaved, onAdd, onView, onHover, calen
           ? calendar
           : <PlannerTable breaks={breaks} startOptions={startOptions} ticked={ticked} onToggle={toggleTick} onSwap={swapStart} onHover={onHover} phone={phone} />}
       </div>
+      {/* Desktop: the dropdown note, fixed under the table (rows scroll above it). */}
+      {!phone && startOptions.some(o => o.length > 1) && (
+        <p className="m-0 shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl bg-sky-50 text-[12.5px] text-slate-700">
+          <span aria-hidden="true" className="shrink-0 w-8 h-8 rounded-lg border border-sky-300 bg-white text-sky-700 flex items-center justify-center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg></span>
+          <span>A <b>dropdown</b> on a start date means the break can start on other days for the same days off. Pick one; the end date follows.</span>
+        </p>
+      )}
       {phone && <div data-tour="plan-add" className="flex gap-2 shrink-0">{actions}</div>}
     </div>
   )
