@@ -32,7 +32,7 @@ const res = []; const check = (n, ok, x = '') => res.push((ok ? 'PASS ' : 'FAIL 
   check('after Add, it shows Added ✓', (await p.getByRole('button', { name: 'Added ✓' }).count()) === 1);
 
   await p.locator('#planner-limit').selectOption('10');
-  await nav.getByRole('button', { name: /^Next 6 months/ }).click();
+  await nav.getByRole('button', { name: /^School holidays/ }).click();
   const used2 = await planLeave();
   check('another period plans with what\'s left (10 − ' + used + ')', used2 > 0 && used2 <= 10 - used, used2 + ' ≤ ' + (10 - used));
   const note = await p.locator('[data-tour=limit]').innerText();

@@ -8,7 +8,7 @@ import { fmtShortRange } from '../../utils/dateFormat'
 import { PlanSettingsSheet } from './PlanSettingsSheet'
 
 // Short labels for the period slider.
-const SHORT = { custom: 'Custom', next: 'Up next', xmas: 'Christmas', easter: 'Easter', school: 'School', three: '3 months', six: '6 months', rest: 'This year' }
+const SHORT = { custom: 'Custom', next: 'Up next', xmas: 'Christmas', easter: 'Easter', school: 'School' }
 const AIM_LABEL = { max: 'Maximise', mix: 'Mix', long: 'Longest' }
 
 /**

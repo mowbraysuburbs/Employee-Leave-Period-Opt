@@ -6,9 +6,6 @@ export const PERIOD_THEMES = {
   xmas: 'bg-linear-to-br from-red-100 to-white',
   easter: 'bg-linear-to-br from-purple-100 to-white',
   school: 'bg-linear-to-br from-sky-100 to-white',
-  three: 'bg-linear-to-br from-green-100 to-white',
-  six: 'bg-linear-to-br from-teal-100 to-white',
-  rest: 'bg-linear-to-br from-amber-100 to-white',
   year: 'bg-linear-to-br from-indigo-100 to-white',
 }
 
@@ -19,9 +16,6 @@ export const STRIP_THEMES = {
   xmas: 'bg-linear-to-r from-red-100 to-white',
   easter: 'bg-linear-to-r from-purple-100 to-white',
   school: 'bg-linear-to-r from-sky-100 to-white',
-  three: 'bg-linear-to-r from-green-100 to-white',
-  six: 'bg-linear-to-r from-teal-100 to-white',
-  rest: 'bg-linear-to-r from-amber-100 to-white',
   year: 'bg-linear-to-r from-indigo-100 to-white',
 }
 
@@ -31,8 +25,5 @@ export const PERIOD_DESCRIPTIONS = {
   xmas: 'Christmas, Day of Goodwill & New Year',
   easter: 'Human Rights Day, Good Friday & Family Day',
   school: 'The next school holidays in your province',
-  three: 'Every holiday from today',
-  six: 'Every holiday from today',
-  rest: "What's left of this year",
   year: 'Plan next year ahead',
 }

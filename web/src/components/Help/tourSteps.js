@@ -85,8 +85,8 @@ export function plannerTourSteps(phone = false, { openPanel } = {}) {
       target: 'period',
       title: '1 · Pick a leave period',
       text: phone
-        ? 'Slide along and tap Christmas, Easter, school holidays, the next few months, or Custom for your own dates. The plan updates straight away.'
-        : 'Christmas, Easter, school holidays, the next few months, or your own Start and End dates. The plan updates straight away.',
+        ? 'Slide along and tap Christmas, Easter, school holidays, next year, or Custom for your own dates. The plan updates straight away.'
+        : 'Christmas, Easter, school holidays, next year, or your own Start and End dates. The plan updates straight away.',
     },
     ...settings,
     {

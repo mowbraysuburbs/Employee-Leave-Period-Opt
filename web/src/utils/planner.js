@@ -30,14 +30,6 @@ function isWeekend(date) {
   return day === 0 || day === 6
 }
 
-// YYYY-MM-DD shifted by n calendar months, minus a day (so "3 months from 2 Nov" ends 1 Feb).
-function monthsAhead(date, n) {
-  const d = new Date(date + 'T00:00:00')
-  d.setMonth(d.getMonth() + n)
-  const shifted = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-  return addDays(shifted, -1)
-}
-
 // Public holidays from a year before `from` to a year after `to`, date → name.
 function holidaysAround(from, to) {
   const map = new Map()
@@ -107,13 +99,6 @@ export function planPeriods({ today, provinceCode = 'GP' }) {
     })
   }
 
-  const start = addDays(today, 1)
-  const monthSpan = (from, to) => `${MONTHS[Number(from.slice(5, 7)) - 1]} – ${MONTHS[Number(to.slice(5, 7)) - 1]}`
-  const three = monthsAhead(start, 3)
-  const six = monthsAhead(start, 6)
-  periods.push({ id: 'three', kind: 'three', title: 'Next 3 months', subtitle: monthSpan(start, three), from: start, to: three })
-  periods.push({ id: 'six', kind: 'six', title: 'Next 6 months', subtitle: monthSpan(start, six), from: start, to: six })
-  periods.push({ id: 'rest', kind: 'rest', title: 'Rest of the year', subtitle: `until 31 Dec`, from: start, to: `${year}-12-31` })
   periods.push({ id: 'year', kind: 'year', title: String(year + 1), subtitle: 'Jan – Dec', from: `${year + 1}-01-01`, to: `${year + 1}-12-31` })
 
   return periods.filter(p => p.from <= p.to)
