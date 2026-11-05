@@ -19,7 +19,7 @@ export function tourSteps(phone, demo, { reset, showDate, showSummary }) {
       enter: reset,
       title: 'Colours show days off',
       text: phone
-        ? 'Each colour is how many days off in a row you get if leave starts that day. Tap a colour to show only those dates, or Total days to switch to Multiplier.'
+        ? 'Each colour is how many days off in a row you get if leave starts that day. Tap a colour to show only those dates, or Total days to switch to Multiplier. Tap Filters for quick filters, or hold it to remove them all.'
         : `Each colour is how many days off in a row you get if leave starts that day. ${act} a number to show only those dates, or switch to Multiplier for days off per leave day.`,
     },
     {
@@ -40,7 +40,7 @@ export function tourSteps(phone, demo, { reset, showDate, showSummary }) {
       target: 'export',
       enter: showSummary,
       title: phone ? 'My breaks' : 'Summary',
-      text: "Once you add breaks, they're listed here with your totals. Add them to your calendar here: Apple / iPhone (also Outlook) or Google.",
+      text: "Once you add breaks, they're listed here with your totals. Add them to your calendar here: Apple / iPhone (also Outlook) or Google. Clear all starts over.",
     },
     {
       target: 'help',
@@ -61,13 +61,13 @@ export function plannerTourSteps(phone = false, { openPanel } = {}) {
     ? [{
         target: 'settings',
         title: '2 · Days off limit and aim',
-        text: 'This button shows your days off limit and aim. Tap it to change them, or for Advanced options (school holidays, months to avoid). A number on it shows how many advanced options are on.',
+        text: 'This button shows your days off limit and aim. Tap it to change them, or for Advanced options (school holidays, months to avoid). A number on it shows how many advanced options are on. The plan uses what\'s left after your Summary.',
       }]
     : [
         {
           target: 'limit',
           title: '2 · Your days off limit',
-          text: 'How many leave days you want to spend (up to 10). The planner finds the best way to use them.',
+          text: "How many leave days you want to spend (up to 10). The planner finds the best way to use them, with what's left after your Summary.",
         },
         {
           target: 'goal',
@@ -105,8 +105,8 @@ export function plannerTourSteps(phone = false, { openPanel } = {}) {
       enter: openPanel,
       title: phone ? 'Your Summary' : 'Details and Summary',
       text: phone
-        ? 'Your saved breaks, totals and leave left. The number shows how many breaks you have.'
-        : 'Details shows the plan on a calendar. Summary lists the breaks you added, with your totals and leave left.',
+        ? 'Your saved breaks, totals and leave left. The number shows how many breaks you have. Clear all starts over.'
+        : 'Details shows the plan on a calendar. Summary lists the breaks you added, with your totals and leave left. Clear all starts over.',
     },
     {
       target: 'nav-calendar',
@@ -170,7 +170,7 @@ export function calendarTourSteps(demo, { reset, showDate, showSummary }) {
       target: 'breaks',
       enter: showSummary,
       title: 'Details and Summary',
-      text: 'Summary lists your saved breaks with totals and leave left. Add them to Apple / iPhone (also Outlook) or Google Calendar from there.',
+      text: 'Summary lists your saved breaks with totals and leave left. Add them to Apple / iPhone (also Outlook) or Google Calendar from there. Clear all starts over.',
     },
     {
       target: 'collapse',
