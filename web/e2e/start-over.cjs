@@ -11,8 +11,8 @@ const res = []; const check = (n, ok, x = '') => res.push((ok ? 'PASS ' : 'FAIL 
   d.on('pageerror', e => errors.push(e.message));
   await d.addInitScript(() => { localStorage.setItem('stretchmyleave.welcomeSeen', '1'); localStorage.setItem('stretchmyleave.calendarTourSeen', '1'); localStorage.setItem('stretchmyleave.panelCollapsed', 'false'); localStorage.setItem('stretchmyleave.railCollapsed', 'false') });
   await d.goto(BASE); await d.evaluate(() => { localStorage.removeItem('stretchmyleave.desktopBreaks'); localStorage.removeItem('stretchmyleave.settings') }); await d.reload();
-  // Keep a suggested plan (Next 3 months usually has breaks with equal start dates).
-  await d.getByRole('navigation', { name: 'Leave periods' }).getByRole('button', { name: /^Next 3 months/ }).click();
+  // Keep a suggested plan (next year has breaks with equal start dates).
+  await d.getByRole('navigation', { name: 'Leave periods' }).getByRole('button', { name: /^20\d\d/ }).click();
   await d.getByRole('button', { name: /Add to summary/ }).click();
   await d.getByRole('button', { name: 'Calendar', exact: true }).click(); await d.waitForTimeout(200);
   const panel = d.locator('aside').last();
