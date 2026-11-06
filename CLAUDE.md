@@ -43,7 +43,7 @@ src/
       StatTile.jsx      # Coloured stat tiles (leave, free, days off, multiplier, breaks)
       Overview/         # The 3-step planner page
         OverviewPage.jsx, PeriodList.jsx (step 1), PlannerBar.jsx + LimitPicker.jsx (step 2, REC tag), RecLine.jsx (line under the plan title)
-        MoreOptions.jsx (Advanced options), PlannerResults.jsx, PlannerTable.jsx, PlanMonths.jsx (calendar view)
+        MoreOptions.jsx (Advanced options), PlannerResults.jsx, PlannerTable.jsx, PlanMonths.jsx (calendar view; months a break crosses are joined, the 1st shows "1 Apr")
       Rail/             # Calendar control rail: RailExpanded / RailCollapsed (icons act directly, pop-outs)
     Mobile/             # Phone layout: MobileApp, MobileCalendar, BottomPanel, BottomSheet, FiltersSheet,
                         # SettingsSheet, MobileOverview, MobileTabBar

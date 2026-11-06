@@ -1,40 +1,73 @@
 import { useEffect, useRef } from 'react'
 import { DAY_TYPE_COLOUR, DAY_TYPE_LEGEND } from '../../../utils/dayTypes'
 import { monthsIn } from '../../../utils/planner'
+import { addDays } from '../../../utils/dateFormat'
 
 const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+
+const SHORT_MONTHS = MONTH_NAMES.map(n => n.slice(0, 3))
 
 function daysIn(key) {
   const [y, m] = key.split('-').map(Number)
   return new Date(y, m, 0).getDate()
 }
 
-// One month, showing only the week rows that hold the plan's days, as joined
-// rectangles in their day colours. Holidays name themselves on hover.
-function Month({ monthKey, dayInfo, highlight }) {
-  const [y, m] = monthKey.split('-').map(Number)
-  const lead = new Date(y, m - 1, 1).getDay()
-  const count = daysIn(monthKey)
-  const cells = [...Array(lead).fill(null), ...Array.from({ length: count }, (_, i) => i + 1)]
+// "March 2027", "March – April 2027", or "December 2026 – January 2027".
+function groupTitle(months) {
+  const [fy, fm] = months[0].split('-').map(Number)
+  const [ly, lm] = months.at(-1).split('-').map(Number)
+  if (months.length === 1) return `${MONTH_NAMES[fm - 1]} ${fy}`
+  return fy === ly ? `${MONTH_NAMES[fm - 1]} – ${MONTH_NAMES[lm - 1]} ${ly}` : `${MONTH_NAMES[fm - 1]} ${fy} – ${MONTH_NAMES[lm - 1]} ${ly}`
+}
+
+// Months a break runs across are joined: a month joins the one before when
+// some break has days in both.
+function groupMonths(months, breaks) {
+  const groups = []
+  for (const m of months) {
+    const prev = groups.at(-1)?.at(-1)
+    const joined = prev && breaks.some(b => b.startDate.slice(0, 7) <= prev && b.endDate.slice(0, 7) >= m)
+    if (joined) groups.at(-1).push(m)
+    else groups.push([m])
+  }
+  return groups
+}
+
+// One month, or months joined into one strip, showing only the week rows that
+// hold the plan's days, as joined rectangles in their day colours. In a joined
+// strip the 1st of the next month shows its short name under the number (and a
+// dark line before it when a break runs into it). Holidays name themselves on hover.
+function Month({ months, dayInfo, highlight }) {
+  const firstDay = `${months[0]}-01`
+  const lastDay = `${months.at(-1)}-${String(daysIn(months.at(-1))).padStart(2, '0')}`
+  const cells = []
+  for (let date = addDays(firstDay, -new Date(firstDay + 'T00:00:00').getDay()); ; date = addDays(date, 1)) {
+    cells.push(date >= firstDay && date <= lastDay ? date : null)
+    if (date >= lastDay && cells.length % 7 === 0) break
+  }
   const weeks = []
   for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7))
-  const dateOf = n => `${monthKey}-${String(n).padStart(2, '0')}`
-  const kept = weeks.filter(w => w.some(n => n && dayInfo.has(dateOf(n))))
+  const kept = weeks.filter(w => w.some(d => d && dayInfo.has(d)))
 
   return (
-    <section aria-label={`${MONTH_NAMES[m - 1]} ${y}`} className="flex flex-col gap-1.5">
-      <b className="text-[13px]">{MONTH_NAMES[m - 1]} {y}</b>
+    <section aria-label={groupTitle(months)} className="flex flex-col gap-1.5">
+      <b className="text-[13px]">{groupTitle(months)}</b>
       <div className="grid grid-cols-7 gap-y-1 text-center">
         {WEEKDAYS.map((w, i) => <span key={i} className="text-[9.5px] font-bold text-slate-500">{w}</span>)}
-        {kept.flat().map((n, i) => {
-          if (!n) return <span key={`b${i}`} />
-          const date = dateOf(n)
+        {kept.flat().map((date, i) => {
+          if (!date) return <span key={`b${i}`} />
+          const n = Number(date.slice(8))
+          // The 1st of a month joined onto the one before: "1" with "Apr" under it.
+          const newMonth = n === 1 && date !== firstDay
+          const label = newMonth && <span className="block text-[8px] leading-none font-extrabold">{SHORT_MONTHS[Number(date.slice(5, 7)) - 1]}</span>
           const info = dayInfo.get(date)
-          if (!info) return <span key={date} className="h-[26px] flex items-center justify-center text-[11.5px] text-slate-400">{n}</span>
+          if (!info) {
+            return <span key={date} className="h-[26px] flex flex-col items-center justify-center text-[11.5px] leading-none text-slate-400">{n}{label}</span>
+          }
           const weekday = i % 7
-          const left = info.first || weekday === 0 || n === 1
-          const right = info.last || weekday === 6 || n === count
+          const left = info.first || weekday === 0 || date === firstDay
+          const right = info.last || weekday === 6 || date === lastDay
           // Unticked breaks fade; the break whose table row is hovered glows (nothing else changes).
           const dim = !info.ticked
           const glow = highlight === info.start
@@ -44,16 +77,21 @@ function Month({ monthKey, dayInfo, highlight }) {
               data-break-start={info.first ? info.start : undefined}
               title={info.holiday ?? undefined}
               className={[
-                'relative h-[26px] flex items-center justify-center text-[11.5px] font-bold transition-opacity',
+                'relative h-[26px] flex flex-col items-center justify-center text-[11.5px] leading-none font-bold transition-opacity',
                 left ? 'rounded-l-md' : '',
                 right ? 'rounded-r-md' : '',
                 dim ? 'opacity-30' : '',
                 glow ? 'z-10 shadow-[0_0_10px_3px_rgba(14,165,233,0.85)]' : '',
                 info.holiday ? 'cursor-help' : '',
               ].join(' ')}
-              style={{ backgroundColor: DAY_TYPE_COLOUR[info.type], color: info.type === 'weekend' ? '#ffffff' : '#0f172a' }}
+              style={{
+                backgroundColor: DAY_TYPE_COLOUR[info.type],
+                color: info.type === 'weekend' ? '#ffffff' : '#0f172a',
+                boxShadow: newMonth && !info.first ? 'inset 2px 0 0 #0f172a' : undefined,
+              }}
             >
               {n}
+              {label}
               {info.first && <i aria-hidden="true" className="absolute top-0.5 left-0.5 w-[5px] h-[5px] rounded-full bg-white shadow-[0_0_0_1px_rgba(15,23,42,0.3)]" />}
             </span>
           )
@@ -81,7 +119,8 @@ export function PlanKey() {
 /**
  * Right-hand column of the Overview: the plan on a calendar, so you can see how
  * the breaks are spread. The heading and key stay put; every month with a break
- * scrolls underneath, showing only the weeks that matter. Hovering a row in the
+ * scrolls underneath, showing only the weeks that matter (months a break runs
+ * across are joined into one strip). Hovering a row in the
  * results makes that break glow here and scrolls it into view.
  *
  * Props:
@@ -108,6 +147,7 @@ export function PlanMonths({ period, breaks, ticked, highlight, onOpen, phone = 
     }
   }
   const breakMonths = monthsIn(period.from, period.to).filter(m => [...dayInfo.keys()].some(d => d.startsWith(m)))
+  const groups = groupMonths(breakMonths, breaks)
 
   // Scroll the months (not the page) so the highlighted break's first day shows.
   useEffect(() => {
@@ -128,7 +168,7 @@ export function PlanMonths({ period, breaks, ticked, highlight, onOpen, phone = 
   if (bare) {
     return (
       <div ref={scroller} aria-label="Plan on the calendar" className="flex flex-col gap-3">
-        {breakMonths.map(m => <Month key={m} monthKey={m} dayInfo={dayInfo} highlight={highlight} />)}
+        {groups.map(g => <Month key={g[0]} months={g} dayInfo={dayInfo} highlight={highlight} />)}
       </div>
     )
   }
@@ -149,7 +189,7 @@ export function PlanMonths({ period, breaks, ticked, highlight, onOpen, phone = 
         {!phone && <span className="text-[11px] text-slate-500">Hover a holiday to see its name.</span>}
       </div>
       <div ref={scroller} className={phone ? 'flex flex-col gap-3' : 'flex-1 min-h-0 overflow-y-auto px-3.5 py-3 flex flex-col gap-3'}>
-        {breakMonths.map(m => <Month key={m} monthKey={m} dayInfo={dayInfo} highlight={highlight} />)}
+        {groups.map(g => <Month key={g[0]} months={g} dayInfo={dayInfo} highlight={highlight} />)}
       </div>
     </aside>
   )
