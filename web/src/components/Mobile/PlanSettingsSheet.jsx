@@ -7,12 +7,11 @@ import { BottomSheet } from './BottomSheet'
 
 const AIMS = {
   max: { title: 'Maximise', text: 'The most days off per leave day' },
-  mix: { title: 'Mix', text: '2 or 3 proper holidays' },
   long: { title: 'Longest', text: 'One long break' },
 }
 
 /**
- * The phone planner's settings, opened from the "10 days | Mix" button by the
+ * The phone planner's settings, opened from the "10 days | Maximise" button by the
  * period slider: the days off limit (1–10), the aim (with what each gives for
  * this period) and Advanced options.
  *

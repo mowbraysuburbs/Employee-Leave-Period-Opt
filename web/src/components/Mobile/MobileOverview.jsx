@@ -9,12 +9,12 @@ import { PlanSettingsSheet } from './PlanSettingsSheet'
 
 // Short labels for the period slider.
 const SHORT = { custom: 'Custom', next: 'Up next', xmas: 'Christmas', easter: 'Easter', school: 'School' }
-const AIM_LABEL = { max: 'Maximise', mix: 'Mix', long: 'Longest' }
+const AIM_LABEL = { max: 'Maximise', long: 'Longest' }
 
 /**
  * The phone Overview: the period's card on top (name, description and dates;
  * Summary is in the header), the plan underneath, and the period slider above the bottom
- * tabs. The slider starts with a "10 days | Mix" button that opens the plan
+ * tabs. The slider starts with a "10 days | Maximise" button that opens the plan
  * settings (days off limit, aim, Advanced), with a badge when Advanced options are on.
  *
  * Props: planner, isSaved, onAdd, onView, province, onProvinceChange,
