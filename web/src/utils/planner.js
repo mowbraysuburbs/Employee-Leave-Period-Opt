@@ -12,14 +12,6 @@ export const MAX_LEAVE = 10
 // Breaks in a plan are at least this many workdays apart (one working week).
 export const BREAK_GAP_WORKDAYS = 5
 
-// "How many breaks?" choices; null means as many as possible.
-export const BREAK_CHOICES = [1, 2, 3, null]
-
-// "What matters most?" goals and the most breaks each may use:
-// max = the best rate (as many breaks as help), long = one continuous break.
-export const GOALS = ['max', 'long']
-export const GOAL_BREAKS = { max: null, long: 1 }
-
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 const minDate = (a, b) => (a < b ? a : b)
@@ -77,7 +69,7 @@ export function planPeriods({ today, provinceCode = 'GP' }) {
   const year = Number(today.slice(0, 4))
   const xmasYear = today > `${year}-12-25` ? year + 1 : year
   periods.push({
-    id: 'xmas', kind: 'xmas', title: 'Christmas', subtitle: 'Dec – Jan',
+    id: 'xmas', kind: 'xmas', title: 'Christmas holidays', subtitle: 'Dec – Jan',
     from: maxDate(addDays(today, 1), `${xmasYear}-12-15`), to: `${xmasYear + 1}-01-10`,
   })
 
@@ -254,41 +246,6 @@ export function planLeave({ from, to, leave, maxBreaks = null, avoidMonths = new
   return picked.reverse()
 }
 
-export const planKey = breaks => breaks.map(b => `${b.startDate}|${b.leaveDays}`).join(',')
-
-/**
- * Plans for every "How many breaks?" choice, and which choices add nothing
- * over a smaller one (those get greyed out).
- *
- * Returns [{ choice, breaks, same }] in BREAK_CHOICES order; same = true when
- * the plan matches the previous choice's.
- */
-export function planAllChoices(options) {
-  const out = []
-  for (const choice of BREAK_CHOICES) {
-    const breaks = planLeave({ ...options, maxBreaks: choice })
-    const prev = out[out.length - 1]
-    out.push({ choice, breaks, same: prev ? planKey(prev.breaks) === planKey(breaks) : false })
-  }
-  return out
-}
-
-/**
- * The two goals from planAllChoices(): each one's plan, and whether it adds
- * nothing over the simpler goal (Maximise over Longest), so it can be greyed out.
- *
- * Returns { max, long }, each { breaks, same }.
- */
-export function planGoals(choices) {
-  const byChoice = new Map(choices.map(c => [c.choice, c.breaks]))
-  const long = byChoice.get(1)
-  const max = byChoice.get(null)
-  return {
-    long: { breaks: long, same: false },
-    max: { breaks: max, same: planKey(max) === planKey(long) },
-  }
-}
-
 /**
  * Other start dates for brk that give the same days off and still sit inside
  * [from, to], in date order including brk itself (at most `limit`).
@@ -336,3 +293,35 @@ export function monthLabel(key, withYear = false) {
   const label = MONTHS[Number(key.slice(5, 7)) - 1]
   return withYear ? `${label} '${key.slice(2, 4)}` : label
 }
+
+/**
+ * The recommended leave days for a period: the fewest that give one long
+ * break joining the most public holidays (best multiplier on a tie). For
+ * school holidays: enough to cover the whole school holiday when that's 10 or
+ * fewer. Next year and Custom have none (they always go for the best multiplier).
+ *
+ * Returns { leave, brk, whole } (brk = that long break; whole = covers the
+ * whole school holiday), or null.
+ */
+export function recommendedLeave(period) {
+  if (period.kind === 'year' || period.kind === 'custom') return null
+  const work = workdaysIn(period.from, period.to)
+  if (work < 1) return null
+  if (period.kind === 'school' && work <= MAX_LEAVE) {
+    const [brk] = planLeave({ from: period.from, to: period.to, leave: work, maxBreaks: 1 })
+    return brk ? { leave: work, brk, whole: true } : null
+  }
+  let best = null
+  for (let leave = 1; leave <= Math.min(MAX_LEAVE, work); leave++) {
+    const [brk] = planLeave({ from: period.from, to: period.to, leave, maxBreaks: 1 })
+    if (!brk) continue
+    const holidays = brk.days.filter(d => d.holidayName).length
+    if (!best || holidays > best.holidays || (holidays === best.holidays && brk.multiplier > best.brk.multiplier)) {
+      best = { leave, brk, holidays }
+    }
+  }
+  return best && best.holidays > 0 ? { leave: best.leave, brk: best.brk, whole: false } : null
+}
+
+/** How many breaks the plan may use: one long break once you have the recommended days, else as many as help. */
+export const breaksFor = (rec, leave) => (rec && leave >= rec.leave ? 1 : null)

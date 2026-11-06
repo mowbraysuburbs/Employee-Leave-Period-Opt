@@ -3,11 +3,13 @@ import { StatTile } from '../StatTile'
 import { summarise } from '../../../utils/planner'
 import { formatMultiplier } from '../../../utils/breaks'
 import { PlannerTable } from './PlannerTable'
+import { RecLine } from './RecLine'
 import { PERIOD_DESCRIPTIONS } from './periodThemes'
 import { fmtLongRange } from '../../../utils/dateFormat'
 
 /**
- * The plan the planner found: a title, the breaks table, and Add / Export
+ * The plan the planner found: a title, the line under it (long break or best
+ * multiplier, see RecLine), the breaks table, and Add / Export
  * (plus View on calendar on phones). Desktop shows the plan's stats in Details.
  *
  * Props:
@@ -86,8 +88,10 @@ export function PlannerResults({ planner, isSaved, onAdd, onView, onHover, calen
                 {allSaved ? 'Added ✓' : `Add to summary (${chosen.length})`}
               </button>
             </div>
+            <RecLine planner={planner} />
           </div>
         )}
+      {phone && <RecLine phone planner={planner} />}
       {/* Phones: the plan's stats as the calendar's four tiles (desktop shows them in Details). */}
       {phone && (
         <div className="grid grid-cols-4 gap-1.5">

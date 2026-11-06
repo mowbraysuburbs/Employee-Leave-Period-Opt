@@ -1,13 +1,11 @@
-import { MAX_LEAVE } from '../../../utils/planner'
 import { StepHeading } from './StepHeading'
-import { GoalChoice } from './GoalChoice'
-
-const select = 'h-9 border border-slate-300 rounded-xl px-2.5 text-sm font-bold bg-white cursor-pointer'
+import { LimitPicker } from './LimitPicker'
 
 /**
- * Steps 2 and 3 of the Overview on one line (in line with step 1's heading):
- * the days off limit (a dropdown) and the aim, with Advanced options (a down
- * arrow, with a count of options on) on the right.
+ * Step 2 of the Overview (in line with step 1's heading): the days off limit
+ * as numbers, the period's recommended number marked REC, with Advanced
+ * options (a down arrow, with a count of options on) on the right. There's no
+ * aim to pick: the leave days decide (see RecLine).
  *
  * Props: planner – usePlanner() result; moreOpen, onMoreToggle – Advanced options
  */
@@ -15,17 +13,14 @@ export function PlannerBar({ planner, moreOpen, onMoreToggle }) {
   return (
     <section aria-label="Plan settings" className="min-h-10 shrink-0 flex flex-wrap items-center gap-x-5 gap-y-2">
       <div data-tour="limit" className="flex items-center gap-2.5">
-        <StepHeading number={2} htmlFor="planner-limit">Days off limit</StepHeading>
-        <select id="planner-limit" value={planner.leaveLimit} onChange={e => planner.setLimitAndLeave(Number(e.target.value))} className={select}>
-          {Array.from({ length: MAX_LEAVE }, (_, i) => i + 1).map(n => <option key={n} value={n}>{n}</option>)}
-        </select>
+        <StepHeading number={2}>Days off limit</StepHeading>
+        <LimitPicker value={planner.leaveLimit} onChange={planner.setLimitAndLeave} rec={planner.rec?.leave} />
         {planner.maxLeave < planner.leaveLimit && (
           <span className="text-[11.5px] text-slate-600">
             {planner.leaveLeft < planner.leaveLimit && planner.maxLeave === Math.min(planner.leaveLeft, 10) ? `Uses ${planner.maxLeave}: what's left after your Summary` : `Uses ${planner.maxLeave}: all the workdays in these dates`}
           </span>
         )}
       </div>
-      <div data-tour="goal"><GoalChoice plain label="Aim" goals={planner.goals} value={planner.goal} onChange={planner.setGoal} /></div>
       <button
         type="button"
         data-tour="advanced"

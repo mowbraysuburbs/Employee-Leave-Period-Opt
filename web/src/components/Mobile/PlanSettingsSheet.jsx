@@ -1,19 +1,13 @@
 import { useState } from 'react'
-import { GOALS, MAX_LEAVE, summarise } from '../../utils/planner'
-import { formatMultiplier } from '../../utils/breaks'
 import { StepHeading } from '../Desktop/Overview/StepHeading'
+import { LimitPicker } from '../Desktop/Overview/LimitPicker'
 import { MoreOptions } from '../Desktop/Overview/MoreOptions'
 import { BottomSheet } from './BottomSheet'
 
-const AIMS = {
-  max: { title: 'Maximise', text: 'The most days off per leave day' },
-  long: { title: 'Longest', text: 'One long break' },
-}
-
 /**
- * The phone planner's settings, opened from the "10 days | Maximise" button by the
- * period slider: the days off limit (1–10), the aim (with what each gives for
- * this period) and Advanced options.
+ * The phone planner's settings, opened from the "10 days" button by the
+ * period slider: the days off limit (1–10, the period's recommended number
+ * marked REC) and Advanced options. There's no aim: the leave days decide.
  *
  * Props: planner – usePlanner() result; province, onProvinceChange; onClose
  */
@@ -24,52 +18,12 @@ export function PlanSettingsSheet({ planner, province, onProvinceChange, onClose
       <div className="px-4 pb-5 flex flex-col gap-4">
         <section className="flex flex-col gap-2">
           <StepHeading phone number={2}>Days off limit</StepHeading>
-          <div role="radiogroup" aria-label="Days off limit" className="grid grid-cols-5 gap-1.5">
-            {Array.from({ length: MAX_LEAVE }, (_, i) => i + 1).map(n => (
-              <button
-                key={n}
-                type="button"
-                role="radio"
-                aria-checked={n === planner.leaveLimit}
-                onClick={() => planner.setLimitAndLeave(n)}
-                className={`h-10 rounded-xl text-base font-extrabold ${n === planner.leaveLimit ? 'bg-sky-700 text-white' : 'bg-slate-100 text-slate-700'}`}
-              >
-                {n}
-              </button>
-            ))}
-          </div>
+          <LimitPicker phone value={planner.leaveLimit} onChange={planner.setLimitAndLeave} rec={planner.rec?.leave} />
           {planner.maxLeave < planner.leaveLimit && (
             <span className="text-[11.5px] text-slate-600">
               {planner.leaveLeft < planner.leaveLimit && planner.maxLeave === Math.min(planner.leaveLeft, 10) ? `Uses ${planner.maxLeave}: what's left after your Summary.` : `Uses ${planner.maxLeave}: all the workdays in these dates.`}
             </span>
           )}
-        </section>
-        <div className="h-px bg-slate-200" />
-        <section className="flex flex-col gap-2">
-          <StepHeading phone number={3}>Aim</StepHeading>
-          <div role="radiogroup" aria-label="Aim" className="flex flex-col gap-1.5">
-            {GOALS.map(id => {
-              const t = summarise(planner.goals[id].breaks)
-              const on = id === planner.goal
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  role="radio"
-                  aria-checked={on}
-                  onClick={() => planner.setGoal(id)}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-xl border-2 text-left ${on ? 'border-slate-900' : 'border-slate-200'}`}
-                >
-                  <span className="flex-1">
-                    <b className="block text-[13.5px]">{AIMS[id].title}</b>
-                    <span className="text-[11.5px] text-slate-500">{AIMS[id].text}</span>
-                  </span>
-                  <span className="text-[11.5px] font-extrabold text-indigo-800">{t.daysOff} off · {formatMultiplier(t.multiplier)}</span>
-                </button>
-              )
-            })}
-          </div>
-          <span className="text-[11px] text-slate-500">Breaks are always at least a working week apart.</span>
         </section>
         <section className="flex flex-col gap-2">
           <button

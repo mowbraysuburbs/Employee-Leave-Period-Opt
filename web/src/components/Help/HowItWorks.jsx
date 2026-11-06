@@ -14,7 +14,7 @@ const heading = 'm-0 text-[13px] font-extrabold text-slate-900 uppercase trackin
 export function HowItWorks({ phone = false, onReplay }) {
   const tips = [
     <><b>Days left:</b> your limit minus the leave in your Summary. Turn on <b>Snap to days left</b> and the calendar follows what you have left.</>,
-    <><b>Summary:</b> your saved breaks and totals. Add them to Apple / iPhone (also Outlook) or Google Calendar from there. <b>Clear all</b> starts over; your limit, aim and province stay.</>,
+    <><b>Summary:</b> your saved breaks and totals. Add them to Apple / iPhone (also Outlook) or Google Calendar from there. <b>Clear all</b> starts over; your limit and province stay.</>,
     <>A break you've kept shows <b>✓ In your Summary</b>. Pick another start date with the same days off and the kept break moves there.</>,
     <><b>Advanced options</b>: plan around school holidays, or avoid / include months. A number shows how many are on.</>,
     phone

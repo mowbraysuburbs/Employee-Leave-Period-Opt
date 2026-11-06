@@ -20,8 +20,8 @@ async function runTour(p, expected) {
   const p = await b.newPage({ viewport: { width: 1280, height: 800 } });
   const errors = []; p.on('pageerror', e => errors.push(e.message)); p.on('console', m => m.type() === 'error' && errors.push(m.text()));
   await p.goto(BASE); await p.evaluate(() => { localStorage.clear(); localStorage.setItem('stretchmyleave.railCollapsed', 'true'); localStorage.setItem('stretchmyleave.panelCollapsed', 'true') }); await p.reload(); await p.waitForTimeout(600);
-  const ov = await runTour(p, ['period', 'limit', 'goal', 'advanced', 'results', 'plan-add', 'panel', 'nav-calendar', 'help']);
-  check('Overview tour: 9 steps, every step highlights something', ov.length === 9 && ov.every(t => !t.includes('NO TARGET')), ov.join(' → '));
+  const ov = await runTour(p, ['period', 'limit', 'advanced', 'results', 'plan-add', 'panel', 'nav-calendar', 'help']);
+  check('Overview tour: 8 steps, every step highlights something', ov.length === 8 && ov.every(t => !t.includes('NO TARGET')), ov.join(' → '));
   check('Overview tour does not come back after finishing', (await p.getByRole('dialog', { name: 'Tour' }).count()) === 0);
   await p.getByRole('button', { name: 'Calendar', exact: true }).click(); await p.waitForTimeout(500);
   check('first time on the Calendar: its tour starts', (await p.getByRole('dialog', { name: 'Tour' }).count()) === 1);
