@@ -14,7 +14,7 @@ export function PlannerBar({ planner, moreOpen, onMoreToggle }) {
     <section aria-label="Plan settings" className="min-h-10 shrink-0 flex flex-wrap items-center gap-x-5 gap-y-2">
       <div data-tour="limit" className="flex items-center gap-2.5">
         <StepHeading number={2}>Days off limit</StepHeading>
-        <LimitPicker value={planner.leaveLimit} onChange={planner.setLimitAndLeave} rec={planner.rec?.leave} />
+        <LimitPicker value={planner.leaveLimit} onChange={planner.setLimitAndLeave} rec={planner.rec?.leave} reason={planner.rec?.reason} />
         {planner.maxLeave < planner.leaveLimit && (
           <span className="text-[11.5px] text-slate-600">
             {planner.leaveLeft < planner.leaveLimit && planner.maxLeave === Math.min(planner.leaveLeft, 10) ? `Uses ${planner.maxLeave}: what's left after your Summary` : `Uses ${planner.maxLeave}: all the workdays in these dates`}

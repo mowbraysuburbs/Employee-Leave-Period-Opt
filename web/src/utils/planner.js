@@ -300,8 +300,9 @@ export function monthLabel(key, withYear = false) {
  * school holidays: enough to cover the whole school holiday when that's 10 or
  * fewer. Next year and Custom have none (they always go for the best multiplier).
  *
- * Returns { leave, brk, whole } (brk = that long break; whole = covers the
- * whole school holiday), or null.
+ * Returns { leave, brk, whole, reason } (brk = that break; whole = covers the
+ * whole school holiday; reason = a short tag: 'covers the school holiday',
+ * 'joins holidays' or 'best bang for buck'), or null.
  */
 export function recommendedLeave(period) {
   if (period.kind === 'year' || period.kind === 'custom') return null
@@ -309,7 +310,7 @@ export function recommendedLeave(period) {
   if (work < 1) return null
   if (period.kind === 'school' && work <= MAX_LEAVE) {
     const [brk] = planLeave({ from: period.from, to: period.to, leave: work, maxBreaks: 1 })
-    return brk ? { leave: work, brk, whole: true } : null
+    return brk ? { leave: work, brk, whole: true, reason: 'covers the school holiday' } : null
   }
   let best = null
   for (let leave = 1; leave <= Math.min(MAX_LEAVE, work); leave++) {
@@ -320,7 +321,10 @@ export function recommendedLeave(period) {
       best = { leave, brk, holidays }
     }
   }
-  return best && best.holidays > 0 ? { leave: best.leave, brk: best.brk, whole: false } : null
+  if (!best || best.holidays === 0) return null
+  // Two or more holidays (Easter counts as one) joined = "joins holidays".
+  const groups = new Set(best.brk.days.filter(d => d.holidayName).map(d => groupName(d.holidayName)))
+  return { leave: best.leave, brk: best.brk, whole: false, reason: groups.size > 1 ? 'joins holidays' : 'best bang for buck' }
 }
 
 /** How many breaks the plan may use: one long break once you have the recommended days, else as many as help. */

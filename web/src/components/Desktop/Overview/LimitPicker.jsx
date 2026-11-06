@@ -5,9 +5,9 @@ import { MAX_LEAVE } from '../../../utils/planner'
  * marked "REC" (an amber ring and a small tag on top). Desktop: one row;
  * phone: a 5 × 2 grid.
  *
- * Props: value, onChange – the limit; rec – recommended days or null; phone
+ * Props: value, onChange – the limit; rec – recommended days or null; reason – its tag; phone
  */
-export function LimitPicker({ value, onChange, rec = null, phone = false }) {
+export function LimitPicker({ value, onChange, rec = null, reason = '', phone = false }) {
   return (
     <div role="radiogroup" aria-label="Days off limit" className={phone ? 'grid grid-cols-5 gap-x-1.5 gap-y-3 pt-2' : 'flex gap-1 pt-2.5'}>
       {Array.from({ length: MAX_LEAVE }, (_, i) => i + 1).map(n => {
@@ -20,7 +20,7 @@ export function LimitPicker({ value, onChange, rec = null, phone = false }) {
             role="radio"
             aria-checked={on}
             aria-label={`${n}${isRec ? ' (recommended)' : ''}`}
-            title={isRec ? `Recommended: ${n} leave days for the longest break` : `${n} leave days`}
+            title={isRec ? `Recommended: ${n} leave days${reason ? ` (${reason})` : ''}` : `${n} leave days`}
             onClick={() => onChange(n)}
             className={[
               'relative rounded-lg font-extrabold',

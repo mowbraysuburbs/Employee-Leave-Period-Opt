@@ -2,7 +2,7 @@
 export const PLAN_STEPS = [
   { title: 'Pick a leave period', text: 'Up next, Christmas holidays, Easter, school holidays, next year, or your own Start and End dates. Each shows what it covers and its best plan.' },
   { title: 'Set your days off limit', text: "How many leave days you want to spend (up to 10). It is shared with the Calendar. The plan uses what's left after your Summary." },
-  { title: 'Long break or best multiplier', text: 'REC marks the recommended leave days. With that many or more you get one long break that joins the holidays (or covers the school holiday); with fewer, the plan goes for the best multiplier. The line under the plan says which.' },
+  { title: 'Recommended leave days', text: 'REC marks the recommended leave days, with a reason: best bang for buck, joins holidays, or covers the school holiday. With that many or more you get one break; with fewer, the plan goes for the best multiplier. The line under the plan says which.' },
   { title: 'Add to summary', text: "Untick any breaks you don't want, then add the rest. A ▾ on a start date means it can start on another day for the same days off." },
 ]
 

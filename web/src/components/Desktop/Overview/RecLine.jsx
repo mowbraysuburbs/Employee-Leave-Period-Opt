@@ -9,38 +9,37 @@ const TONES = {
 
 /**
  * The line under the plan's title (always there):
- *   💡 below the recommended leave days: the long break they'd give, with a "Use N" button
- *   ✓  with the recommended days or more: the long break you have
+ *   💡 below the recommended leave days: "Recommended: N leave days", a reason
+ *      tag (best bang for buck / joins holidays / covers the school holiday),
+ *      that break, and a "Use N" button
+ *   ✓  on the recommended days: the same tag; above them: the one break you have
  *   📈 no recommendation (next year, Custom): it plans for the best multiplier
  *
  * Props: planner – usePlanner() result; phone – smaller text
  */
 export function RecLine({ planner, phone = false }) {
-  const { rec, long, period, breaks } = planner
+  const { rec, long, breaks, leave } = planner
   let tone = 'info'
   let icon = '📈'
   let text = <>Plans for the <b>best multiplier</b>: short breaks around each holiday.</>
   let use = null
+  const tag = rec && <span className="inline-block mx-0.5 px-1.5 rounded-md bg-amber-100 text-amber-900 text-[0.92em] font-bold whitespace-nowrap">{rec.reason}</span>
 
   if (rec && long) {
-    const brk = breaks[0]
-    const whole = rec.whole && brk && brk.startDate <= period.from && brk.endDate >= period.to
-    const around = brk && aroundLabel(brk)
+    const around = breaks[0] && aroundLabel(breaks[0])
     tone = 'done'
     icon = '✓'
-    text = whole
-      ? <>Covers the <b>whole school holiday</b>.</>
-      : <>Longest break{around ? <>: joins <b>{around}</b></> : ''}.</>
+    text = leave === rec.leave
+      ? <>Recommended: <b>{rec.leave} leave days</b> {tag}{around ? <> · {around}</> : ''}.</>
+      : <>One break{around ? <> around <b>{around}</b></> : ''}.</>
   } else if (rec) {
     const { brk } = rec
-    const dates = `${fmtShortRange(brk.startDate, brk.endDate)}, ${brk.daysOff} days off`
+    const around = aroundLabel(brk)
     // Use N sets your limit so the plan gets N on top of what your Summary already uses.
     const target = planner.leaveLimit - planner.leaveLeft + rec.leave
     tone = 'tip'
     icon = '💡'
-    text = rec.whole
-      ? <>To cover the <b>whole school holiday</b> ({dates}), use <b>{rec.leave}</b>.</>
-      : <>For the longest break, <b>{aroundLabel(brk)}</b> ({dates}), use <b>{rec.leave}</b>.</>
+    text = <>Recommended: <b>{rec.leave} leave days</b> {tag} · {around ? `${around}, ` : ''}{fmtShortRange(brk.startDate, brk.endDate)}, {brk.daysOff} days off.</>
     if (target <= MAX_LEAVE) use = () => planner.setLimitAndLeave(target)
     else text = <>{text} You have {planner.leaveLeft} left.</>
   }

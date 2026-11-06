@@ -18,7 +18,7 @@ export function PlanSettingsSheet({ planner, province, onProvinceChange, onClose
       <div className="px-4 pb-5 flex flex-col gap-4">
         <section className="flex flex-col gap-2">
           <StepHeading phone number={2}>Days off limit</StepHeading>
-          <LimitPicker phone value={planner.leaveLimit} onChange={planner.setLimitAndLeave} rec={planner.rec?.leave} />
+          <LimitPicker phone value={planner.leaveLimit} onChange={planner.setLimitAndLeave} rec={planner.rec?.leave} reason={planner.rec?.reason} />
           {planner.maxLeave < planner.leaveLimit && (
             <span className="text-[11.5px] text-slate-600">
               {planner.leaveLeft < planner.leaveLimit && planner.maxLeave === Math.min(planner.leaveLeft, 10) ? `Uses ${planner.maxLeave}: what's left after your Summary.` : `Uses ${planner.maxLeave}: all the workdays in these dates.`}

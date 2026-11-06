@@ -67,7 +67,7 @@ export function plannerTourSteps(phone = false, { openPanel } = {}) {
         {
           target: 'limit',
           title: '2 · Your days off limit',
-          text: "How many leave days you want to spend (up to 10), with what's left after your Summary. REC marks the recommended number: with that many you get one long break joining the holidays; with fewer, the best multiplier.",
+          text: "How many leave days you want to spend (up to 10), with what's left after your Summary. REC marks the recommended number (best bang for buck, joins holidays, or covers the school holiday): with that many or more you get one break; with fewer, the best multiplier.",
         },
         {
           target: 'advanced',
