@@ -91,7 +91,7 @@ src/
 **Overview planner (3 steps)**
 1. Pick a leave period: Custom, or themed cards (Up next, Christmas, Easter, School holidays, Next 3/6 months, Rest of the year, next year). Each card shows its plan in 2×2 stat tiles.
 2. Leave days (same blocks + limit as the calendar; capped at the period's workdays).
-3. What matters most? Maximise (best rate) · Mix (up to 3 breaks) · Longest (one break) — shared by every period.
+3. What matters most? Maximise (best rate) · Longest (one break) — shared by every period. (Mix was removed: it matched Maximise everywhere but next year.)
 - Breaks never run past the period's end and are **at least one working week apart**.
 - Advanced options: plan around school holidays; months to avoid / include.
 - Results table (Start / End with short years, a dropdown for equal start dates), Add / Export, and the same Details | Summary panel as the calendar.
@@ -146,7 +146,7 @@ Returns an array of 365/366 scores, one per calendar day.
 ### Overview Planner (`utils/planner.js`)
 - Candidate breaks: every start day in the period (the day after a workday, so equal starts collapse) with 1..N leave days, never past the period's end.
 - Dynamic programming picks the most days off within the leave budget and a maximum number of breaks, with breaks at least 5 workdays apart; months can be avoided or required.
-- Goals map to break counts: Maximise = as many as help, Mix = up to 3, Longest = 1.
+- Goals map to break counts: Maximise = as many as help, Longest = 1.
 
 ### Colour Scale (`utils/colorScale.js`)
 - Each distinct `totalDaysOff` value maps to a unique colour from a categorical palette

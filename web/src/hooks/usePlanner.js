@@ -14,15 +14,15 @@ import { addDays } from '../utils/dateFormat'
  * The planner uses what's left: the limit minus the Summary, not counting the
  * breaks this plan added itself (so adding them doesn't re-plan the list).
  */
-const NO_PLAN = { max: { breaks: [], same: true }, mix: { breaks: [], same: true }, long: { breaks: [], same: true } }
+const NO_PLAN = { max: { breaks: [], same: true }, long: { breaks: [], same: true } }
 
 export function usePlanner({ today, province, leaveLimit = MAX_LEAVE, onLeaveLimitChange = () => {}, saved = [] }) {
   const periods = useMemo(() => planPeriods({ today, provinceCode: province }), [today, province])
   const [periodId, setPeriodId] = useState('next')
   const [custom, setCustom] = useState({ from: addDays(today, 1), to: addDays(today, 28) })
   const [leave, setLeave] = useState(MAX_LEAVE)
-  // "What matters most?" ('max' | 'mix' | 'long'), shared by every period.
-  const [goalWanted, setGoalWanted] = useState('mix')
+  // "What matters most?" ('max' | 'long'), shared by every period.
+  const [goalWanted, setGoalWanted] = useState('max')
   // 'YYYY-MM' → 'avoid' | 'include'.
   const [monthMarks, setMonthMarks] = useState({})
   const [matchSchool, setMatchSchool] = useState(false)

@@ -72,7 +72,7 @@ export function plannerTourSteps(phone = false, { openPanel } = {}) {
         {
           target: 'goal',
           title: '3 · Your aim',
-          text: 'Maximise gets the most days off per leave day, Mix gives 2 or 3 proper holidays, Longest one long break. Hover each to see its result.',
+          text: 'Maximise gets the most days off per leave day, Longest one long break. Hover each to see its result.',
         },
         {
           target: 'advanced',

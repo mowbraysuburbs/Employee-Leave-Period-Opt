@@ -16,9 +16,9 @@ export const BREAK_GAP_WORKDAYS = 5
 export const BREAK_CHOICES = [1, 2, 3, null]
 
 // "What matters most?" goals and the most breaks each may use:
-// max = the best rate (as many breaks as help), mix = up to 3, long = one continuous break.
-export const GOALS = ['max', 'mix', 'long']
-export const GOAL_BREAKS = { max: null, mix: 3, long: 1 }
+// max = the best rate (as many breaks as help), long = one continuous break.
+export const GOALS = ['max', 'long']
+export const GOAL_BREAKS = { max: null, long: 1 }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
@@ -274,21 +274,18 @@ export function planAllChoices(options) {
 }
 
 /**
- * The three goals from planAllChoices(): each one's plan, and whether it adds
- * nothing over the simpler goal (Mix over Longest, Maximise over Mix), so it
- * can be greyed out.
+ * The two goals from planAllChoices(): each one's plan, and whether it adds
+ * nothing over the simpler goal (Maximise over Longest), so it can be greyed out.
  *
- * Returns { max, mix, long }, each { breaks, same }.
+ * Returns { max, long }, each { breaks, same }.
  */
 export function planGoals(choices) {
   const byChoice = new Map(choices.map(c => [c.choice, c.breaks]))
   const long = byChoice.get(1)
-  const mix = byChoice.get(3)
   const max = byChoice.get(null)
   return {
     long: { breaks: long, same: false },
-    mix: { breaks: mix, same: planKey(mix) === planKey(long) },
-    max: { breaks: max, same: planKey(max) === planKey(mix) },
+    max: { breaks: max, same: planKey(max) === planKey(long) },
   }
 }
 

@@ -4,7 +4,6 @@ import { StepHeading } from './StepHeading'
 
 const GOAL_TEXT = {
   max: { short: '📈 Maximise', text: 'The best rate: the most days off for every leave day. Usually lots of long weekends.' },
-  mix: { short: '⚖️ Mix', text: '2 or 3 proper holidays: a good rate, but longer breaks.' },
   long: { short: '🏝️ Longest', text: 'One continuous holiday, as long as possible. Lower rate.' },
 }
 
@@ -17,10 +16,10 @@ const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`
  * period can't split, nothing changes.
  *
  * Props:
- *   goals    – planGoals() result: { max, mix, long } each { breaks, same }
+ *   goals    – planGoals() result: { max, long } each { breaks, same }
  *   value    – the goal in use
  *   onChange – (goal) => void
- *   phone    – compact three-part toggle
+ *   phone    – compact two-part toggle
  *   label    – the step's heading (the desktop bar says "Aim")
  *   plain    – words only, no emoji (the desktop bar)
  */
