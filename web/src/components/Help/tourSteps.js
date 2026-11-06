@@ -52,7 +52,7 @@ export function tourSteps(phone, demo, { reset, showDate, showSummary }) {
 }
 
 // The first-visit journey on the Overview: the planner's steps, the plan,
-// adding it, then where to go next. Phones have the days off limit and aim
+// adding it, then where to go next. Phones have the days off limit
 // behind one settings button by the period slider. openPanel (desktop)
 // opens a collapsed Details / Summary panel for its step.
 export function plannerTourSteps(phone = false, { openPanel } = {}) {
@@ -60,19 +60,14 @@ export function plannerTourSteps(phone = false, { openPanel } = {}) {
   const settings = phone
     ? [{
         target: 'settings',
-        title: '2 · Days off limit and aim',
-        text: 'This button shows your days off limit and aim. Tap it to change them, or for Advanced options (school holidays, months to avoid). A number on it shows how many advanced options are on. The plan uses what\'s left after your Summary.',
+        title: '2 · Days off limit',
+        text: 'This button shows your days off limit. Tap it to change it (REC marks the recommended number), or for Advanced options (school holidays, months to avoid). A number on it shows how many advanced options are on. The plan uses what\'s left after your Summary.',
       }]
     : [
         {
           target: 'limit',
           title: '2 · Your days off limit',
-          text: "How many leave days you want to spend (up to 10). The planner finds the best way to use them, with what's left after your Summary.",
-        },
-        {
-          target: 'goal',
-          title: '3 · Your aim',
-          text: 'Maximise gets the most days off per leave day, Longest one long break. Hover each to see its result.',
+          text: "How many leave days you want to spend (up to 10), with what's left after your Summary. REC marks the recommended number (best bang for buck, joins holidays, or covers the school holiday): with that many or more you get one break; with fewer, the best multiplier.",
         },
         {
           target: 'advanced',

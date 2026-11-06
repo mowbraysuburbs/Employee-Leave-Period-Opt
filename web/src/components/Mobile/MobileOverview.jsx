@@ -9,13 +9,12 @@ import { PlanSettingsSheet } from './PlanSettingsSheet'
 
 // Short labels for the period slider.
 const SHORT = { custom: 'Custom', next: 'Up next', xmas: 'Christmas', easter: 'Easter', school: 'School' }
-const AIM_LABEL = { max: 'Maximise', long: 'Longest' }
 
 /**
  * The phone Overview: the period's card on top (name, description and dates;
  * Summary is in the header), the plan underneath, and the period slider above the bottom
- * tabs. The slider starts with a "10 days | Maximise" button that opens the plan
- * settings (days off limit, aim, Advanced), with a badge when Advanced options are on.
+ * tabs. The slider starts with a "10 days" button that opens the plan
+ * settings (days off limit, Advanced), with a badge when Advanced options are on.
  *
  * Props: planner, isSaved, onAdd, onView, province, onProvinceChange,
  *        onOpenSummary – the My breaks sheet (from the Added note)
@@ -74,12 +73,11 @@ export function MobileOverview({ planner, isSaved, onAdd, onView, province, onPr
           type="button"
           data-tour="settings"
           onClick={() => setSettingsOpen(true)}
-          aria-label={`Plan settings: ${planner.leaveLimit} days off limit, ${AIM_LABEL[planner.goal]}${planner.moreCount ? `, ${planner.moreCount} advanced options on` : ''}`}
+          aria-label={`Plan settings: ${planner.leaveLimit} days off limit${planner.moreCount ? `, ${planner.moreCount} advanced options on` : ''}`}
           className="relative shrink-0 w-14 rounded-xl bg-slate-900 text-white flex flex-col items-center justify-center text-[10.5px] font-extrabold leading-tight"
         >
-          <span>{planner.leaveLimit} days</span>
-          <span aria-hidden="true" className="w-7 h-px bg-white/40 my-[3px]" />
-          <span>{AIM_LABEL[planner.goal]}</span>
+          <span className="text-[15px] leading-none">{planner.leaveLimit}</span>
+          <span>days</span>
           {planner.moreCount > 0 && <span className="absolute -top-1 -right-1 min-w-[17px] h-[17px] px-1 rounded-full bg-sky-500 border-2 border-white text-[9.5px] leading-[13px]">{planner.moreCount}</span>}
         </button>
         <span aria-hidden="true" className="shrink-0 w-px bg-slate-200 mx-0.5" />

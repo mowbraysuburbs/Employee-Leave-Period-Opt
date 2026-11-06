@@ -42,7 +42,7 @@ src/
       LeaveBlocks.jsx   # Shared LeaveBlocks + LeaveFraction (calendar card and Overview step 2)
       StatTile.jsx      # Coloured stat tiles (leave, free, days off, multiplier, breaks)
       Overview/         # The 3-step planner page
-        OverviewPage.jsx, PeriodList.jsx (step 1), LeaveControl.jsx (step 2), GoalChoice.jsx (step 3)
+        OverviewPage.jsx, PeriodList.jsx (step 1), PlannerBar.jsx + LimitPicker.jsx (step 2, REC tag), RecLine.jsx (line under the plan title)
         MoreOptions.jsx (Advanced options), PlannerResults.jsx, PlannerTable.jsx, PlanMonths.jsx (calendar view)
       Rail/             # Calendar control rail: RailExpanded / RailCollapsed (icons act directly, pop-outs)
     Mobile/             # Phone layout: MobileApp, MobileCalendar, BottomPanel, BottomSheet, FiltersSheet,
@@ -88,10 +88,10 @@ src/
 - Left rail and right Details | Summary panel both collapse to slim strips ("Collapse to icons"); collapsed icons act directly (toggles, pop-outs for leave days and dates).
 - Days-off and public-holiday filters hide whole rows of months with no match (rows stay whole at 2–4 columns).
 
-**Overview planner (3 steps)**
-1. Pick a leave period: Custom, or themed cards (Up next, Christmas, Easter, School holidays, Next 3/6 months, Rest of the year, next year). Each card shows its plan in 2×2 stat tiles.
-2. Leave days (same blocks + limit as the calendar; capped at the period's workdays).
-3. What matters most? Maximise (best rate) · Longest (one break) — shared by every period. (Mix was removed: it matched Maximise everywhere but next year.)
+**Overview planner (2 steps, no aim to pick)**
+1. Pick a leave period: Custom, or themed cards (Up next, Christmas holidays, Easter, School holidays, next year). Each card shows its plan in 2×2 stat tiles.
+2. Days off limit (numbers 1–10; the period's recommended number is tagged **REC**).
+- The leave days decide the plan: with the REC number or more → **one long break** joining the period's holidays (school holidays: covering the whole school holiday when that's ≤ 10 days); fewer, or no REC (next year, Custom) → **best multiplier**. A line under the plan title always says which (💡 suggestion with **Use N**, ✓ long break, 📈 best multiplier).
 - Breaks never run past the period's end and are **at least one working week apart**.
 - Advanced options: plan around school holidays; months to avoid / include.
 - Results table (Start / End with short years, a dropdown for equal start dates), Add / Export, and the same Details | Summary panel as the calendar.
@@ -146,7 +146,7 @@ Returns an array of 365/366 scores, one per calendar day.
 ### Overview Planner (`utils/planner.js`)
 - Candidate breaks: every start day in the period (the day after a workday, so equal starts collapse) with 1..N leave days, never past the period's end.
 - Dynamic programming picks the most days off within the leave budget and a maximum number of breaks, with breaks at least 5 workdays apart; months can be avoided or required.
-- Goals map to break counts: Maximise = as many as help, Longest = 1.
+- `recommendedLeave(period)`: the fewest leave days whose single longest break joins the most public holidays (best multiplier on a tie); `breaksFor(rec, leave)` = 1 break at or above it, else as many as help.
 
 ### Colour Scale (`utils/colorScale.js`)
 - Each distinct `totalDaysOff` value maps to a unique colour from a categorical palette

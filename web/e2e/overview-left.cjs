@@ -12,6 +12,8 @@ const res = []; const check = (n, ok, x = '') => res.push((ok ? 'PASS ' : 'FAIL 
   await p.addInitScript(() => { localStorage.setItem('stretchmyleave.welcomeSeen', '1'); localStorage.setItem('stretchmyleave.calendarTourSeen', '1'); localStorage.setItem('stretchmyleave.panelCollapsed', 'false') });
   await p.goto(BASE); await p.evaluate(() => { localStorage.removeItem('stretchmyleave.desktopBreaks'); localStorage.removeItem('stretchmyleave.settings') }); await p.reload();
   const nav = p.getByRole('navigation', { name: 'Leave periods' });
+  // Step 2's days off limit: numbers 1–10 (the recommended one is labelled "N (recommended)").
+  const pickLimit = n => p.getByRole('radiogroup', { name: 'Days off limit' }).getByRole('radio', { name: new RegExp(`^${n}( |$)`) }).click();
   // Leave used by the plan: the "leave days" tile in Details.
   const planLeave = async () => {
     await p.locator('[data-tour=panel]').getByRole('tab', { name: 'Details' }).click();
@@ -21,7 +23,7 @@ const res = []; const check = (n, ok, x = '') => res.push((ok ? 'PASS ' : 'FAIL 
   };
   const rows = async () => (await p.getByRole('article').innerText()).replace(/Add to summary \(\d+\)|Added ✓/, '');
 
-  await p.locator('#planner-limit').selectOption('6');
+  await pickLimit(6);
   await nav.getByRole('button', { name: /^Christmas/ }).click();
   const used = await planLeave();
   check('nothing in the Summary: plan uses up to the limit (6)', used > 0 && used <= 6, String(used));
@@ -31,7 +33,7 @@ const res = []; const check = (n, ok, x = '') => res.push((ok ? 'PASS ' : 'FAIL 
   check('after Add, the list stays the same', before === after);
   check('after Add, it shows Added ✓', (await p.getByRole('button', { name: 'Added ✓' }).count()) === 1);
 
-  await p.locator('#planner-limit').selectOption('10');
+  await pickLimit(10);
   await nav.getByRole('button', { name: /^School holidays/ }).click();
   const used2 = await planLeave();
   check('another period plans with what\'s left (10 − ' + used + ')', used2 > 0 && used2 <= 10 - used, used2 + ' ≤ ' + (10 - used));
@@ -39,7 +41,7 @@ const res = []; const check = (n, ok, x = '') => res.push((ok ? 'PASS ' : 'FAIL 
   check('the note explains it', /what's left after your Summary/.test(note), note.replace(/\n/g, ' '));
 
   // Limit down to what's in the Summary: nothing left.
-  await p.locator('#planner-limit').selectOption(String(used));
+  await pickLimit(used);
   await nav.getByRole('button', { name: /^Easter/ }).click();
   const msg = await p.getByRole('article').innerText();
   check('nothing left: the results say so', /No leave left/.test(msg));
