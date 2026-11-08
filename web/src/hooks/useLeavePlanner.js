@@ -96,7 +96,7 @@ export function useLeavePlanner({ leaveLimit = MAX_LEAVE, onLeaveLimitChange = (
     return best
   }, [months, breaks])
   // The Overview planner (period, leave days, breaks, results).
-  const planner = usePlanner({ today: TODAY, province, leaveLimit, onLeaveLimitChange, saved })
+  const planner = usePlanner({ today: TODAY, lastDate: LAST_DATE, province, leaveLimit, onLeaveLimitChange, saved })
   const schoolDates = useMemo(() => {
     if (!schoolOn) return null
     const dates = new Set()

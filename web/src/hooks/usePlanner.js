@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react'
 import { buildBreak, breakKey } from '../utils/breaks'
-import { MAX_LEAVE, planPeriods, planLeave, recommendedLeave, breaksFor, summarise, workdaysIn, schoolHolidaysIn, equalStartsWithin, monthsIn } from '../utils/planner'
-import { addDays } from '../utils/dateFormat'
+import { MAX_LEAVE, planPeriods, planLeave, recommendedLeave, breaksFor, summarise, workdaysIn, schoolHolidaysIn, equalStartsWithin, monthsIn, customMonths, monthsPeriod, customOptions, pickBlocker, overlaps, customLeaveMap, customListFor, suggestedPicks } from '../utils/planner'
 
 
 /**
@@ -9,15 +8,36 @@ import { addDays } from '../utils/dateFormat'
  * leave days and breaks, months to avoid or include, and which result rows
  * are ticked. Shared by the desktop and phone Overview.
  *
- * Args: { today, province, leaveLimit, onLeaveLimitChange, saved } – the same
- * leave limit as the calendar; saved = the Summary ([{ startDate, leaveDays }]).
+ * Args: { today, lastDate, province, leaveLimit, onLeaveLimitChange, saved } – the same
+ * leave limit as the calendar; saved = the Summary ([{ startDate, leaveDays }]);
+ * lastDate = the last day Custom months can reach.
+ *
+ * Custom is different: whole months (From / To), a list of options where
+ * nothing is picked until you pick it, and which list (holiday breaks or one
+ * long break) follows from the months' holidays and your leave days
+ * (customLeaveMap / customListFor); step 3 lets you choose only when the
+ * holidays are too far apart to join. Its
+ * `breaks` are your picks, so Details, the tiles and Add work as for any period.
  * The planner uses what's left: the limit minus the Summary, not counting the
  * breaks this plan added itself (so adding them doesn't re-plan the list).
  */
-export function usePlanner({ today, province, leaveLimit = MAX_LEAVE, onLeaveLimitChange = () => {}, saved = [] }) {
+// Themed periods that work like Custom (a list to pick from, JOINS on the numbers).
+const LIST_KINDS = new Set(['easter', 'xmas'])
+
+export function usePlanner({ today, lastDate, province, leaveLimit = MAX_LEAVE, onLeaveLimitChange = () => {}, saved = [] }) {
   const periods = useMemo(() => planPeriods({ today, provinceCode: province }), [today, province])
   const [periodId, setPeriodId] = useState('next')
-  const [custom, setCustom] = useState({ from: addDays(today, 1), to: addDays(today, 28) })
+  // Custom: 'YYYY-MM' months, starting with the first one that has enough workdays, three months long.
+  const monthChoices = useMemo(() => customMonths(today, lastDate ?? `${Number(today.slice(0, 4)) + 2}-01-31`), [today, lastDate])
+  const [custom, setCustom] = useState(() => ({ fromMonth: monthChoices[0], toMonth: monthChoices[Math.min(2, monthChoices.length - 1)] }))
+  // Custom only: your step 3 choice ('max' holiday breaks, 'long' one long break), used
+  // when step 3 shows, and your picks.
+  const [chosenAim, setChosenAim] = useState('max')
+  const [picks, setPicks] = useState([])
+  // Easter / Christmas start with the suggested picks until you change one.
+  const [touched, setTouched] = useState(false)
+  // Custom options moved to an equal start date: option key → chosen start.
+  const [optionSwaps, setOptionSwaps] = useState({})
   const [leave, setLeave] = useState(MAX_LEAVE)
   // 'YYYY-MM' → 'avoid' | 'include'.
   const [monthMarks, setMonthMarks] = useState({})
@@ -28,9 +48,13 @@ export function usePlanner({ today, province, leaveLimit = MAX_LEAVE, onLeaveLim
   // Breaks added from this plan (breakKey); cleared when any setting changes.
   const [addedKeys, setAddedKeys] = useState([])
 
-  const period = periodId === 'custom'
-    ? { id: 'custom', kind: 'custom', title: 'Custom dates', subtitle: 'Your own dates', ...custom }
+  const isCustom = periodId === 'custom'
+  const period = isCustom
+    ? { id: 'custom', kind: 'custom', title: 'Custom dates', subtitle: 'Your own months', ...monthsPeriod(custom.fromMonth, custom.toMonth, today) }
     : periods.find(p => p.id === periodId) ?? periods[0]
+  // Custom, Easter and Christmas show a list to pick from (see customLeaveMap);
+  // Easter and Christmas start with the recommended picks ticked.
+  const listMode = isCustom || LIST_KINDS.has(period.kind)
 
   // What's left to plan with: the limit minus the Summary (not counting this plan's own adds).
   const leaveLeft = Math.max(0, leaveLimit - saved.filter(s => !addedKeys.includes(breakKey(s))).reduce((t, s) => t + s.leaveDays, 0))
@@ -52,9 +76,35 @@ export function usePlanner({ today, province, leaveLimit = MAX_LEAVE, onLeaveLim
   // No aim to pick: with the recommended days or more, one long break; with
   // fewer (or no REC, like next year), the best multiplier.
   const plan = useMemo(
-    () => (leaveUsed ? planLeave({ from: period.from, to: period.to, leave: leaveUsed, maxBreaks: breaksFor(rec, leaveUsed), avoidMonths, includeMonths, within }) : []),
-    [period.from, period.to, leaveUsed, rec, avoidMonths, includeMonths, within],
+    () => (leaveUsed && !listMode ? planLeave({ from: period.from, to: period.to, leave: leaveUsed, maxBreaks: breaksFor(rec, leaveUsed), avoidMonths, includeMonths, within }) : []),
+    [listMode, period.from, period.to, leaveUsed, rec, avoidMonths, includeMonths, within],
   )
+
+  // Custom: what each leave number does here, and which list these leave days get.
+  const customMap = useMemo(() => (listMode ? customLeaveMap(period.from, period.to) : null), [listMode, period.from, period.to])
+  const customList = customMap ? customListFor(customMap, leaveUsed, chosenAim) : { list: chosenAim, choose: false }
+  const aim = customList.list
+
+  // Custom's options, best first (nothing picked for you).
+  const baseOptions = useMemo(
+    () => (listMode && leaveUsed ? customOptions({ from: period.from, to: period.to, leave: leaveUsed, aim, avoidMonths, includeMonths, within }) : []),
+    [listMode, period.from, period.to, leaveUsed, aim, avoidMonths, includeMonths, within],
+  )
+  // Each option as shown (moved if you picked another equal start), with `key`
+  // (the original start, so it stays the same row) and `starts` (equal start dates).
+  const options = useMemo(() => baseOptions.map(o => {
+    const key = breakKey(o)
+    const starts = equalStartsWithin(o, period.from, period.to, 7)
+    const moved = optionSwaps[key]
+    return { ...(moved ? buildBreak(moved, o.leaveDays) : o), key, starts }
+  }), [baseOptions, optionSwaps, period.from, period.to])
+  // Your picks; Easter / Christmas use the suggested ones until you change something.
+  const current = useMemo(
+    () => (!isCustom && listMode && !touched ? suggestedPicks(options, leaveUsed, aim) : picks),
+    [isCustom, listMode, touched, options, leaveUsed, aim, picks],
+  )
+  const isPicked = option => current.some(p => breakKey(p) === breakKey(option))
+  const picked = useMemo(() => [...current].sort((a, b) => (a.startDate < b.startDate ? -1 : 1)), [current])
 
   // Each period card's quick summary: its plan with the current leave days,
   // months and school-holiday setting, by the same rule.
@@ -64,6 +114,13 @@ export function usePlanner({ today, province, leaveLimit = MAX_LEAVE, onLeaveLim
       const spans = matchSchool ? schoolHolidaysIn(province, p.from, p.to) : []
       if (!leaveLeft) { stats[p.id] = summarise([]); continue }
       const n = Math.max(1, Math.min(leave, leaveLeft, workdaysIn(p.from, p.to)))
+      if (LIST_KINDS.has(p.kind)) {
+        // The same suggested picks the period opens with.
+        const { list } = customListFor(customLeaveMap(p.from, p.to), n, 'max')
+        const opts = customOptions({ from: p.from, to: p.to, leave: n, aim: list, avoidMonths, includeMonths, within: spans.length ? spans : null })
+        stats[p.id] = summarise(suggestedPicks(opts, n, list))
+        continue
+      }
       stats[p.id] = summarise(planLeave({
         from: p.from, to: p.to, leave: n, maxBreaks: breaksFor(recs[p.id], n),
         avoidMonths, includeMonths, within: spans.length ? spans : null,
@@ -73,16 +130,18 @@ export function usePlanner({ today, province, leaveLimit = MAX_LEAVE, onLeaveLim
   }, [periods, recs, leave, leaveLeft, avoidMonths, includeMonths, matchSchool, province])
 
   // Apply any start-date swaps (only to equal options, so the totals stay the same).
-  const breaks = useMemo(() => plan.map(b => {
+  // (Custom: the breaks are your picks, with no swaps.)
+  const swapped = useMemo(() => plan.map(b => {
     const to = swaps[b.startDate]
     return to ? buildBreak(to, b.leaveDays) : b
   }), [plan, swaps])
+  const breaks = listMode ? picked : swapped
   const original = plan
   const startOptions = useMemo(
-    () => original.map(b => equalStartsWithin(b, period.from, period.to)),
-    [original, period.from, period.to],
+    () => (listMode ? options.map(o => o.starts) : original.map(b => equalStartsWithin(b, period.from, period.to))),
+    [listMode, options, original, period.from, period.to],
   )
-  const ticked = new Set(breaks.map(b => b.startDate).filter(d => !unticked.includes(d)))
+  const ticked = new Set(breaks.map(b => b.startDate).filter(d => listMode || !unticked.includes(d)))
 
   // Changing any setting starts the ticks and swaps afresh.
   function reset(update) {
@@ -91,6 +150,9 @@ export function usePlanner({ today, province, leaveLimit = MAX_LEAVE, onLeaveLim
       setSwaps({})
       setUnticked([])
       setAddedKeys([])
+      setPicks([])
+      setTouched(false)
+      setOptionSwaps({})
     }
   }
 
@@ -98,10 +160,46 @@ export function usePlanner({ today, province, leaveLimit = MAX_LEAVE, onLeaveLim
     periods,
     period,
     selectPeriod: reset(setPeriodId),
+    // Custom: move an option to an equal start date (a picked one moves with it).
+    // A picked option only offers starts that don't overlap your other picks.
+    startChoicesFor: option => (isPicked(option)
+      ? option.starts.filter(s => !current.some(p => p.key !== option.key && overlaps(p, s)))
+      : option.starts),
+    swapOptionStart: (option, startDate) => {
+      setOptionSwaps(prev => ({ ...prev, [option.key]: startDate }))
+      if (isPicked(option)) {
+        const moved = { ...buildBreak(startDate, option.leaveDays), key: option.key, starts: option.starts }
+        setPicks(current.map(p => (p.key === option.key ? moved : p)))
+        setTouched(true)
+      }
+    },
+    // Custom months: the choices, the range, and a change (which also picks Custom).
+    monthChoices,
     custom,
-    setCustom: reset(setCustom),
-    // Any period's dates changed by hand: it becomes Custom with those dates.
-    changeDates: reset(dates => { setCustom(dates); setPeriodId('custom') }),
+    changeMonths: reset(range => { setCustom(range); setPeriodId('custom') }),
+    isCustom,
+    listMode,
+    // Custom: the list shown ('max' holiday breaks / 'long' one long break), whether
+    // step 3 shows (you choose), and the leave-number map (marks + JOINS tags).
+    aim,
+    aimShown: customList.choose,
+    setAim: reset(setChosenAim),
+    customMap,
+    // Custom's JOINS tags and greyed numbers for the number row (no greys while you've chosen One long break).
+    limitMarks: customMap?.marks ? { joins: customMap.joins, marks: customList.choose && aim === 'long' ? null : customMap.marks } : {},
+    options,
+    // Why an option can't be picked (holiday breaks), or null: { near: brk } or { leave: true }.
+    blockerFor: option => (aim === 'long' || isPicked(option) ? null : pickBlocker(option, current, leaveUsed)),
+    isPicked,
+    // One long break: pick one (again to clear); holiday breaks: tick on / off if it fits.
+    togglePick: option => {
+      const same = p => breakKey(p) === breakKey(option)
+      setTouched(true)
+      if (aim === 'long') { setPicks(current.some(same) ? [] : [option]); return }
+      if (current.some(same)) setPicks(current.filter(p => !same(p)))
+      else setPicks(pickBlocker(option, current, leaveUsed) ? current : [...current, option])
+    },
+    pickedLeave: current.reduce((t, p) => t + p.leaveDays, 0),
     leave: leaveUsed,
     leaveLimit,
     leaveLeft,

@@ -1,26 +1,30 @@
 import { StepHeading } from './StepHeading'
 import { LimitPicker } from './LimitPicker'
+import { AimPicker } from './AimPicker'
 
 /**
  * Step 2 of the Overview (in line with step 1's heading): the days off limit
  * as numbers, the period's recommended number marked REC, with Advanced
- * options (a down arrow, with a count of options on) on the right. There's no
- * aim to pick: the leave days decide (see RecLine).
+ * options (a down arrow, with a count of options on) on the right. Themed
+ * periods have no aim (the leave days decide, see RecLine). Custom dates tags
+ * the numbers where holidays join, greys the ones that add nothing, and adds
+ * step 3 (Holiday breaks / One long break) only when its holidays are too far apart to join.
  *
  * Props: planner – usePlanner() result; moreOpen, onMoreToggle – Advanced options
  */
 export function PlannerBar({ planner, moreOpen, onMoreToggle }) {
   return (
-    <section aria-label="Plan settings" className="min-h-10 shrink-0 flex flex-wrap items-center gap-x-5 gap-y-2">
+    <section aria-label="Plan settings" className="min-h-10 shrink-0 flex flex-wrap items-center gap-x-3.5 gap-y-2">
       <div data-tour="limit" className="flex items-center gap-2.5">
         <StepHeading number={2}>Days off limit</StepHeading>
-        <LimitPicker value={planner.leaveLimit} onChange={planner.setLimitAndLeave} rec={planner.rec?.leave} reason={planner.rec?.reason} />
+        <LimitPicker value={planner.leaveLimit} onChange={planner.setLimitAndLeave} rec={planner.rec?.leave} reason={planner.rec?.reason} {...planner.limitMarks} />
         {planner.maxLeave < planner.leaveLimit && (
           <span className="text-[11.5px] text-slate-600">
             {planner.leaveLeft < planner.leaveLimit && planner.maxLeave === Math.min(planner.leaveLeft, 10) ? `Uses ${planner.maxLeave}: what's left after your Summary` : `Uses ${planner.maxLeave}: all the workdays in these dates`}
           </span>
         )}
       </div>
+      {planner.aimShown && <AimPicker value={planner.aim} onChange={planner.setAim} />}
       <button
         type="button"
         data-tour="advanced"

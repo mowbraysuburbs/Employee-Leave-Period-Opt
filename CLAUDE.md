@@ -44,6 +44,7 @@ src/
       Overview/         # The 3-step planner page
         OverviewPage.jsx, PeriodList.jsx (step 1), PlannerBar.jsx + LimitPicker.jsx (step 2, REC tag), RecLine.jsx (line under the plan title)
         MoreOptions.jsx (Advanced options), PlannerResults.jsx, PlannerTable.jsx, PlanMonths.jsx (calendar view; months a break crosses are joined, the 1st shows "1 Apr")
+        PeriodMonths.jsx (Custom From / To months), AimPicker.jsx (step 3 "Show", Custom only when needed), CustomOptionsTable.jsx, StartCell.jsx (equal-start dropdown, both tables)
       Rail/             # Calendar control rail: RailExpanded / RailCollapsed (icons act directly, pop-outs)
     Mobile/             # Phone layout: MobileApp, MobileCalendar, BottomPanel, BottomSheet, FiltersSheet,
                         # SettingsSheet, MobileOverview, MobileTabBar
@@ -88,11 +89,18 @@ src/
 - Left rail and right Details | Summary panel both collapse to slim strips ("Collapse to icons"); collapsed icons act directly (toggles, pop-outs for leave days and dates).
 - Days-off and public-holiday filters hide whole rows of months with no match (rows stay whole at 2–4 columns).
 
-**Overview planner (2 steps, no aim to pick)**
+**Overview planner (2 steps; Custom sometimes adds step 3)**
 1. Pick a leave period: Custom, or themed cards (Up next, Christmas holidays, Easter, School holidays, next year). Each card shows its plan in 2×2 stat tiles.
 2. Days off limit (numbers 1–10; the period's recommended number is tagged **REC**).
-- The leave days decide the plan: with the REC number or more → **one long break** joining the period's holidays (school holidays: covering the whole school holiday when that's ≤ 10 days); fewer, or no REC (next year, Custom) → **best multiplier**. A line under the plan title always says which (💡 suggestion with **Use N**, ✓ long break, 📈 best multiplier).
+- The leave days decide the plan: with the REC number or more → **one long break** joining the period's holidays (school holidays: covering the whole school holiday when that's ≤ 10 days); fewer, or no REC (next year) → **best multiplier**. A line under the plan title always says which (💡 suggestion with **Use N**, ✓ long break, 📈 best multiplier).
 - Breaks never run past the period's end and are **at least one working week apart**.
+- **Custom dates** is different: whole months (From / To, at least one month; this month only if it has 10+ workdays left), and **nothing is picked until you pick**. The months' weekday holidays (Easter, Christmas + Day of Goodwill count as one) decide the list (`customLeaveMap`, `customListFor`, `customOptions`, `pickBlocker` in `utils/planner.js`):
+  - no holidays → one row per week ("every week is the same"); one holiday → longest breaks
+  - holidays that all join within 10 leave days → **holiday breaks** below the last join number, **one long break** from it; no step 3
+  - holidays too far apart to join → **step 3 "Show": Holiday breaks / One long break** (Holiday breaks first)
+  - the number row tags join numbers **JOINS** (title names the holidays) and greys numbers that add nothing ('pad'); colours for the marks are a later branch
+  - Holiday breaks = one best-value break per holiday and per join, no plain long weekends, needn't use all the leave; tick any that don't overlap and fit the leave. Columns Start ▾ · End · Holidays used · Days off · Leave days · Multiplier, click a heading to sort.
+- **Easter and Christmas holidays** use the same list and table as Custom (`listMode` in usePlanner), but start with the **recommended picks** ticked (`suggestedPicks`: joins first, then best value; one long break = the top row). REC stays on its number with the 💡/✓ "Recommended" line; other join numbers get JOINS. Card tiles show those same picks. Up next, School holidays and next year still use the plan (planLeave).
 - Advanced options: plan around school holidays; months to avoid / include.
 - Results table (Start / End with short years, a dropdown for equal start dates), Add / Export, and the same Details | Summary panel as the calendar.
 

@@ -1,6 +1,7 @@
 // Run with the dev server up (npm run dev), then: npm run test:e2e
 // Start / End: either can move on its own; the other follows (same number of
 // days) and nothing goes past the last date (31 Jan of the year after next).
+// The Overview's Custom card picks whole months instead (From / To).
 const { chromium } = require('playwright');
 const BASE = process.env.BASE_URL || 'http://localhost:5173/';
 const res = []; const check = (n, ok, x = '') => res.push((ok ? 'PASS ' : 'FAIL ') + n + (x ? '  [' + x + ']' : ''));
@@ -28,16 +29,18 @@ const A = addDays(iso(now), 30), B = addDays(A, 60), LATER = addDays(A, 150);
   await from.fill(addDays(LAST, -10));
   check('desktop: End stops at the last date', (await to.inputValue()) === LAST, await to.inputValue());
 
+  // The Overview's Custom card uses whole months (From / To), the other follows so From ≤ To.
   await d.getByRole('button', { name: 'Overview' }).click();
   const nav = d.getByRole('navigation', { name: 'Leave periods' });
-  const s = nav.getByLabel('Start'), e = nav.getByLabel('End');
+  const s = d.locator('#overview-from-month'), e = d.locator('#overview-to-month');
   await nav.getByRole('button', { name: /^School holidays/ }).click();
+  const months = await s.locator('option:not([disabled])').evaluateAll(os => os.map(o => o.value));
   const end0 = await e.inputValue();
-  await s.fill(addDays(end0, 20));
-  check('Overview: Start past End is allowed and End follows', (await e.inputValue()) > (await s.inputValue()), (await s.inputValue()) + '–' + (await e.inputValue()));
+  const later = months.find(m => m > end0) ?? months.at(-1);
+  await s.selectOption(later);
+  check('Overview: From past To moves To along', (await e.inputValue()) === later, (await s.inputValue()) + '–' + (await e.inputValue()));
   check('Overview: the plan becomes Custom', /Custom dates/.test(await d.getByRole('article').locator('h3').innerText()));
-  await s.fill(addDays(LAST, -10));
-  check('Overview: End stops at the last date', (await e.inputValue()) === LAST, await e.inputValue());
+  check('Overview: Custom months stop at the last date\'s month', months.at(-1) === LAST.slice(0, 7), months.at(-1));
 
   const p = await b.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true });
   p.on('pageerror', e => errors.push(e.message));

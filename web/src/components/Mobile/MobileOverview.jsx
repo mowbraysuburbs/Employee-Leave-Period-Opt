@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { PlanIcon } from '../Desktop/Overview/PlanIcon'
 import { PlanMonths } from '../Desktop/Overview/PlanMonths'
 import { PlannerResults } from '../Desktop/Overview/PlannerResults'
-import { PeriodDates } from '../Desktop/Overview/PeriodDates'
+import { PeriodMonths } from '../Desktop/Overview/PeriodMonths'
 import { PERIOD_DESCRIPTIONS } from '../Desktop/Overview/periodThemes'
 import { fmtShortRange } from '../../utils/dateFormat'
 import { PlanSettingsSheet } from './PlanSettingsSheet'
@@ -45,7 +45,7 @@ export function MobileOverview({ planner, isSaved, onAdd, onView, province, onPr
               </p>
             </div>
           </div>
-          {custom && <PeriodDates period={period} onChange={planner.changeDates} active />}
+          {custom && <PeriodMonths idPrefix="mobile-overview" period={period} choices={planner.monthChoices} onChange={planner.changeMonths} active />}
         </section>
 
         <section data-tour="results" aria-label="Your plan" className="flex-1 min-h-0 rounded-2xl bg-white shadow-sm p-3 flex flex-col">

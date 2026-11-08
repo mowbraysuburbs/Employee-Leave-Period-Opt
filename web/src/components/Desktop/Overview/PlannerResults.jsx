@@ -3,6 +3,7 @@ import { StatTile } from '../StatTile'
 import { summarise } from '../../../utils/planner'
 import { formatMultiplier } from '../../../utils/breaks'
 import { PlannerTable } from './PlannerTable'
+import { CustomOptionsTable } from './CustomOptionsTable'
 import { RecLine } from './RecLine'
 import { PERIOD_DESCRIPTIONS } from './periodThemes'
 import { fmtLongRange } from '../../../utils/dateFormat'
@@ -20,15 +21,28 @@ import { fmtLongRange } from '../../../utils/dateFormat'
  *   calendar                – phone only: the 2-month view, shown instead of the table when switched on
  *   phone
  */
+// Why Custom has nothing to pick from.
+function customEmpty(planner) {
+  const text = planner.leaveLeft === 0
+    ? 'No leave left: your Summary already uses your whole limit. Raise your limit or remove a break from your Summary.'
+    : planner.aim === 'max'
+      ? 'No public holidays fall on a weekday in these months, so there is nothing to join. Pick more months, or choose One long break.'
+      : 'No breaks fit these settings. Try fewer leave days, or avoid fewer months.'
+  return <p className="m-3 p-5 border-[1.5px] border-dashed border-slate-300 rounded-2xl text-sm text-slate-600 text-center">{text}</p>
+}
+
 export function PlannerResults({ planner, isSaved, onAdd, onView, onHover, calendar, phone = false }) {
   const [showCalendar, setShowCalendar] = useState(false)
   const { period, breaks, startOptions, ticked, toggleTick, swapStart } = planner
   const chosen = breaks.filter(b => ticked.has(b.startDate))
   const none = chosen.length === 0
   const allSaved = !none && chosen.every(isSaved)
-  const count = breaks.length === 1 ? '1 break' : `${breaks.length} breaks`
+  const count = planner.listMode
+    ? `${breaks.length} picked`
+    : breaks.length === 1 ? '1 break' : `${breaks.length} breaks`
 
-  if (breaks.length === 0) {
+  // Custom, Easter and Christmas keep their title and say why the list is empty (see customEmpty).
+  if (!planner.listMode && breaks.length === 0) {
     return (
       <div className="p-5 border-[1.5px] border-dashed border-slate-300 rounded-2xl text-sm text-slate-600 text-center">
         {planner.leaveLeft === 0
@@ -105,7 +119,9 @@ export function PlannerResults({ planner, isSaved, onAdd, onView, onHover, calen
       <div className={phone ? 'flex-1 min-h-0 overflow-y-auto' : 'flex-1 min-h-[200px] overflow-y-auto rounded-xl border border-slate-100'}>
         {phone && showCalendar
           ? calendar
-          : <PlannerTable breaks={breaks} startOptions={startOptions} ticked={ticked} onToggle={toggleTick} onSwap={swapStart} onHover={onHover} phone={phone} />}
+          : planner.listMode
+            ? (planner.options.length ? <CustomOptionsTable planner={planner} onHover={onHover} phone={phone} /> : customEmpty(planner))
+            : <PlannerTable breaks={breaks} startOptions={startOptions} ticked={ticked} onToggle={toggleTick} onSwap={swapStart} onHover={onHover} phone={phone} />}
       </div>
       {/* Desktop: the dropdown note, fixed under the table (rows scroll above it). */}
       {!phone && startOptions.some(o => o.length > 1) && (

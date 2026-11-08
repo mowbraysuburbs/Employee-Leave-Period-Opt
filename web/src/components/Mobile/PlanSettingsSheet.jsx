@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { StepHeading } from '../Desktop/Overview/StepHeading'
 import { LimitPicker } from '../Desktop/Overview/LimitPicker'
+import { AimPicker } from '../Desktop/Overview/AimPicker'
 import { MoreOptions } from '../Desktop/Overview/MoreOptions'
 import { BottomSheet } from './BottomSheet'
 
 /**
  * The phone planner's settings, opened from the "10 days" button by the
  * period slider: the days off limit (1–10, the period's recommended number
- * marked REC) and Advanced options. There's no aim: the leave days decide.
+ * marked REC), step 3 for Custom dates only when its holidays are too far apart to join, and Advanced options.
  *
  * Props: planner – usePlanner() result; province, onProvinceChange; onClose
  */
@@ -18,13 +19,14 @@ export function PlanSettingsSheet({ planner, province, onProvinceChange, onClose
       <div className="px-4 pb-5 flex flex-col gap-4">
         <section className="flex flex-col gap-2">
           <StepHeading phone number={2}>Days off limit</StepHeading>
-          <LimitPicker phone value={planner.leaveLimit} onChange={planner.setLimitAndLeave} rec={planner.rec?.leave} reason={planner.rec?.reason} />
+          <LimitPicker phone value={planner.leaveLimit} onChange={planner.setLimitAndLeave} rec={planner.rec?.leave} reason={planner.rec?.reason} {...planner.limitMarks} />
           {planner.maxLeave < planner.leaveLimit && (
             <span className="text-[11.5px] text-slate-600">
               {planner.leaveLeft < planner.leaveLimit && planner.maxLeave === Math.min(planner.leaveLeft, 10) ? `Uses ${planner.maxLeave}: what's left after your Summary.` : `Uses ${planner.maxLeave}: all the workdays in these dates.`}
             </span>
           )}
         </section>
+        {planner.aimShown && <AimPicker phone value={planner.aim} onChange={planner.setAim} />}
         <section className="flex flex-col gap-2">
           <button
             type="button"
