@@ -1,26 +1,10 @@
 import { aroundLabel } from '../../../utils/planner'
 import { formatMultiplier } from '../../../utils/breaks'
 import { fmtDayShortYear, fmtShortYear } from '../../../utils/dateFormat'
+import { StartCell } from './StartCell'
 
 const COLUMNS = 'grid grid-cols-[22px_132px_78px_minmax(0,1fr)_52px_38px_40px] gap-2 items-center'
 const PHONE_COLUMNS = 'grid grid-cols-[22px_minmax(0,1.35fr)_minmax(0,1fr)_30px_36px] gap-1.5 items-center'
-
-// The start date, or a dropdown of other start dates that give the same days off.
-function StartCell({ brk, options, onSwap, phone }) {
-  // Plans can span two years, so every date carries a short year.
-  const label = d => (phone ? fmtShortYear(d) : fmtDayShortYear(d))
-  if (options.length < 2) return <b className={phone ? 'text-[12.5px]' : ''}>{label(brk.startDate)}</b>
-  return (
-    <select
-      aria-label={`Start date for the break ending ${fmtDayShortYear(brk.endDate)}`}
-      value={brk.startDate}
-      onChange={e => onSwap(e.target.value)}
-      className={`max-w-full border border-slate-300 rounded-lg bg-white font-bold text-sky-800 ${phone ? 'h-7 px-1 text-[12.5px]' : 'h-8 px-2 text-[13px]'}`}
-    >
-      {options.map(o => <option key={o.startDate} value={o.startDate}>{label(o.startDate)}</option>)}
-    </select>
-  )
-}
 
 /**
  * The planner's results: one row per break with a tick box, Start, End, what

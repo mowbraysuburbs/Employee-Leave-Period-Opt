@@ -288,6 +288,242 @@ export function monthsIn(from, to) {
   return out
 }
 
+// ---- Custom: whole months, and options you pick yourself ----
+
+/** A Custom period needs at least this many workdays (the most leave you can plan). */
+export const MIN_CUSTOM_WORKDAYS = MAX_LEAVE
+
+const lastDayOf = month => {
+  const [y, m] = month.split('-').map(Number)
+  return `${month}-${String(new Date(y, m, 0).getDate()).padStart(2, '0')}`
+}
+const nextMonth = m => {
+  const [y, mm] = m.split('-').map(Number)
+  return mm === 12 ? `${y + 1}-01` : `${y}-${String(mm + 1).padStart(2, '0')}`
+}
+
+/** The dates a Custom month range covers: the 1st (or tomorrow, this month) to the last day. */
+export function monthsPeriod(fromMonth, toMonth, today) {
+  const first = `${fromMonth}-01`
+  return { from: maxDate(first, addDays(today, 1)), to: lastDayOf(toMonth) }
+}
+
+/**
+ * The months Custom can use, 'YYYY-MM' in order: this month (only when it
+ * still has MIN_CUSTOM_WORKDAYS workdays after today) up to lastDate's month.
+ */
+export function customMonths(today, lastDate) {
+  const out = []
+  for (let m = monthKey(today); m <= monthKey(lastDate); m = nextMonth(m)) {
+    const { from, to } = monthsPeriod(m, m, today)
+    if (m === monthKey(today) && (from > to || workdaysIn(from, to) < MIN_CUSTOM_WORKDAYS)) continue
+    out.push(m)
+  }
+  return out
+}
+
+// The weekday public holidays a break uses, as a key: 'Easter@2027+Freedom Day@2027'.
+// Holidays on a weekend give no free day, so they don't count; sets (Easter,
+// Christmas) count once.
+function holidayKey(brk) {
+  const names = new Set()
+  for (const d of brk.days) {
+    if (d.type === 'public_holiday' && !isWeekend(d.date)) names.add(`${groupName(d.holidayName)}@${d.date.slice(0, 4)}`)
+  }
+  return [...names].sort().join('+')
+}
+
+/**
+ * Custom's options to pick from (nothing is picked for you), best first.
+ *   aim 'long' – single breaks using all `leave` days, most days off first
+ *   aim 'max'  – holidays only: for each public holiday, and each run of
+ *                holidays joined together, the best-value break (fewest leave
+ *                on a tie). No plain long weekends and no padding.
+ * Equal starts collapse to the earliest (as in planLeave); never past `to`;
+ * avoided months and `within` (school holidays) apply; a long break must
+ * touch every included month (holiday breaks: you pick the months yourself). At most `limit`.
+ */
+export function customOptions({ from, to, leave, aim, avoidMonths = new Set(), includeMonths = new Set(), within = null, limit = 12 }) {
+  if (leave < 1 || from > to) return []
+  const holidays = holidaysAround(from, to)
+  const isFree = date => isWeekend(date) || holidays.has(date)
+  const sizes = aim === 'long' ? [leave] : Array.from({ length: leave }, (_, i) => i + 1)
+  const options = []
+  for (let date = from; date <= to; date = addDays(date, 1)) {
+    if (date !== from && isFree(addDays(date, -1))) continue
+    for (const k of sizes) {
+      const brk = buildBreak(date, k)
+      if (brk.endDate > to) break
+      if (within && !within.some(w => brk.startDate >= w.start && brk.endDate <= w.end)) continue
+      const months = new Set(brk.days.map(d => monthKey(d.date)))
+      if ([...months].some(m => avoidMonths.has(m))) continue
+      // One long break must touch every month you asked to include.
+      if (aim === 'long' && [...includeMonths].some(m => !months.has(m))) continue
+      options.push(brk)
+    }
+  }
+  if (aim === 'max') {
+    // One break per holiday (or set of joined holidays): the best multiplier.
+    const best = new Map()
+    for (const brk of options) {
+      const key = holidayKey(brk)
+      if (!key) continue
+      const old = best.get(key)
+      if (!old || brk.multiplier > old.multiplier || (brk.multiplier === old.multiplier && brk.leaveDays < old.leaveDays)) best.set(key, brk)
+    }
+    options.splice(0, options.length, ...best.values())
+  }
+  const byDate = (a, b) => (a.startDate < b.startDate ? -1 : a.startDate > b.startDate ? 1 : 0)
+  options.sort(aim === 'long'
+    ? (a, b) => b.daysOff - a.daysOff || byDate(a, b)
+    : (a, b) => b.multiplier - a.multiplier || b.daysOff - a.daysOff || byDate(a, b))
+  // No public holidays at all: every week is the same, so one row per week (its best start).
+  const noHolidays = ![...holidays.keys()].some(d => d >= from && d <= to && !isWeekend(d))
+  if (aim === 'long' && noHolidays) {
+    // Shifted starts in the same week stay in the start dropdown.
+    const week = o => o.days.find(d => new Date(d.date + 'T00:00:00').getDay() === 6)?.date ?? o.startDate
+    const seen = new Set()
+    return options.filter(o => o.daysOff === options[0].daysOff && !seen.has(week(o)) && seen.add(week(o))).slice(0, limit)
+  }
+  // The same break shifted by a day or two (same leave and days off, overlapping) shows once.
+  const kept = []
+  for (const brk of options) {
+    const twin = kept.some(k => k.leaveDays === brk.leaveDays && k.daysOff === brk.daysOff && brk.startDate <= k.endDate && k.startDate <= brk.endDate)
+    if (!twin) kept.push(brk)
+    if (kept.length === limit) break
+  }
+  return kept
+}
+
+/** Whether two breaks share any day. */
+export function overlaps(a, b) {
+  return a.startDate <= b.endDate && b.startDate <= a.endDate
+}
+
+/**
+ * Why an option can't be ticked next to the picks (holiday breaks), or null:
+ * { overlap: brk } when it shares days with a picked break, { leave: true }
+ * when there isn't enough leave left in `budget`. (Custom picks can sit
+ * close together: you choose them, so the one-week gap doesn't apply.)
+ */
+export function pickBlocker(option, picks, budget) {
+  const overlap = picks.find(p => p !== option && overlaps(p, option))
+  if (overlap) return { overlap }
+  const used = picks.reduce((t, p) => t + p.leaveDays, 0)
+  return used + option.leaveDays > budget ? { leave: true } : null
+}
+
+/**
+ * What each leave number (1–10) does in a Custom range, from its weekday public
+ * holidays (Easter, Christmas + Day of Goodwill and other holidays with no
+ * workday between count as one):
+ *   'weekend' – another holiday reaches a weekend (a long weekend)
+ *   'join'    – holidays join into one break (the JOINS tag)
+ *   'pad'     – nothing new, it only makes a break a day longer (greyed)
+ *   'long'    – past the last join: one long break
+ * Returns { holidays, marks, joins: [{ leave, names }], allJoin }:
+ *   holidays = how many (grouped) weekday holidays; marks = 10 entries, or null
+ *   with fewer than two holidays; allJoin = they all join within MAX_LEAVE days.
+ */
+export function customLeaveMap(from, to) {
+  const holidays = holidaysAround(from, to)
+  const days = []
+  for (let d = from; d <= to; d = addDays(d, 1)) days.push(d)
+  const n = days.length
+  const free = days.map(d => isWeekend(d) || holidays.has(d))
+  const weekend = days.map(isWeekend)
+  // Group weekday holidays that have no workday between them.
+  const group = new Array(n).fill(-1)
+  const names = []
+  let last = -1
+  for (let i = 0; i < n; i++) {
+    if (!holidays.has(days[i]) || weekend[i]) continue
+    const name = groupName(holidays.get(days[i]))
+    let joined = last >= 0
+    for (let j = last + 1; joined && j < i; j++) if (!free[j]) joined = false
+    if (!joined) names.push([])
+    const g = names.length - 1
+    if (!names[g].includes(name)) names[g].push(name)
+    group[i] = g
+    last = i
+  }
+  const count = names.length
+  if (count < 2) return { holidays: count, marks: null, joins: [], allJoin: false }
+
+  // Every break that holds a holiday and can't grow for free (starts and ends next to a workday).
+  const breaks = []
+  for (let s = 0; s < n; s++) {
+    if (s > 0 && free[s - 1]) continue
+    let leave = 0
+    let touchesWeekend = false
+    const groups = new Set()
+    for (let e = s; e < n; e++) {
+      if (!free[e]) leave++
+      if (leave > MAX_LEAVE) break
+      if (weekend[e]) touchesWeekend = true
+      if (group[e] >= 0) groups.add(group[e])
+      if (e < n - 1 && free[e + 1]) continue
+      if (groups.size) breaks.push({ s, e, leave, groups: new Set(groups), bridged: touchesWeekend ? groups.size : 0 })
+    }
+  }
+  // Most holidays that reach a weekend, using separate breaks (a day apart at least), per leave budget.
+  const ending = Array.from({ length: n }, () => [])
+  for (const b of breaks) ending[b.e].push(b)
+  const best = Array.from({ length: n + 1 }, () => new Array(MAX_LEAVE + 1).fill(0))
+  for (let i = 0; i < n; i++) {
+    for (let L = 0; L <= MAX_LEAVE; L++) {
+      let v = Math.max(best[i][L], L ? best[i + 1][L - 1] : 0)
+      for (const b of ending[i]) if (b.leave <= L) v = Math.max(v, best[Math.max(0, b.s - 1)][L - b.leave] + b.bridged)
+      best[i + 1][L] = v
+    }
+  }
+  const bridged = best[n]
+  // Most holidays one break can join, per leave budget.
+  const joinMax = Array.from({ length: MAX_LEAVE + 1 }, (_, L) => Math.max(0, ...breaks.filter(b => b.leave <= L).map(b => b.groups.size)))
+  const allJoin = joinMax[MAX_LEAVE] === count
+  const marks = []
+  const joins = []
+  for (let L = 1; L <= MAX_LEAVE; L++) {
+    if (joinMax[L] > joinMax[L - 1] && joinMax[L] > 1) {
+      marks.push('join')
+      const brk = breaks.filter(b => b.leave <= L && b.groups.size === joinMax[L]).sort((a, b) => a.leave - b.leave)[0]
+      joins.push({ leave: L, names: [...brk.groups].sort((a, b) => a - b).map(g => names[g].join(' + ')) })
+    } else if (allJoin && joinMax[L - 1] === count) marks.push('long')
+    else if (bridged[L] > bridged[L - 1]) marks.push('weekend')
+    else marks.push('pad')
+  }
+  return { holidays: count, marks, joins, allJoin }
+}
+
+/**
+ * Which Custom list to show for these leave days, and whether step 3 (choose)
+ * appears: no or one holiday → one long break; holidays that all join within
+ * 10 days → holiday breaks below the last join, one long break from it; holidays
+ * too far apart to join → step 3, your choice.
+ * Returns { list: 'max' | 'long', choose: boolean }.
+ */
+export function customListFor(map, leave, chosen) {
+  if (map.holidays < 2) return { list: 'long', choose: false }
+  if (map.allJoin) return { list: leave < map.joins[map.joins.length - 1].leave ? 'max' : 'long', choose: false }
+  return { list: chosen, choose: true }
+}
+
+/**
+ * The picks a themed period starts with (Easter, Christmas): one long break →
+ * the top option; holiday breaks → joins first (most holidays, then most days
+ * off), then the rest best value first, as long as they fit the leave and don't overlap.
+ */
+export function suggestedPicks(options, leave, list) {
+  if (list === 'long') return options.slice(0, 1)
+  const joined = o => holidayKey(o).split('+').length
+  // Joins (most holidays, then most days off) first; the rest keep their best-value order.
+  const joins = options.filter(o => joined(o) > 1).sort((a, b) => joined(b) - joined(a) || b.daysOff - a.daysOff)
+  const order = [...joins, ...options.filter(o => joined(o) < 2)]
+  const picks = []
+  for (const o of order) if (!pickBlocker(o, picks, leave)) picks.push(o)
+  return picks
+}
+
 /** "Mar" or "Mar '27" for a 'YYYY-MM' key, adding the year when the period spans two. */
 export function monthLabel(key, withYear = false) {
   const label = MONTHS[Number(key.slice(5, 7)) - 1]
