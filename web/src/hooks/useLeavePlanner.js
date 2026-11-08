@@ -50,7 +50,10 @@ export function useLeavePlanner({ leaveLimit = MAX_LEAVE, onLeaveLimitChange = (
   // One date period, shared by Overview and Calendar.
   const [from, setFrom] = useState(TODAY)
   const [to, setTo] = useState(LAST_DATE)
-  const [holidayFilter, setHolidayFilter] = useState([])
+  // Public holidays filter: on (all holidays) by default, because the long
+  // breaks are the ones around holidays. Picking some holidays (or none) turns 'all' off.
+  const [holidaysAll, setHolidaysAll] = useState(true)
+  const [pickedHolidays, setPickedHolidays] = useState([])
   const [picksOnly, setPicksOnly] = useState(false)
   // Days-off values picked from the legend; only applies in Days off mode for now.
   const [daysOffFilter, setDaysOffFilter] = useState([])
@@ -145,6 +148,13 @@ export function useLeavePlanner({ leaveLimit = MAX_LEAVE, onLeaveLimitChange = (
     }
     return [...seen].map(([name, when]) => ({ name, when }))
   }, [breaks])
+  // 'All' follows the period: every holiday in it, even after the dates or leave days change.
+  const holidayFilter = useMemo(() => (holidaysAll ? holidayOptions.map(o => o.name) : pickedHolidays), [holidaysAll, holidayOptions, pickedHolidays])
+  function setHolidayFilter(names) {
+    const all = holidayOptions.length > 0 && holidayOptions.every(o => names.includes(o.name))
+    setHolidaysAll(all)
+    setPickedHolidays(all ? [] : names)
+  }
 
   // Breaks with no free days are left uncoloured, so they're left out here too.
   const legend = useMemo(() => {
@@ -272,7 +282,7 @@ export function useLeavePlanner({ leaveLimit = MAX_LEAVE, onLeaveLimitChange = (
   const activeFilters = [
     activeDaysOff && { key: 'daysOff', label: 'Days off', value: [...daysOffFilter].sort((a, b) => a - b).join(', '), clear: () => setDaysOffFilter([]) },
     period.changed && { key: 'dates', label: 'Dates', value: `${fmtShortYear(from)} – ${fmtShortYear(to)}`, clear: period.onReset },
-    holidayFilter.length > 0 && { key: 'holidays', label: 'Holidays', value: holidayFilter.length === 1 ? holidayFilter[0] : `${holidayFilter.length} picked`, clear: () => setHolidayFilter([]) },
+    holidayFilter.length > 0 && { key: 'holidays', label: 'Holidays', value: holidaysAll ? 'All' : holidayFilter.length === 1 ? holidayFilter[0] : `${holidayFilter.length} picked`, clear: () => setHolidayFilter([]) },
     picksOnly && { key: 'mine', label: 'Selected', value: '', clear: () => setPicksOnly(false) },
     schoolOn && { key: 'school', label: 'School holidays', value: provinceLabel(province), clear: () => setSchoolOn(false) },
   ].filter(Boolean)
