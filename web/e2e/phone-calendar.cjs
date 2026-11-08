@@ -68,6 +68,9 @@ const res = []; const check = (n, ok, x = '') => res.push((ok ? 'PASS ' : 'FAIL 
     check(t + 'Filters button never moved', Math.round((await filt.boundingBox()).x) === fx0);
     const overflow = await p.locator('[data-tour=leave]').evaluate(e => e.scrollWidth > e.clientWidth + 1);
     check(t + 'the Leave pill fits (no overflow)', !overflow);
+    // The public holidays filter is on when the Calendar opens (badge 1); hold Filters to clear it first.
+    check(t + 'public holidays filter is on by default (badge 1)', /1 on/.test(await filt.getAttribute('aria-label')), await filt.getAttribute('aria-label'));
+    { const b0 = await filt.boundingBox(); await p.mouse.move(b0.x + b0.width / 2, b0.y + b0.height / 2); await p.mouse.down(); await p.waitForTimeout(700); await p.mouse.up(); }
     // row 1
     await p.getByRole('button', { name: /Show only days with/ }).first().click();
     check(t + 'a colour chip filters (badge)', /1 on/.test(await filt.getAttribute('aria-label')));

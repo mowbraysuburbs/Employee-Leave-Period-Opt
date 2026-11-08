@@ -13,6 +13,9 @@ const res = []; const check = (n, ok, x = '') => res.push((ok ? 'PASS ' : 'FAIL 
   await p.getByRole('dialog', { name: 'Plan settings' }).getByRole('button', { name: 'Show results' }).click();
   await p.getByRole('button', { name: /Add to summary/ }).click();
   await p.getByRole('navigation', { name: 'Pages' }).getByRole('button', { name: 'Calendar' }).click(); await p.waitForTimeout(300);
+  // The public holidays filter starts on and hides months with no holiday; clear it (hold Filters) to see the whole range.
+  { const f = p.getByRole('button', { name: /^Filters/ }); check('public holidays filter is on by default', /1 on/.test(await f.getAttribute('aria-label')), await f.getAttribute('aria-label'));
+    const fb = await f.boundingBox(); await p.mouse.move(fb.x + fb.width / 2, fb.y + fb.height / 2); await p.mouse.down(); await p.waitForTimeout(700); await p.mouse.up(); await p.waitForTimeout(200); }
   const months = await p.locator('section[aria-label=Calendar] h2, main h2').allInnerTexts();
   // The range: from this month to January of the year after next.
   const now = new Date();
@@ -22,7 +25,7 @@ const res = []; const check = (n, ok, x = '') => res.push((ok ? 'PASS ' : 'FAIL 
   const left = p.locator('[data-tour=snap]');
   check('"0 left" shown', /^0 left/.test((await left.innerText()).trim()), await left.innerText());
   await left.click();
-  check('tap hint explains', (await p.getByRole('status').innerText()).includes('No leave left'), await p.getByRole('status').innerText());
+  { const hint = p.getByRole('status').filter({ hasText: 'No leave left' }); check('tap hint explains', (await hint.count()) === 1, await hint.allInnerTexts()); }
   const lb = await left.boundingBox();
   await p.mouse.move(lb.x + lb.width / 2, lb.y + lb.height / 2); await p.mouse.down(); await p.waitForTimeout(700); await p.mouse.up();
   const strip = p.getByRole('slider', { name: 'Leave days' });
