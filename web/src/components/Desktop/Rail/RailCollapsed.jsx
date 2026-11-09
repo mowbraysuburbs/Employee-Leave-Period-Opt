@@ -132,6 +132,14 @@ export function RailCollapsed({ c }) {
     <div ref={wrapRef} className="relative shrink-0 h-full">
       <aside aria-label="Calendar controls (collapsed)" className="w-[60px] h-full overflow-y-auto flex flex-col items-center gap-1.5 py-2 bg-white rounded-2xl shadow-sm">
         <button type="button" onClick={open} aria-label="Expand calendar controls" title="Expand controls" className="w-10 h-9 rounded-[10px] bg-slate-900 text-white text-[15px] font-bold">»</button>
+        <RailIcon
+          icon="clearFilter"
+          label={c.activeCount ? `Clear all filters (${c.activeCount})` : 'No filters on'}
+          value={c.activeCount || null}
+          onClick={c.onClearAll}
+          disabled={!c.activeCount}
+          className={c.activeCount ? 'border border-red-300 text-red-700 hover:bg-red-50' : 'text-slate-300'}
+        />
         <span aria-hidden="true" className="w-8 h-px bg-slate-200 my-0.5" />
         <span ref={leaveRef}>
           <RailIcon tour="leave" icon="leave" label={`Leave days: ${c.leaveDays} of your ${c.leaveLimit} limit (${c.leaveLeft} left). Change`} value={<>{c.leaveDays}<span className="opacity-60">|{c.leaveLimit}</span></>} onClick={() => togglePopout('leave', leaveRef)} className={`border-2 border-sky-700 ${popout?.kind === 'leave' ? 'bg-sky-700 text-white' : 'text-sky-800'}`} />
@@ -203,14 +211,6 @@ export function RailCollapsed({ c }) {
           onClick={() => c.onSchoolOnChange(!c.schoolOn)}
           className={c.schoolOn ? 'bg-slate-900 text-white' : off}
           dot={c.schoolOn}
-        />
-        <RailIcon
-          icon="clearFilter"
-          label={c.activeCount ? `Clear all filters (${c.activeCount})` : 'No filters on'}
-          value={c.activeCount || null}
-          onClick={c.onClearAll}
-          disabled={!c.activeCount}
-          className={c.activeCount ? 'mt-auto border border-red-300 text-red-700 hover:bg-red-50' : 'mt-auto text-slate-300'}
         />
       </aside>
       {popout && (

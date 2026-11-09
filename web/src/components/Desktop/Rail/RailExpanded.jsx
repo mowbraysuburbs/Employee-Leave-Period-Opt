@@ -34,6 +34,15 @@ export function RailExpanded({ c }) {
       >
         « Collapse to icons
       </button>
+      {/* Clear filters sits at the top, right under Collapse, so it's always in reach. */}
+      <button
+        type="button"
+        onClick={c.onClearAll}
+        disabled={!c.activeCount}
+        className="shrink-0 h-9 rounded-xl border border-red-300 bg-white text-red-700 text-[13px] font-bold disabled:border-slate-200 disabled:text-slate-300"
+      >
+        {c.activeCount ? `✕ Clear filters (${c.activeCount})` : 'No filters on'}
+      </button>
 
       <LeaveCard c={c} />
 
@@ -99,14 +108,6 @@ export function RailExpanded({ c }) {
           </div>
         </div>
       </section>
-      <button
-        type="button"
-        onClick={c.onClearAll}
-        disabled={!c.activeCount}
-        className="shrink-0 mt-auto h-9 rounded-xl border border-red-300 bg-white text-red-700 text-[13px] font-bold disabled:border-slate-200 disabled:text-slate-300"
-      >
-        {c.activeCount ? `✕ Clear filters (${c.activeCount})` : 'No filters on'}
-      </button>
     </aside>
   )
 }
