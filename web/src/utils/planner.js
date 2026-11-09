@@ -513,9 +513,9 @@ export function customLeaveMap(from, to) {
   }
   const firstProper = Math.min(...names.map((_, g) => properMin(g) ?? Infinity))
 
-  // One holiday: below its first proper break skipped, then every number makes it longer.
+  // One holiday: only its first proper break counts; more only pads it (use the Calendar).
   if (count === 1) {
-    const marks = Array.from({ length: MAX_LEAVE }, (_, i) => (i + 1 < firstProper ? 'pad' : i + 1 === firstProper ? 'min' : 'long'))
+    const marks = Array.from({ length: MAX_LEAVE }, (_, i) => (i + 1 === firstProper ? 'min' : 'pad'))
     return { holidays: 1, marks, joins: [], allJoin: false, minLeave: usable(marks) }
   }
 
@@ -542,7 +542,24 @@ export function customLeaveMap(from, to) {
     const joinsNext = breaks.some(b => b.groups.has(g - 1) && b.groups.has(g))
     if (!joinsNext) clusters++
   }
-  if (clusters > 2) return { holidays: count, marks: null, joins: [], allJoin: false, minLeave: 1 }
+  if (clusters > 2) {
+    // Several seasons (e.g. a whole year): tag each join (the fewest leave days
+    // that join those holidays); every other number stays usable for spreading leave.
+    const fewest = new Map()
+    for (const b of breaks) {
+      if (b.groups.size < 2) continue
+      const key = [...b.groups].sort((x, y) => x - y).join('+')
+      if (!fewest.has(key) || b.leave < fewest.get(key).leave) fewest.set(key, b)
+    }
+    const joins = [...fewest.values()]
+      .filter(b => b.leave >= 1)
+      .sort((a, b) => a.leave - b.leave)
+      .filter((b, i, all) => i === 0 || b.leave !== all[i - 1].leave)
+      .map(b => ({ leave: b.leave, names: [...b.groups].sort((x, y) => x - y).map(g => names[g].join(' + ')) }))
+    const at = new Set(joins.map(j => j.leave))
+    const marks = Array.from({ length: MAX_LEAVE }, (_, i) => (at.has(i + 1) ? 'join' : 'long'))
+    return { holidays: count, marks, joins, allJoin: false, minLeave: 1, seasons: true }
+  }
 
   const joins = []
   for (let L = 1; L <= MAX_LEAVE; L++) {
@@ -558,7 +575,9 @@ export function customLeaveMap(from, to) {
   for (let L = 1; L <= MAX_LEAVE; L++) {
     if (joinAt.has(L)) marks.push('join')
     // Once every holiday that can join has joined, every number makes the break longer.
-    else if (lastJoin && L > lastJoin) marks.push('long')
+    // Past the last join: when every holiday has joined, more only pads it
+    // (capped; use the Calendar); when some can't join, it still spreads leave.
+    else if (lastJoin && L > lastJoin) marks.push(allJoin ? 'pad' : 'long')
     else if (bridged[L] > bridged[L - 1]) marks.push('weekend')
     // No long weekend to make (Mon / Fri holidays): the first proper break, if it comes before the join.
     else if (L === firstProper && (!firstJoin || L < firstJoin)) marks.push('min')
@@ -572,17 +591,16 @@ export function customLeaveMap(from, to) {
 }
 
 /**
- * Which sections the list of a list period shows for these leave days:
- *   long    – "One long break": all your leave in one go (once a long break is
- *             worth it: from the last join, or from MIN when nothing joins)
- *   holiday – "Holiday breaks": joins and each holiday's own break (2+ holidays)
- * No or one holiday: only the long breaks. Returns { long, holiday }.
+ * Which list a list period shows: holiday breaks (joins first, then each
+ * holiday's proper break), or, with no holidays, the weekly long breaks.
+ * Returns { long, holiday }.
  */
-export function listSections(map, leave) {
-  if (!map || map.holidays < 2) return { long: true, holiday: false }
-  const joins = map.joins ?? []
-  const from = joins.length ? joins[joins.length - 1].leave : map.minLeave
-  return { long: leave >= from, holiday: true }
+export function listSections(map) {
+  // Long breaks are capped at the best value (a join or a proper break), which
+  // the holiday list already holds, so there's one list: joins first, then short
+  // breaks. No holidays: the weekly long breaks.
+  if (!map || map.holidays === 0) return { long: true, holiday: false }
+  return { long: false, holiday: true }
 }
 
 /**

@@ -52,6 +52,16 @@ export function RecLine({ planner, onUseRest, phone = false }) {
       icon = '🗓️'
       text = <><b>{leave} leave day{leave === 1 ? '' : 's'} can't make a proper break here</b> (you need {planner.minLeave}). Use {leave === 1 ? 'it' : 'them'} on the Calendar instead.</>
       toCalendar = true
+    } else if (marks?.[leave - 1] === 'pad' && !marks.some((m, i) => i >= leave && m !== 'pad')) {
+      // Past the best value (the last join, or one holiday's proper break): capped.
+      // Say what the best is, and send the rest to the Calendar.
+      const best = marks.slice(0, leave - 1).findLastIndex(m => m !== 'pad') + 1
+      const bestJoin = joins.find(j => j.leave === best)
+      const bestBrk = options.filter(o => o.leaveDays === best).sort((a, b) => b.daysOff - a.daysOff)[0]
+      tone = 'done'
+      icon = '✓'
+      text = <><b>{best} leave day{best === 1 ? '' : 's'} {bestJoin ? `join ${bestJoin.names.join(' + ')}` : 'make the best break here'}</b>{when(bestBrk)}. That's the most these holidays give; use your other {leave - best} on the Calendar.</>
+      toCalendar = true
     } else if (marks?.[leave - 1] === 'pad') {
       // Your number adds nothing: point to the useful ones next to it.
       const below = marks.slice(0, leave - 1).findLastIndex(m => m !== 'pad') + 1

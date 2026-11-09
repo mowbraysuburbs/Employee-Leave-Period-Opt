@@ -11,10 +11,16 @@ const res = []; const check = (n, ok, x = '') => res.push((ok ? 'PASS ' : 'FAIL 
   d.on('pageerror', e => errors.push(e.message));
   await d.addInitScript(() => { localStorage.setItem('stretchmyleave.welcomeSeen', '1'); localStorage.setItem('stretchmyleave.calendarTourSeen', '1'); localStorage.setItem('stretchmyleave.panelCollapsed', 'false'); localStorage.setItem('stretchmyleave.railCollapsed', 'false') });
   await d.goto(BASE); await d.evaluate(() => { localStorage.removeItem('stretchmyleave.desktopBreaks'); localStorage.removeItem('stretchmyleave.settings') }); await d.reload();
-  // Keep a plan from next year: tick its first long break (nothing is ticked for you).
-  await d.getByRole('navigation', { name: 'Leave periods' }).getByRole('button', { name: /^20\d\d/ }).click();
-  await d.getByRole('table', { name: 'Options to pick from' }).locator('input:not(:disabled)').first().check();
+  // Keep a break that has other equal start dates: Custom February (no holidays), 3 leave days:
+  // Wed – Sun, which can also start Thu, Fri or Sat. Then put the limit back to 10.
+  const nextYear = new Date().getFullYear() + 1;
+  await d.getByRole('navigation', { name: 'Leave periods' }).getByRole('button', { name: 'Custom dates' }).click();
+  await d.selectOption('#overview-from-month', `${nextYear}-02`);
+  await d.selectOption('#overview-to-month', `${nextYear}-02`);
+  await d.getByRole('radiogroup', { name: 'Days off limit' }).getByRole('radio', { name: /^3/ }).click();
+  await d.getByRole('table', { name: 'Options to pick from' }).getByRole('checkbox').first().check();
   await d.getByRole('button', { name: /Add to summary/ }).click();
+  await d.getByRole('radiogroup', { name: 'Days off limit' }).getByRole('radio', { name: /^10/ }).click();
   await d.getByRole('button', { name: 'Calendar', exact: true }).click(); await d.waitForTimeout(200);
   const panel = d.locator('aside').last();
   await panel.getByRole('tab', { name: /Summary/ }).click();

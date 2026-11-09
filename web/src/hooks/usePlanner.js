@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { buildBreak, breakKey } from '../utils/breaks'
-import { MAX_LEAVE, planPeriods, planLeave, recommendedLeave, breaksFor, summarise, workdaysIn, schoolHolidaysIn, equalStartsWithin, monthsIn, customMonths, monthsPeriod, customOptions, pickBlocker, overlaps, customLeaveMap, customListFor, suggestedPicks, listSections } from '../utils/planner'
+import { MAX_LEAVE, planPeriods, planLeave, recommendedLeave, breaksFor, summarise, workdaysIn, schoolHolidaysIn, equalStartsWithin, monthsIn, customMonths, monthsPeriod, customOptions, pickBlocker, overlaps, customLeaveMap, suggestedPicks, listSections } from '../utils/planner'
 
 
 /**
@@ -78,7 +78,7 @@ export function usePlanner({ today, lastDate, province, leaveLimit = MAX_LEAVE, 
   // Custom: what each leave number does here, and which list these leave days get.
   const customMap = useMemo(() => (listMode ? customLeaveMap(period.from, period.to) : null), [listMode, period.from, period.to])
   // Which sections the list shows: One long break and / or Holiday breaks.
-  const sections = useMemo(() => listSections(customMap, leaveUsed), [customMap, leaveUsed])
+  const sections = useMemo(() => listSections(customMap), [customMap])
 
   // Custom's options, best first (nothing picked for you).
   const baseOptions = useMemo(
@@ -116,7 +116,8 @@ export function usePlanner({ today, lastDate, province, leaveLimit = MAX_LEAVE, 
       const n = Math.max(1, Math.min(leave, leaveLeft, workdaysIn(p.from, p.to)))
       if (LIST_KINDS.has(p.kind)) {
         // The same suggested picks the period opens with.
-        const { list } = customListFor(customLeaveMap(p.from, p.to), n, 'max')
+        // Holiday breaks (capped): the card shows the join / proper break, not padding.
+        const list = customLeaveMap(p.from, p.to).holidays ? 'max' : 'long'
         const opts = customOptions({ from: p.from, to: p.to, leave: n, aim: list, avoidMonths, includeMonths, within: spans.length ? spans : null })
         stats[p.id] = summarise(suggestedPicks(opts, n, list))
         continue
