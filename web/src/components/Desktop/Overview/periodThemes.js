@@ -19,7 +19,16 @@ export const STRIP_THEMES = {
   year: 'bg-linear-to-r from-indigo-100 to-white',
 }
 
-// What each leave period means, in a few words.
+// What each period is for, in plain words (on its step 1 card).
+export const CARD_DESCRIPTIONS = {
+  next: 'Stretch the next public holiday into a long weekend, or more.',
+  xmas: 'Join Reconciliation, Christmas and New Year into one long year-end break.',
+  easter: 'Turn the Easter weekend and Human Rights Day into one long break.',
+  school: "Take leave while the kids are off school, so you're home together.",
+  year: 'Plan next year early: every holiday, and the leave that joins them.',
+}
+
+// What each leave period covers, in a few words (beside the plan's title).
 export const PERIOD_DESCRIPTIONS = {
   next: 'The next public holiday',
   xmas: 'Day of Reconciliation, Christmas & New Year',

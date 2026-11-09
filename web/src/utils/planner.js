@@ -44,8 +44,9 @@ const groupName = name => GROUPS[name] ?? name
 /**
  * The leave periods offered in step 1 (Custom is handled by the caller).
  *
- * Returns [{ id, kind, title, subtitle, from, to }] in display
- * order, skipping any that fall outside the holiday data.
+ * Returns [{ id, kind, title, subtitle, from, to, holidays }] in display
+ * order, skipping any that fall outside the holiday data. holidays = how many
+ * public holidays fall on a weekday in the period (a Saturday one gives nothing).
  */
 export function planPeriods({ today, provinceCode = 'GP' }) {
   const horizon = `${Number(today.slice(0, 4)) + 2}-12-31`
@@ -93,7 +94,8 @@ export function planPeriods({ today, provinceCode = 'GP' }) {
 
   periods.push({ id: 'year', kind: 'year', title: String(year + 1), subtitle: 'Jan – Dec', from: `${year + 1}-01-01`, to: `${year + 1}-12-31` })
 
-  const valid = periods.filter(p => p.from <= p.to)
+  const weekdayHolidays = (from, to) => sorted.filter(d => d >= from && d <= to && !isWeekend(d)).length
+  const valid = periods.filter(p => p.from <= p.to).map(p => ({ ...p, holidays: weekdayHolidays(p.from, p.to) }))
 
   // When the next holiday IS Christmas or Easter, that card replaces Up next
   // at the top (only if its dates hold the holiday, so it's the right one).
@@ -614,22 +616,6 @@ export function customListFor(map, leave, chosen) {
   if (map.holidays < 2) return { list: 'long', choose: false }
   if (map.allJoin) return { list: leave < map.joins[map.joins.length - 1].leave ? 'max' : 'long', choose: false }
   return { list: chosen, choose: true }
-}
-
-/**
- * The picks a themed period starts with (Easter, Christmas): one long break →
- * the top option; holiday breaks → joins first (most holidays, then most days
- * off), then the rest best value first, as long as they fit the leave and don't overlap.
- */
-export function suggestedPicks(options, leave, list) {
-  if (list === 'long') return options.slice(0, 1)
-  const joined = o => holidayKey(o).split('+').length
-  // Joins (most holidays, then most days off) first; the rest keep their best-value order.
-  const joins = options.filter(o => joined(o) > 1).sort((a, b) => joined(b) - joined(a) || b.daysOff - a.daysOff)
-  const order = [...joins, ...options.filter(o => joined(o) < 2)]
-  const picks = []
-  for (const o of order) if (!pickBlocker(o, picks, leave)) picks.push(o)
-  return picks
 }
 
 /** "Mar" or "Mar '27" for a 'YYYY-MM' key, adding the year when the period spans two. */

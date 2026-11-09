@@ -1,24 +1,11 @@
 import { PlanIcon } from './PlanIcon'
-import { StatTile } from '../StatTile'
 import { StepHeading } from './StepHeading'
-import { formatMultiplier } from '../../../utils/breaks'
-import { PERIOD_DESCRIPTIONS } from './periodThemes'
+import { CARD_DESCRIPTIONS } from './periodThemes'
 import { PeriodMonths } from './PeriodMonths'
 
-// The card's plan at a glance: days off, multiplier, breaks and leave as small tiles.
-function QuickStats({ stats }) {
-  if (!stats || stats.breaks === 0) return null
-  return (
-    <span className="flex flex-wrap gap-[3px] mt-1" aria-label={`${stats.daysOff} days off, ${formatMultiplier(stats.multiplier)} multiplier, ${stats.breaks} breaks, ${stats.leave} leave days`}>
-      <StatTile tiny kind="total" value={stats.daysOff} title="Days off" />
-      <StatTile tiny kind="multiplier" value={formatMultiplier(stats.multiplier)} title="Multiplier" />
-      <StatTile tiny kind="breaks" value={stats.breaks} title="Breaks" />
-      <StatTile tiny kind="leave" value={stats.leave} title="Leave days used" />
-    </span>
-  )
-}
-
-function PeriodCard({ id, kind, title, subtitle, stats, selected, onSelect }) {
+// What the card is for, then a fixed holiday count and its dates (nothing here
+// changes as you pick leave days: the numbers live in the plan and Details).
+function PeriodCard({ id, kind, title, subtitle, holidays, selected, onSelect }) {
   return (
     <button
       type="button"
@@ -32,9 +19,11 @@ function PeriodCard({ id, kind, title, subtitle, stats, selected, onSelect }) {
       <PlanIcon kind={kind} size={30} />
       <span className="flex-1 min-w-0 flex flex-col">
         <span className="text-[13.5px] font-extrabold">{title}</span>
-        <span className="text-[11.5px] leading-snug text-slate-600">{PERIOD_DESCRIPTIONS[kind]}</span>
-        {subtitle && <span className="text-[11px] text-slate-400">{subtitle}</span>}
-        <QuickStats stats={stats} />
+        <span className="text-[12px] leading-snug text-slate-700">{CARD_DESCRIPTIONS[kind]}</span>
+        <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 mt-1">
+          {holidays > 0 && <span className="h-[18px] px-1.5 rounded-md bg-orange-100 text-orange-800 text-[10.5px] font-extrabold leading-[18px]">{holidays} holiday{holidays === 1 ? '' : 's'}</span>}
+          {subtitle && <span className="text-[11px] text-slate-400">{subtitle}</span>}
+        </span>
       </span>
     </button>
   )
@@ -56,8 +45,8 @@ function CustomCard({ period, selected, onSelect, months, onChangeMonths }) {
 
 /**
  * Step 1 of the Overview planner: the Custom dates card (From / To months), then the
- * ready-made leave periods, each saying what it is, its dates, and its plan's
- * quick stats. The list scrolls on its own.
+ * ready-made leave periods, each saying what it's for, how many holidays it has
+ * and its dates. The list scrolls on its own.
  *
  * Props:
  *   periods    – planPeriods() result
@@ -66,16 +55,15 @@ function CustomCard({ period, selected, onSelect, months, onChangeMonths }) {
  *   onChangeMonths – ({ fromMonth, toMonth }) => void; makes the plan Custom
  *   selectedId – 'custom' or a period id
  *   onSelect   – (id) => void
- *   cardStats  – { [periodId]: { breaks, leave, daysOff, multiplier } }
  */
-export function PeriodList({ periods, period, months, onChangeMonths, selectedId, onSelect, cardStats }) {
+export function PeriodList({ periods, period, months, onChangeMonths, selectedId, onSelect }) {
   return (
     <div className="w-[270px] shrink-0 flex flex-col gap-2 lg:h-full min-h-0">
       <div className="h-10 shrink-0 flex items-center"><StepHeading number={1}>Pick a leave period</StepHeading></div>
       <nav data-tour="period" aria-label="Leave periods" className="flex-1 min-h-0 flex flex-col gap-1.5 lg:overflow-y-auto lg:pr-1 lg:pb-2 [&>*]:shrink-0">
         <CustomCard period={period} selected={selectedId === 'custom'} onSelect={onSelect} months={months} onChangeMonths={onChangeMonths} />
         {periods.map(p => (
-          <PeriodCard key={p.id} {...p} stats={cardStats[p.id]} selected={p.id === selectedId} onSelect={onSelect} />
+          <PeriodCard key={p.id} {...p} selected={p.id === selectedId} onSelect={onSelect} />
         ))}
       </nav>
     </div>
