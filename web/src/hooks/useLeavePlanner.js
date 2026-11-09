@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useSavedBreaks } from '../components/Desktop/useSavedBreaks'
-import { buildBreak, buildBreaksInRange, breakKey, hasGain, toCalendarEvent, findEqualStarts, breaksOverlap, combineBreaks, withBreakMerged } from '../utils/breaks'
+import { buildBreak, buildBreaksInRange, breakKey, hasGain, toCalendarEvent, findEqualStarts, breaksOverlap, breaksTouch, combineBreaks, withBreakMerged } from '../utils/breaks'
 import { schoolBreaksFor, provinceLabel } from '../utils/plans'
 import { usePlanner } from './usePlanner'
 import { MAX_LEAVE } from '../utils/planner'
@@ -174,7 +174,8 @@ export function useLeavePlanner({ leaveLimit = MAX_LEAVE, onLeaveLimitChange = (
   const isSaved = brk => savedKeys.has(breakKey(brk))
   // Saved breaks the Details break runs into; adding it combines them.
   const overlaps = useMemo(
-    () => (detailBreak && !savedKeys.has(breakKey(detailBreak)) ? savedBreaks.filter(b => breaksOverlap(b, detailBreak)) : []),
+    // Saved breaks it overlaps, or sits right next to (offered as Combine / Replace too).
+    () => (detailBreak && !savedKeys.has(breakKey(detailBreak)) ? savedBreaks.filter(b => breaksOverlap(b, detailBreak) || breaksTouch(b, detailBreak)) : []),
     [detailBreak, savedBreaks, savedKeys]
   )
   const combined = useMemo(() => (overlaps.length ? combineBreaks([...overlaps, detailBreak]) : null), [overlaps, detailBreak])
@@ -233,6 +234,15 @@ export function useLeavePlanner({ leaveLimit = MAX_LEAVE, onLeaveLimitChange = (
   // Adds the Details break; Details then shows what was saved (the combined
   // break, if it merged).
   function addDetailBreak() {
+    // Combine: one break made of it and the saved ones it overlaps or touches.
+    if (overlaps.length) {
+      const keys = new Set(overlaps.map(breakKey))
+      const entry = { startDate: combined.startDate, leaveDays: combined.leaveDays }
+      replaceAll([...saved.filter(s => !keys.has(breakKey(s))), entry])
+      setJustAddedKey(breakKey(entry))
+      setPinned(entry)
+      return
+    }
     const last = addBreaks([detailBreak])
     if (last) setPinned(last)
   }
@@ -273,6 +283,18 @@ export function useLeavePlanner({ leaveLimit = MAX_LEAVE, onLeaveLimitChange = (
   function openPreview(list) {
     setPreview({ title: planner.period.title, breaks: list })
     setPreviewOnly(true)
+    setPinned(null)
+    setDetailDate(null)
+  }
+
+  // From the Overview's "Use on the Calendar": the leave that's left, anywhere
+  // (the holidays filter off, so every date shows), nothing previewed or open.
+  function openRestOnCalendar() {
+    setHolidaysAll(false)
+    setPickedHolidays([])
+    setLeaveMode('snap')
+    setDaysOffFilter([])
+    setPreview(null)
     setPinned(null)
     setDetailDate(null)
   }
@@ -332,7 +354,7 @@ export function useLeavePlanner({ leaveLimit = MAX_LEAVE, onLeaveLimitChange = (
     daysOffFilter, toggleDaysOff, clearDaysOff: () => setDaysOffFilter([]), activeDaysOff, legend,
     province, setProvince, schoolOn, setSchoolOn, schoolDates,
     months, breaks, holidayView, demoDate, planner, exportBreaks,
-    preview, setPreview, previewOnly, setPreviewOnly, previewDays, previewLabel, openPreview,
+    preview, setPreview, previewOnly, setPreviewOnly, previewDays, previewLabel, openPreview, openRestOnCalendar,
     saved, savedBreaks, savedDayTypes, savedStarts, isSaved, justAddedKey, setJustAddedKey,
     detailBreak, bestNote, equalStarts, overlaps, combined,
     selectDay, openBreak, addBreaks, addDetailBreak, replaceOverlaps, removeBreak, clearSummary, moveBreak,

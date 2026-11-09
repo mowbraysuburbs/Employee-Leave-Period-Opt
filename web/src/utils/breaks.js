@@ -140,6 +140,11 @@ export function breaksOverlap(a, b) {
   return a.startDate <= b.endDate && b.startDate <= a.endDate
 }
 
+/** Whether b starts the day after a ends, or a the day after b (no shared days, no gap). */
+export function breaksTouch(a, b) {
+  return addDays(a.endDate, 1) === b.startDate || addDays(b.endDate, 1) === a.startDate
+}
+
 /**
  * One break covering every day of `list` (breaks that overlap into one run):
  * it starts on the earliest day and spends a leave day on each working day

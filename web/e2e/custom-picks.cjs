@@ -24,18 +24,21 @@ const year = new Date().getFullYear() + 1;
   const xline = await d.getByRole('status').first().innerText();
   check('Christmas, 4 days: the line is about 4 leave days', /4 leave days join Christmas \+ New Year/.test(xline) && (await d.getByRole('button', { name: /^Use / }).count()) === 0, xline);
   const xt = d.getByRole('table', { name: 'Options to pick from' });
-  check('Christmas, 4 days: one note explains the greyed row', (await d.getByText(/Greyed: not enough leave left/).count()) === 1);
-  check('Christmas, 4 days: the join is ticked and its long weekends are hidden', (await xt.locator('input:checked').count()) === 1 && (await xt.getByRole('checkbox').count()) === 2 && (await xt.getByText(/Already in your/).count()) === 0, String(await xt.getByRole('checkbox').count()));
+  check('Christmas, 4 days: nothing ticked; the join replaces its long weekends', (await xt.locator('input:checked').count()) === 0 && (await xt.getByRole('checkbox').count()) === 2, String(await xt.getByRole('checkbox').count()));
+  await xt.getByRole('checkbox').first().check();
+  check('Christmas, 4 days: after ticking the join, one note explains the greyed row', (await d.getByText(/Greyed: not enough leave left/).count()) === 1);
+  // MIN and skipped numbers: 2 is the first proper break (Reconciliation is a Wednesday), 3 adds nothing.
+  const lim = d.getByRole('radiogroup', { name: 'Days off limit' });
+  check('Christmas: MIN on 2, 3 skipped (can\'t be picked)', (await lim.getByRole('radio', { name: /^2 \(first proper break\)/ }).count()) === 1 && await lim.getByRole('radio', { name: /^3 / }).isDisabled());
 
   await nav.getByRole('button', { name: 'Custom dates' }).click();
   const limit = d.getByRole('radiogroup', { name: 'Days off limit' });
-  // March: Human Rights Day and Easter join with 3 days, so no step 3; 1–2 days = holiday breaks.
+  // March: both long weekends are free, so 1–2 add nothing (skipped); 3 joins Human Rights Day + Easter; no step 3.
   await d.selectOption('#overview-from-month', `${year}-03`);
   await d.selectOption('#overview-to-month', `${year}-03`);
-  await limit.getByRole('radio', { name: /^2/ }).click();
+  check('March: 1–2 skipped (long weekends already free)', await limit.getByRole('radio', { name: /^1 / }).isDisabled() && await limit.getByRole('radio', { name: /^2 / }).isDisabled());
   check('March: JOINS tag on the joining number', (await limit.getByRole('radio', { name: /joins Human Rights Day \+ Easter/ }).count()) === 1);
   check('March: holidays that join = no step 3', (await d.getByRole('radiogroup', { name: 'Show which list' }).count()) === 0);
-  check('March, 2 days: holiday breaks (tick boxes)', (await d.getByRole('table', { name: 'Options to pick from' }).getByRole('checkbox').count()) > 0);
   await limit.getByRole('radio', { name: /^3/ }).click();
   check('March, 3 days: the joined break (pick one)', /3 leave days join Human Rights Day \+ Easter/.test(await d.getByRole('status').first().innerText()) && (await d.getByRole('table', { name: 'Options to pick from' }).getByRole('radio').count()) > 0, await d.getByRole('status').first().innerText());
   // February: no holidays, every week the same.
@@ -71,6 +74,21 @@ const year = new Date().getFullYear() + 1;
   check('One long break: only one can be picked', (await table.locator('input:checked').count()) === 1);
   await add.click();
   check('One long break: Add keeps it in the Summary', /Summary \(1\)/.test(await d.getByRole('tab', { name: /Summary/ }).innerText().catch(() => d.getByText(/Summary \(1\)/).first().innerText())));
+
+  // Leftover leave: "Use on the Calendar" opens the Calendar with the holidays filter off.
+  const r = await b.newPage({ viewport: { width: 1280, height: 800 } });
+  r.on('pageerror', e => errors.push(e.message));
+  await r.addInitScript(() => localStorage.setItem('stretchmyleave.welcomeSeen', '1'));
+  await r.goto(BASE);
+  await r.getByRole('navigation', { name: 'Leave periods' }).getByRole('button', { name: 'Custom dates' }).click();
+  await r.selectOption('#overview-from-month', `${year}-03`);
+  await r.selectOption('#overview-to-month', `${year}-10`);
+  await r.getByRole('radiogroup', { name: 'Days off limit' }).getByRole('radio', { name: /^4/ }).click();
+  await r.getByRole('table', { name: 'Options to pick from' }).getByRole('checkbox').first().check();
+  const rest = r.getByRole('button', { name: 'Use on the Calendar →' });
+  check('leftover leave: the line offers the Calendar', (await rest.count()) === 1, await r.getByRole('status').first().innerText());
+  await rest.click(); await r.waitForTimeout(300);
+  check('Use on the Calendar: Calendar opens with the holidays filter off', /Public holidays:\s*Off/.test(await r.getByRole('button', { name: /Public holidays:/ }).first().innerText()));
 
   // Phone: months in the card, step 3 in the settings sheet (holidays far apart).
   const p = await b.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true });

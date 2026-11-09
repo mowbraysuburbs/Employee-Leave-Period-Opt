@@ -25,6 +25,8 @@ const res = []; const check = (n, ok, x = '') => res.push((ok ? 'PASS ' : 'FAIL 
 
   await pickLimit(6);
   await nav.getByRole('button', { name: /^Christmas/ }).click();
+  // Christmas starts with nothing ticked: pick the first row.
+  await p.getByRole('table', { name: 'Options to pick from' }).locator('input:not(:disabled)').first().check(); 
   const used = await planLeave();
   check('nothing in the Summary: plan uses up to the limit (6)', used > 0 && used <= 6, String(used));
   const before = await rows();

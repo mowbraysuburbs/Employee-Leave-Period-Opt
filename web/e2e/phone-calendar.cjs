@@ -15,6 +15,7 @@ const res = []; const check = (n, ok, x = '') => res.push((ok ? 'PASS ' : 'FAIL 
     await p.locator('[data-tour=settings]').click();
     await p.getByRole('dialog', { name: 'Plan settings' }).getByRole('radio', { name: '4' }).click();
     await p.getByRole('dialog', { name: 'Plan settings' }).getByRole('button', { name: 'Show results' }).click();
+    await p.getByRole('table', { name: 'Options to pick from' }).locator('input:not(:disabled)').first().check(); 
     await p.getByRole('button', { name: /Add to summary/ }).click(); await p.waitForTimeout(200);
     await p.getByRole('navigation', { name: 'Pages' }).getByRole('button', { name: 'Calendar' }).click(); await p.waitForTimeout(300);
     // the Overview limit (4) is shared: raise it to 10 so there is leave left

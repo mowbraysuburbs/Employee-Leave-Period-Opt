@@ -4,7 +4,7 @@ import { AimPicker } from './AimPicker'
 
 /**
  * Step 2 of the Overview (in line with step 1's heading): the days off limit
- * as numbers, the period's recommended number marked REC, with Advanced
+ * as numbers, the period's recommended number marked REC (not on Custom, Easter or Christmas: MIN / JOINS show the way there), with Advanced
  * options (a down arrow, with a count of options on) on the right. Themed
  * periods have no aim (the leave days decide, see RecLine). Custom dates tags
  * the numbers where holidays join, greys the ones that add nothing, and adds
@@ -17,7 +17,7 @@ export function PlannerBar({ planner, moreOpen, onMoreToggle }) {
     <section aria-label="Plan settings" className="min-h-10 shrink-0 flex flex-wrap items-center gap-x-3.5 gap-y-2">
       <div data-tour="limit" className="flex items-center gap-2.5">
         <StepHeading number={2}>Days off limit</StepHeading>
-        <LimitPicker value={planner.leaveLimit} onChange={planner.setLimitAndLeave} rec={planner.rec?.leave} reason={planner.rec?.reason} {...planner.limitMarks} />
+        <LimitPicker value={planner.leaveLimit} onChange={planner.setLimitAndLeave} rec={planner.listMode ? null : planner.rec?.leave} reason={planner.rec?.reason} {...planner.limitMarks} />
         {planner.maxLeave < planner.leaveLimit && (
           <span className="text-[11.5px] text-slate-600">
             {planner.leaveLeft < planner.leaveLimit && planner.maxLeave === Math.min(planner.leaveLeft, 10) ? `Uses ${planner.maxLeave}: what's left after your Summary` : `Uses ${planner.maxLeave}: all the workdays in these dates`}

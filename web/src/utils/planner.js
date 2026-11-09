@@ -371,7 +371,12 @@ export function customOptions({ from, to, leave, aim, avoidMonths = new Set(), i
       const old = best.get(key)
       if (!old || brk.multiplier > old.multiplier || (brk.multiplier === old.multiplier && brk.leaveDays < old.leaveDays)) best.set(key, brk)
     }
-    options.splice(0, options.length, ...best.values())
+    // The best join you can afford (most holidays, then most days off) replaces
+    // the long weekends it's made of; holidays outside it keep their own row.
+    const parts = brk => holidayKey(brk).split('+')
+    const top = [...best.values()].filter(b => parts(b).length > 1).sort((x, y) => parts(y).length - parts(x).length || y.daysOff - x.daysOff)[0]
+    const inTop = brk => top && brk !== top && parts(brk).length < parts(top).length && parts(brk).every(h => parts(top).includes(h))
+    options.splice(0, options.length, ...[...best.values()].filter(b => !inTop(b)))
   }
   const byDate = (a, b) => (a.startDate < b.startDate ? -1 : a.startDate > b.startDate ? 1 : 0)
   options.sort(aim === 'long'
@@ -417,13 +422,17 @@ export function pickBlocker(option, picks, budget) {
  * What each leave number (1–10) does in a Custom range, from its weekday public
  * holidays (Easter, Christmas + Day of Goodwill and other holidays with no
  * workday between count as one):
+ *   'min'     – the first proper break (MIN tag): one holiday's long weekend
+ *               or full week (Mon / Fri), or the last long weekend before a join
  *   'weekend' – another holiday reaches a weekend (a long weekend)
  *   'join'    – holidays join into one break (the JOINS tag)
- *   'pad'     – nothing new, it only makes a break a day longer (greyed)
- *   'long'    – past the last join: one long break
- * Returns { holidays, marks, joins: [{ leave, names }], allJoin }:
+ *   'pad'     – nothing new, it only makes a break a day longer (skipped)
+ *   'long'    – past the proper break (one holiday) or the last join: a longer break
+ * Returns { holidays, marks, joins: [{ leave, names }], allJoin, minLeave }:
  *   holidays = how many (grouped) weekday holidays; marks = 10 entries, or null
- *   with fewer than two holidays; allJoin = they all join within MAX_LEAVE days.
+ *   for several seasons (more than two clusters); allJoin = they all join within
+ *   MAX_LEAVE days; minLeave = the first number that isn't skipped.
+ * See "Leave number rules" in CLAUDE.md.
  */
 export function customLeaveMap(from, to) {
   const holidays = holidaysAround(from, to)
@@ -448,24 +457,50 @@ export function customLeaveMap(from, to) {
     last = i
   }
   const count = names.length
-  if (count < 2) return { holidays: count, marks: null, joins: [], allJoin: false }
+  const usable = marks => marks.findIndex(m => m !== 'pad') + 1
+  // No holidays: every week is the same; 1 leave day already makes a 3-day weekend.
+  if (count === 0) {
+    const marks = ['min', ...new Array(MAX_LEAVE - 1).fill('long')]
+    return { holidays: 0, marks, joins: [], allJoin: false, minLeave: 1 }
+  }
 
   // Every break that holds a holiday and can't grow for free (starts and ends next to a workday).
   const breaks = []
   for (let s = 0; s < n; s++) {
     if (s > 0 && free[s - 1]) continue
     let leave = 0
-    let touchesWeekend = false
+    let weekendDays = 0
     const groups = new Set()
     for (let e = s; e < n; e++) {
       if (!free[e]) leave++
       if (leave > MAX_LEAVE) break
-      if (weekend[e]) touchesWeekend = true
+      if (weekend[e]) weekendDays++
       if (group[e] >= 0) groups.add(group[e])
       if (e < n - 1 && free[e + 1]) continue
-      if (groups.size) breaks.push({ s, e, leave, groups: new Set(groups), bridged: touchesWeekend ? groups.size : 0 })
+      if (groups.size) breaks.push({ s, e, leave, weekendDays, groups: new Set(groups), bridged: weekendDays ? groups.size : 0 })
     }
   }
+  // Each holiday's first proper break: the fewest leave days that catch a
+  // weekend it doesn't already have for free (Tue / Thu 1, Wed 2, Mon / Fri 4).
+  const properMin = g => {
+    const i = group.indexOf(g)
+    let a = i
+    let b = i
+    while (a > 0 && free[a - 1]) a--
+    while (b < n - 1 && free[b + 1]) b++
+    let freeWeekend = 0
+    for (let k = a; k <= b; k++) if (weekend[k]) freeWeekend++
+    const fits = breaks.filter(x => x.leave > 0 && x.groups.has(g) && x.weekendDays > freeWeekend)
+    return fits.length ? Math.min(...fits.map(x => x.leave)) : null
+  }
+  const firstProper = Math.min(...names.map((_, g) => properMin(g) ?? Infinity))
+
+  // One holiday: below its first proper break skipped, then every number makes it longer.
+  if (count === 1) {
+    const marks = Array.from({ length: MAX_LEAVE }, (_, i) => (i + 1 < firstProper ? 'pad' : i + 1 === firstProper ? 'min' : 'long'))
+    return { holidays: 1, marks, joins: [], allJoin: false, minLeave: usable(marks) }
+  }
+
   // Most holidays that reach a weekend, using separate breaks (a day apart at least), per leave budget.
   const ending = Array.from({ length: n }, () => [])
   for (const b of breaks) ending[b.e].push(b)
@@ -481,18 +516,41 @@ export function customLeaveMap(from, to) {
   // Most holidays one break can join, per leave budget.
   const joinMax = Array.from({ length: MAX_LEAVE + 1 }, (_, L) => Math.max(0, ...breaks.filter(b => b.leave <= L).map(b => b.groups.size)))
   const allJoin = joinMax[MAX_LEAVE] === count
-  const marks = []
+
+  // Holidays in clusters (each joins the next within 10 days). More than two
+  // clusters = several seasons (e.g. a whole year): the row can't describe it, so it stays plain.
+  let clusters = 1
+  for (let g = 1; g < count; g++) {
+    const joinsNext = breaks.some(b => b.groups.has(g - 1) && b.groups.has(g))
+    if (!joinsNext) clusters++
+  }
+  if (clusters > 2) return { holidays: count, marks: null, joins: [], allJoin: false, minLeave: 1 }
+
   const joins = []
   for (let L = 1; L <= MAX_LEAVE; L++) {
     if (joinMax[L] > joinMax[L - 1] && joinMax[L] > 1) {
-      marks.push('join')
       const brk = breaks.filter(b => b.leave <= L && b.groups.size === joinMax[L]).sort((a, b) => a.leave - b.leave)[0]
       joins.push({ leave: L, names: [...brk.groups].sort((a, b) => a - b).map(g => names[g].join(' + ')) })
-    } else if (allJoin && joinMax[L - 1] === count) marks.push('long')
+    }
+  }
+  const joinAt = new Set(joins.map(j => j.leave))
+  const lastJoin = joins.length ? joins[joins.length - 1].leave : null
+  const firstJoin = joins.length ? joins[0].leave : null
+  const marks = []
+  for (let L = 1; L <= MAX_LEAVE; L++) {
+    if (joinAt.has(L)) marks.push('join')
+    // Once every holiday that can join has joined, every number makes the break longer.
+    else if (lastJoin && L > lastJoin) marks.push('long')
     else if (bridged[L] > bridged[L - 1]) marks.push('weekend')
+    // No long weekend to make (Mon / Fri holidays): the first proper break, if it comes before the join.
+    else if (L === firstProper && (!firstJoin || L < firstJoin)) marks.push('min')
+    else if (!joins.length && L > firstProper) marks.push('long')
     else marks.push('pad')
   }
-  return { holidays: count, marks, joins, allJoin }
+  // The last long weekend before the first join is the minimum for a proper set of breaks.
+  const lastWeekend = marks.lastIndexOf('weekend')
+  if (lastWeekend >= 0 && (!firstJoin || lastWeekend + 1 < firstJoin)) marks[lastWeekend] = 'min'
+  return { holidays: count, marks, joins, allJoin, minLeave: usable(marks) }
 }
 
 /**

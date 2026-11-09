@@ -18,15 +18,20 @@ const TONES = {
  *      ✓ "N leave days join A + B: dates, days off" on a join number · 🗓️ no
  *      holidays · 🏝️ one holiday / one long break · 📈 holiday breaks (where they
  *      join next, or "N of M leave days used"). No Use N: REC on the row points the way.
+ *      A number that adds nothing says so; too little leave for a proper break, or
+ *      leave left over after your picks, offers "Use on the Calendar →".
  *
- * Props: planner – usePlanner() result; phone – smaller text
+ * Props: planner – usePlanner() result; onUseRest – open the Calendar with the
+ *   leave that's left (holidays filter off); phone – smaller text
  */
-export function RecLine({ planner, phone = false }) {
+export function RecLine({ planner, onUseRest, phone = false }) {
   const { rec, long, breaks, leave } = planner
   let tone = 'info'
   let icon = '📈'
   let text = <>Plans for the <b>best multiplier</b>: short breaks around each holiday.</>
   let use = null
+  // A second kind of button: send the leave you can't use here to the Calendar.
+  let toCalendar = false
   const tag = rec && <span className="inline-block mx-0.5 px-1.5 rounded-md bg-amber-100 text-amber-900 text-[0.92em] font-bold whitespace-nowrap">{rec.reason}</span>
 
   if (planner.listMode) {
@@ -39,7 +44,21 @@ export function RecLine({ planner, phone = false }) {
     // The break that joins them: the top long break, or the holiday break using exactly these leave days.
     const joinBrk = planner.aim === 'long' ? options[0] : options.filter(o => o.leaveDays === leave).sort((a, b) => b.daysOff - a.daysOff)[0]
     const when = brk => (brk ? <>: {fmtShortRange(brk.startDate, brk.endDate)}, {brk.daysOff} days off</> : '')
-    if (joinHere) {
+    const marks = map?.marks
+    const unpicked = planner.pickedLeave ? leave - planner.pickedLeave : 0
+    if (marks?.[leave - 1] === 'pad' && leave < planner.minLeave) {
+      // Not enough for a proper break here: e.g. Easter with 2 days left.
+      icon = '🗓️'
+      text = <><b>{leave} leave day{leave === 1 ? '' : 's'} can't make a proper break here</b> (you need {planner.minLeave}). Use {leave === 1 ? 'it' : 'them'} on the Calendar instead.</>
+      toCalendar = true
+    } else if (marks?.[leave - 1] === 'pad') {
+      // Your number adds nothing: point to the useful ones next to it.
+      const below = marks.slice(0, leave - 1).findLastIndex(m => m !== 'pad') + 1
+      const above = marks.findIndex((m, i) => i >= leave && m !== 'pad') + 1
+      icon = '💡'
+      tone = 'tip'
+      text = <><b>{leave} leave days add nothing new here</b>: {[below, above].filter(Boolean).join(' or ')} gets more from the holidays.</>
+    } else if (joinHere) {
       tone = 'done'
       icon = '✓'
       text = <><b>{leave} leave days join {joinHere.names.join(' + ')}</b>{when(joinBrk)}.</>
@@ -58,8 +77,9 @@ export function RecLine({ planner, phone = false }) {
         text = <><b>One long break</b> with your {leave} leave day{leave === 1 ? '' : 's'}. Longest first; pick one.</>
       }
     } else if (planner.pickedLeave) {
-      // Holiday breaks don't have to use all your leave.
-      text = <><b>{planner.pickedLeave} of {leave} leave days used.</b> Want more? Add breaks on the Calendar.</>
+      // Holiday breaks don't have to use all your leave: the rest goes on the Calendar.
+      text = <><b>{planner.pickedLeave} of {leave} leave days used.</b>{unpicked > 0 ? <> Use the other {unpicked} on the Calendar.</> : ''}</>
+      toCalendar = unpicked > 0
     } else if (map?.allJoin && firstJoin && leave < firstJoin.leave) {
       text = <><b>Holiday breaks</b>, best value first. Tick the ones you want. At {firstJoin.leave} leave days {firstJoin.names.join(' + ')} join.</>
     } else if (map?.allJoin) {
@@ -93,6 +113,11 @@ export function RecLine({ planner, phone = false }) {
       {use && (
         <button type="button" onClick={use} className="shrink-0 h-7 px-2.5 rounded-lg bg-sky-700 text-white text-[12px] font-bold whitespace-nowrap">
           Use {rec.leave}
+        </button>
+      )}
+      {toCalendar && onUseRest && (
+        <button type="button" onClick={onUseRest} className="shrink-0 h-7 px-2.5 rounded-lg bg-white border border-sky-300 text-sky-800 text-[12px] font-bold whitespace-nowrap">
+          Use on the Calendar →
         </button>
       )}
     </p>

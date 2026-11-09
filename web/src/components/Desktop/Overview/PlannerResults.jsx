@@ -31,7 +31,7 @@ function customEmpty(planner) {
   return <p className="m-3 p-5 border-[1.5px] border-dashed border-slate-300 rounded-2xl text-sm text-slate-600 text-center">{text}</p>
 }
 
-export function PlannerResults({ planner, isSaved, onAdd, onView, onHover, calendar, phone = false }) {
+export function PlannerResults({ planner, isSaved, onAdd, onView, onUseRest, onHover, calendar, phone = false }) {
   const [showCalendar, setShowCalendar] = useState(false)
   const { period, breaks, startOptions, ticked, toggleTick, swapStart } = planner
   const chosen = breaks.filter(b => ticked.has(b.startDate))
@@ -102,10 +102,10 @@ export function PlannerResults({ planner, isSaved, onAdd, onView, onHover, calen
                 {allSaved ? 'Added ✓' : `Add to summary (${chosen.length})`}
               </button>
             </div>
-            <RecLine planner={planner} />
+            <RecLine planner={planner} onUseRest={onUseRest} />
           </div>
         )}
-      {phone && <RecLine phone planner={planner} />}
+      {phone && <RecLine phone planner={planner} onUseRest={onUseRest} />}
       {/* Phones: the plan's stats as the calendar's four tiles (desktop shows them in Details). */}
       {phone && (
         <div className="grid grid-cols-4 gap-1.5">

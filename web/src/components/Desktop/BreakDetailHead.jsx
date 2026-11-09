@@ -24,7 +24,7 @@ export function BreakDetailHead({ brk, row = false, ...addProps }) {
         <StatTile kind="total" value={brk.daysOff} caption="days off" />
         <StatTile kind="multiplier" value={formatMultiplier(brk.multiplier)} caption="multiplier" />
       </div>
-      <AddBreakControls {...addProps} />
+      <AddBreakControls brk={brk} {...addProps} />
     </div>
   )
 }
