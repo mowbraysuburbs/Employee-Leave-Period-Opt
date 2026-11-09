@@ -30,7 +30,7 @@ export function FiltersSheet({ c, activeCount, onClearAll, onClose }) {
           </div>
         </section>
         <section className="flex flex-col gap-1.5">
-          <PeriodPicker stacked idPrefix="mobile-period" {...c.period} />
+          <PeriodPicker idPrefix="mobile-period" {...c.period} />
         </section>
         <button type="button" disabled={!activeCount} onClick={onClearAll} className="h-10 rounded-xl text-sm font-bold text-red-700 disabled:text-slate-300">
           Clear all filters{activeCount ? ` (${activeCount})` : ''}
