@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { buildBreak, breakKey } from '../utils/breaks'
-import { MAX_LEAVE, planPeriods, planLeave, recommendedLeave, breaksFor, summarise, workdaysIn, schoolHolidaysIn, equalStartsWithin, monthsIn, customMonths, monthsPeriod, customOptions, pickBlocker, overlaps, customLeaveMap, suggestedPicks, listSections } from '../utils/planner'
+import { MAX_LEAVE, planPeriods, planLeave, recommendedLeave, breaksFor, workdaysIn, schoolHolidaysIn, equalStartsWithin, monthsIn, customMonths, monthsPeriod, customOptions, pickBlocker, overlaps, customLeaveMap, listSections } from '../utils/planner'
 
 
 /**
@@ -106,30 +106,6 @@ export function usePlanner({ today, lastDate, province, leaveLimit = MAX_LEAVE, 
   const isPicked = option => current.some(p => breakKey(p) === breakKey(option))
   const picked = useMemo(() => [...current].sort((a, b) => (a.startDate < b.startDate ? -1 : 1)), [current])
 
-  // Each period card's quick summary: its plan with the current leave days,
-  // months and school-holiday setting, by the same rule.
-  const cardStats = useMemo(() => {
-    const stats = {}
-    for (const p of periods) {
-      const spans = matchSchool ? schoolHolidaysIn(province, p.from, p.to) : []
-      if (!leaveLeft) { stats[p.id] = summarise([]); continue }
-      const n = Math.max(1, Math.min(leave, leaveLeft, workdaysIn(p.from, p.to)))
-      if (LIST_KINDS.has(p.kind)) {
-        // The same suggested picks the period opens with.
-        // Holiday breaks (capped): the card shows the join / proper break, not padding.
-        const list = customLeaveMap(p.from, p.to).holidays ? 'max' : 'long'
-        const opts = customOptions({ from: p.from, to: p.to, leave: n, aim: list, avoidMonths, includeMonths, within: spans.length ? spans : null })
-        stats[p.id] = summarise(suggestedPicks(opts, n, list))
-        continue
-      }
-      stats[p.id] = summarise(planLeave({
-        from: p.from, to: p.to, leave: n, maxBreaks: breaksFor(recs[p.id], n),
-        avoidMonths, includeMonths, within: spans.length ? spans : null,
-      }))
-    }
-    return stats
-  }, [periods, recs, leave, leaveLeft, avoidMonths, includeMonths, matchSchool, province])
-
   // Apply any start-date swaps (only to equal options, so the totals stay the same).
   // (Custom: the breaks are your picks, with no swaps.)
   const swapped = useMemo(() => plan.map(b => {
@@ -216,7 +192,6 @@ export function usePlanner({ today, lastDate, province, leaveLimit = MAX_LEAVE, 
     rec,
     recs,
     long: breaksFor(rec, leaveUsed) === 1,
-    cardStats,
     periodMonths,
     monthMarks,
     // Tap order: none → avoid → include → none.

@@ -36,7 +36,7 @@ export function OverviewPage({ planner, isSaved, onAdd, onView, onUseRest, provi
 
       {/* Same layout as the calendar: on wide screens one screen tall, each column scrolling on its own. */}
       <div className="flex flex-wrap gap-5 items-start lg:flex-nowrap lg:items-stretch lg:h-full">
-        <PeriodList periods={planner.periods} period={period} months={planner.monthChoices} onChangeMonths={planner.changeMonths} cardStats={planner.cardStats} selectedId={period.id} onSelect={planner.selectPeriod} />
+        <PeriodList periods={planner.periods} period={period} months={planner.monthChoices} onChangeMonths={planner.changeMonths} selectedId={period.id} onSelect={planner.selectPeriod} />
         <div className="flex-[999_1_480px] min-w-0 flex flex-col gap-2 lg:h-full">
           <PlannerBar planner={planner} moreOpen={moreOpen} onMoreToggle={() => setMoreOpen(o => !o)} />
           <article data-tour="results" aria-label={`Plan: ${period.title}`} className="flex-1 min-h-0 rounded-[20px] shadow-sm bg-white flex flex-col overflow-hidden">
