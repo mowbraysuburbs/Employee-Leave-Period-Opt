@@ -1,7 +1,7 @@
 // Run with the dev server up (npm run dev), then: npm run test:e2e
 // Overview Custom dates (and Easter / Christmas): whole months, nothing picked until you
-// pick, MIN / JOINS on the numbers, one list in two collapsible sections (One long break,
-// Holiday breaks), no step 3; rows that clash with a tick are greyed.
+// pick, MIN / JOINS on the numbers, one capped list (joins first, then short breaks;
+// longer = the Calendar), no step 3; rows that clash with a tick are greyed.
 const { chromium } = require('playwright');
 const BASE = process.env.BASE_URL || 'http://localhost:5173/';
 const res = []; const check = (n, ok, x = '') => res.push((ok ? 'PASS ' : 'FAIL ') + n + (x ? '  [' + x + ']' : ''));
@@ -37,6 +37,11 @@ const year = new Date().getFullYear() + 1;
   const lim = d.getByRole('radiogroup', { name: 'Days off limit' });
   check('Christmas: MIN on 2, 3 skipped (can\'t be picked)', (await lim.getByRole('radio', { name: /^2 \(first proper break\)/ }).count()) === 1 && await lim.getByRole('radio', { name: /^3 / }).isDisabled());
 
+  // Easter (limit still 4 from Christmas): capped at the join (3); 4–10 skipped; the rest goes to the Calendar.
+  await nav.getByRole('button', { name: /^Easter/ }).first().click();
+  const eline = await d.getByRole('status').first().innerText();
+  check('Easter past the join: capped at 3, 4–10 skipped, the rest to the Calendar', /3 leave days join Human Rights Day \+ Easter/.test(eline) && /use your other \d+ on the Calendar/.test(eline) && await lim.getByRole('radio', { name: /^5 / }).isDisabled() && (await d.getByRole('button', { name: 'Use on the Calendar →' }).count()) === 1, eline);
+
   await nav.getByRole('button', { name: 'Custom dates' }).click();
   const limit = d.getByRole('radiogroup', { name: 'Days off limit' });
   // March: both long weekends are free, so 1–2 add nothing (skipped); 3 joins Human Rights Day + Easter; no step 3.
@@ -54,8 +59,7 @@ const year = new Date().getFullYear() + 1;
   await d.selectOption('#overview-from-month', `${year}-03`);
   await d.selectOption('#overview-to-month', `${year}-10`);
   await limit.getByRole('radio', { name: /^4/ }).click();
-  const sec = name => d.getByRole('table', { name: 'Options to pick from' }).getByRole('rowgroup', { name });
-  check('Mar–Oct (holidays far apart): one list, two sections, no step 3', (await sec('One long break').count()) === 1 && (await sec('Holiday breaks').count()) === 1 && (await d.getByRole('radiogroup', { name: 'Show which list' }).count()) === 0);
+  check('Mar–Oct: one list (joins first, then short breaks), no long-break section, no step 3', (await d.getByRole('table', { name: 'Options to pick from' }).getByRole('rowgroup', { name: 'One long break' }).count()) === 0 && (await d.getByRole('radiogroup', { name: 'Show which list' }).count()) === 0);
   const table = d.getByRole('table', { name: 'Options to pick from' });
   const boxes = table.getByRole('checkbox');
   check('Custom: options listed, nothing picked', (await boxes.count()) > 3 && (await table.locator('input:checked').count()) === 0, String(await boxes.count()));
@@ -73,19 +77,8 @@ const year = new Date().getFullYear() + 1;
   check('Holiday breaks: line under the title counts the leave', /4 of 4 leave days used|of 4 leave days used/.test(await d.getByRole('status').first().innerText()), await d.getByRole('status').first().innerText());
   check('Holiday breaks: clashing rows are greyed with one note, never hidden', (await table.getByText(/Already in your/).count()) === 0 && (await d.getByText(/^Greyed:/).count()) <= 1);
 
-  // Make a section small, then big again.
-  const longHead = sec('One long break').getByRole('button', { name: /One long break/ });
-  const longRows = await sec('One long break').getByRole('checkbox').count();
-  await longHead.click();
-  check('a section heading makes it small (rows hidden, a summary shown)', (await sec('One long break').getByRole('checkbox').count()) === 0 && /\d+ breaks? · up to \d+ days off/.test(await longHead.innerText()) && (await longHead.getAttribute('aria-expanded')) === 'false');
-  await longHead.click();
-  check('…and big again', (await sec('One long break').getByRole('checkbox').count()) === longRows);
-  // Untick everything, then a long break: it uses all your leave, so everything else greys.
-  for (const c of await table.locator('input:checked').all()) await c.uncheck();
-  await sec('One long break').getByRole('checkbox').first().check();
-  check('One long break: ticking one greys every other row', (await table.locator('input:checked').count()) === 1 && (await table.locator('input:not(:disabled)').count()) === 1);
   await add.click();
-  check('Add keeps it in the Summary', /Summary \(1\)/.test(await d.getByRole('tab', { name: /Summary/ }).innerText().catch(() => d.getByText(/Summary \(1\)/).first().innerText())));
+  check('Add keeps them in the Summary', /Summary \([1-9]\)/.test(await d.getByRole('tab', { name: /Summary/ }).innerText().catch(() => d.getByText(/Summary \(\d\)/).first().innerText())));
 
   // Leftover leave: "Use on the Calendar" opens the Calendar with the holidays filter off.
   const r = await b.newPage({ viewport: { width: 1280, height: 800 } });
@@ -96,7 +89,7 @@ const year = new Date().getFullYear() + 1;
   await r.selectOption('#overview-from-month', `${year}-03`);
   await r.selectOption('#overview-to-month', `${year}-10`);
   await r.getByRole('radiogroup', { name: 'Days off limit' }).getByRole('radio', { name: /^4/ }).click();
-  await r.getByRole('table', { name: 'Options to pick from' }).getByRole('rowgroup', { name: 'Holiday breaks' }).getByRole('checkbox').first().check();
+  await r.getByRole('table', { name: 'Options to pick from' }).getByRole('checkbox').first().check();
   const rest = r.getByRole('button', { name: 'Use on the Calendar →' });
   check('leftover leave: the line offers the Calendar', (await rest.count()) === 1, await r.getByRole('status').first().innerText());
   await rest.click(); await r.waitForTimeout(300);
