@@ -1,72 +1,56 @@
-import { movePeriod } from '../../utils/dateFormat'
+import { monthsBetween, monthPeriod } from '../../utils/dateFormat'
+import { monthLabel } from '../../utils/planner'
 
-const dateInput = 'h-8 border border-slate-200 rounded-lg px-2 text-sm font-medium text-slate-900'
+const caption = 'text-[10px] font-extrabold text-slate-500 uppercase tracking-wide'
 
-function DateInput({ id, min, max, value, onChange, className = '' }) {
+// One month dropdown ("Nov '26"); changed months tint blue.
+function MonthSelect({ id, label, value, months, onChange, changed }) {
   return (
-    <input
-      id={id}
-      type="date"
-      min={min}
-      max={max}
-      value={value}
-      onChange={e => e.target.value && onChange(e.target.value)}
-      className={`${dateInput} ${className}`}
-    />
+    <label htmlFor={id} className="flex flex-col gap-0.5 min-w-0">
+      <span className={caption}>{label}</span>
+      <select
+        id={id}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className={`w-full h-9 border rounded-lg px-1.5 text-[13px] font-bold text-slate-900 ${changed ? 'border-sky-300 bg-sky-50' : 'border-slate-300 bg-white'}`}
+      >
+        {months.map(m => <option key={m} value={m}>{monthLabel(m, true)}</option>)}
+      </select>
+    </label>
   )
 }
 
 /**
- * From / to date inputs, shared by the Overview header and the calendar controls.
+ * The calendar's date period as whole months (From / To dropdowns, like the
+ * Overview's Custom card), in the rail, its collapsed pop-out and the phone's
+ * More filters. From starts on the 1st (this month: today); To ends on the
+ * month's last day. Picking past the other end moves it along, so From ≤ To.
  *
  * Props:
  *   from, to, minDate, maxDate – YYYY-MM-DD
- *   onFromChange, onToChange   – (YYYY-MM-DD) => void; either date can move on its
- *                                own: the other follows to keep the period's length
- *   changed, onReset           – shows a Reset button once the period moves
- *   idPrefix                   – keeps label/input ids unique per page
- *   stacked                    – narrow layout for the rail and phone Filters: a
- *                                "Dates" heading with Reset beside it, then Start
- *                                and End labels on the left with the boxes aligned
+ *   onFromChange, onToChange   – (YYYY-MM-DD) => void
+ *   changed, onReset           – tint + a Reset button once the period moves
+ *   idPrefix                   – keeps ids unique per place
  */
-export function PeriodPicker({ from, to, minDate, maxDate, onFromChange, onToChange, changed, onReset, idPrefix, stacked = false }) {
-  function change(edge) {
-    const next = movePeriod({ from, to }, edge, { min: minDate, max: maxDate })
+export function PeriodPicker({ from, to, minDate, maxDate, onFromChange, onToChange, changed, onReset, idPrefix }) {
+  const months = monthsBetween(minDate, maxDate)
+  const fromMonth = from.slice(0, 7)
+  const toMonth = to.slice(0, 7)
+  function pick(nextFrom, nextTo) {
+    const next = monthPeriod(nextFrom, nextTo, { min: minDate, max: maxDate })
     if (next.from !== from) onFromChange(next.from)
     if (next.to !== to) onToChange(next.to)
   }
-  if (stacked) {
-    // Changed dates tint blue, so it's clear the period isn't the default.
-    const tint = changed ? 'w-full border-sky-300 bg-sky-50' : 'w-full'
-    return (
-      <div role="group" aria-label="Date period" className="flex flex-col gap-2">
-        <div className="flex items-baseline justify-between">
-          <span className="text-[13px] font-bold">Dates</span>
-          {changed && (
-            <button type="button" onClick={onReset} className="text-xs font-bold text-sky-700">Reset</button>
-          )}
-        </div>
-        <div className="grid grid-cols-[42px_minmax(0,1fr)] gap-x-2 gap-y-1.5 items-center text-[13px]">
-          <label htmlFor={`${idPrefix}-from`} className="font-semibold text-slate-700">Start</label>
-          <DateInput id={`${idPrefix}-from`} min={minDate} max={maxDate} value={from} onChange={d => change({ from: d })} className={tint} />
-          <label htmlFor={`${idPrefix}-to`} className="font-semibold text-slate-700">End</label>
-          <DateInput id={`${idPrefix}-to`} min={minDate} max={maxDate} value={to} onChange={d => change({ to: d })} className={tint} />
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <div role="group" aria-label="Date period" className="min-h-11 flex flex-wrap items-center gap-2 pl-3.5 pr-1.5 py-1 rounded-xl bg-white border border-slate-300 shadow-sm text-sm">
-      <label htmlFor={`${idPrefix}-from`} className="font-semibold">From</label>
-      <DateInput id={`${idPrefix}-from`} min={minDate} max={maxDate} value={from} onChange={d => change({ from: d })} />
-      <label htmlFor={`${idPrefix}-to`} className="font-semibold">to</label>
-      <DateInput id={`${idPrefix}-to`} min={minDate} max={maxDate} value={to} onChange={d => change({ to: d })} />
-      {changed && (
-        <button type="button" onClick={onReset} className="h-8 px-2.5 rounded-lg bg-slate-100 text-sky-700 text-[13px] font-bold">
-          Reset
-        </button>
-      )}
+    <div role="group" aria-label="Date period (months)" className="flex flex-col gap-2">
+      <div className="flex items-baseline justify-between">
+        <span className="text-[13px] font-bold">Dates</span>
+        {changed && <button type="button" onClick={onReset} className="text-xs font-bold text-sky-700">Reset</button>}
+      </div>
+      <div className="grid grid-cols-2 gap-1.5">
+        <MonthSelect id={`${idPrefix}-from`} label="From" value={fromMonth} months={months} changed={changed} onChange={m => pick(m, toMonth < m ? m : toMonth)} />
+        <MonthSelect id={`${idPrefix}-to`} label="To" value={toMonth} months={months} changed={changed} onChange={m => pick(fromMonth > m ? m : fromMonth, m)} />
+      </div>
     </div>
   )
 }

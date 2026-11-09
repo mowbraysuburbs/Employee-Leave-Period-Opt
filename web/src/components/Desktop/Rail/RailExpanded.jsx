@@ -81,7 +81,7 @@ export function RailExpanded({ c }) {
       </section>
 
       <section data-tour="dates" className={card}>
-        <PeriodPicker stacked idPrefix="rail-period" {...c.period} />
+        <PeriodPicker idPrefix="rail-period" {...c.period} />
       </section>
 
       <section data-tour="show" className={card}>

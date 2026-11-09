@@ -3,10 +3,10 @@ import { useSavedBreaks } from '../components/Desktop/useSavedBreaks'
 import { buildBreak, buildBreaksInRange, breakKey, hasGain, toCalendarEvent, findEqualStarts, breaksOverlap, breaksTouch, combineBreaks, withBreakMerged } from '../utils/breaks'
 import { schoolBreaksFor, provinceLabel } from '../utils/plans'
 import { usePlanner } from './usePlanner'
-import { MAX_LEAVE } from '../utils/planner'
+import { MAX_LEAVE, monthLabel } from '../utils/planner'
 import { buildIcs, downloadIcs } from '../utils/calendarExport'
 import { getColourForDaysOff, getColourForMultiplier, multiplierBucket } from '../utils/colorScale'
-import { fmtDay, fmtShortYear, addDays } from '../utils/dateFormat'
+import { fmtDay, addDays } from '../utils/dateFormat'
 
 export { MAX_LEAVE }
 
@@ -305,7 +305,7 @@ export function useLeavePlanner({ leaveLimit = MAX_LEAVE, onLeaveLimitChange = (
   // a count on the rail's Clear filters button and the phone's Filters button.
   const activeFilters = [
     activeDaysOff && { key: 'daysOff', label: 'Days off', value: [...daysOffFilter].sort((a, b) => a - b).join(', '), clear: () => setDaysOffFilter([]) },
-    period.changed && { key: 'dates', label: 'Dates', value: `${fmtShortYear(from)} – ${fmtShortYear(to)}`, clear: period.onReset },
+    period.changed && { key: 'dates', label: 'Dates', value: `${monthLabel(from.slice(0, 7), true)} – ${monthLabel(to.slice(0, 7), true)}`, clear: period.onReset },
     holidayFilter.length > 0 && { key: 'holidays', label: 'Holidays', value: holidaysAll ? 'All' : holidayFilter.length === 1 ? holidayFilter[0] : `${holidayFilter.length} picked`, clear: () => setHolidayFilter([]) },
     gapOnly && { key: 'gap', label: 'Fills a gap', value: '', clear: () => setGapOnly(false) },
     picksOnly && { key: 'mine', label: 'Selected', value: '', clear: () => setPicksOnly(false) },

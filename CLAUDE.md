@@ -86,6 +86,7 @@ src/
 **Calendar page**
 - Colours show days off (or the multiplier) if leave starts that day.
 - Click a day: its break gets a grey pill and opens in Details; saved breaks become joined rectangles with white numbers and a start dot.
+- **Dates are whole months** (From / To dropdowns, like the Overview's Custom card; `PeriodPicker`, `monthPeriod` in `utils/dateFormat.js`): From starts on the 1st (this month: today), To ends on the month's last day (capped at the last date); the other moves along so From ≤ To. Same in the collapsed rail's pop-out and the phone's More filters.
 - Left rail and right Details | Summary panel both collapse to slim strips ("Collapse to icons"); collapsed icons act directly (toggles, pop-outs for leave days and dates).
 - Days-off and public-holiday filters hide whole rows of months with no match (rows stay whole at 2–4 columns). The holidays filter reads "Public holidays: All" when every holiday is ticked.
 - **Leave fills a gap** (Show on the rail, More filters on the phone; `fillsGap` in `utils/breaks.js`): only breaks where the day before the first leave day and the day after the last are free (weekend or holiday), so the leave joins two free stretches instead of padding one long weekend. December 2026: 2 days → Reconciliation (12–17); 4 days → 12–20, 19–27 and 25 Dec – 3 Jan.

@@ -217,7 +217,7 @@ export function RailCollapsed({ c }) {
         <div role="dialog" aria-label={popout.kind === 'leave' ? 'Leave days' : 'Dates'} className="absolute left-full ml-2 z-40 w-[260px] p-2 bg-white rounded-2xl shadow-xl border border-slate-200" style={{ top: Math.max(0, popout.top - 8) }}>
           {popout.kind === 'leave'
             ? <LeaveCard c={c} idPrefix="flyout" />
-            : <div className="p-2"><PeriodPicker stacked idPrefix="flyout-period" {...c.period} /></div>}
+            : <div className="p-2"><PeriodPicker idPrefix="flyout-period" {...c.period} /></div>}
         </div>
       )}
     </div>

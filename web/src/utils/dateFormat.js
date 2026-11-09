@@ -10,24 +10,27 @@ export function daysBetween(a, b) {
   return Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 86400000)
 }
 
-/**
- * A date period after changing one end. Either end can move on its own: if
- * Start passes End, End moves on by the same number of days (and vice versa),
- * so the period keeps its length. Nothing goes outside min..max; if it would,
- * that end stops at the limit and the period gets shorter.
- *
- * period { from, to }; change { from } or { to }; limits { min, max }.
- */
-export function movePeriod({ from, to }, change, { min, max }) {
-  const clamp = (d, lo, hi) => (d < lo ? lo : d > hi ? hi : d)
-  if (change.from !== undefined) {
-    const nextFrom = clamp(change.from, min, max)
-    const nextTo = nextFrom > to ? clamp(addDays(to, daysBetween(from, nextFrom)), nextFrom, max) : to
-    return { from: nextFrom, to: nextTo }
+// The months ('YYYY-MM') from min's month to max's month (YYYY-MM-DD dates).
+export function monthsBetween(min, max) {
+  const out = []
+  let [y, m] = min.slice(0, 7).split('-').map(Number)
+  for (let key = min.slice(0, 7); key <= max.slice(0, 7); key = `${y}-${String(m).padStart(2, '0')}`) {
+    out.push(key)
+    m += 1
+    if (m > 12) { m = 1; y += 1 }
   }
-  const nextTo = clamp(change.to, min, max)
-  const nextFrom = nextTo < from ? clamp(addDays(from, daysBetween(to, nextTo)), min, nextTo) : from
-  return { from: nextFrom, to: nextTo }
+  return out
+}
+
+/**
+ * A period of whole months: from the 1st of fromMonth to the last day of
+ * toMonth, never outside min..max (this month starts from min, i.e. today).
+ */
+export function monthPeriod(fromMonth, toMonth, { min, max }) {
+  const [y, m] = toMonth.split('-').map(Number)
+  const last = `${toMonth}-${String(new Date(y, m, 0).getDate()).padStart(2, '0')}`
+  const first = `${fromMonth}-01`
+  return { from: first < min ? min : first, to: last > max ? max : last }
 }
 
 export function fmt(dateStr) {

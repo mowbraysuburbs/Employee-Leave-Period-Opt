@@ -13,7 +13,7 @@ const res = []; const check = (n, ok, x = '') => res.push((ok ? 'PASS ' : 'FAIL 
   d.on('pageerror', e => errors.push(e.message));
   await d.addInitScript(() => { localStorage.setItem('stretchmyleave.welcomeSeen', '1'); localStorage.setItem('stretchmyleave.calendarTourSeen', '1'); localStorage.setItem('stretchmyleave.railCollapsed', 'false') });
   await d.goto(BASE); await d.getByRole('button', { name: 'Calendar', exact: true }).click();
-  await d.locator('#rail-period-to').fill('2026-12-31'); await d.locator('#rail-period-from').fill('2026-12-01');
+  await d.locator('#rail-period-to').selectOption('2026-12'); await d.locator('#rail-period-from').selectOption('2026-12');
   // Nothing narrowing but the period: the holidays filter off, so every day is coloured.
   await d.getByRole('button', { name: /^Public holidays:/ }).first().click();
   check('Public holidays filter says "All", not "All holidays"', /Public holidays:\s*All\s*$/.test(await d.getByRole('button', { name: /^Public holidays:/ }).first().innerText()), await d.getByRole('button', { name: /^Public holidays:/ }).first().innerText());
