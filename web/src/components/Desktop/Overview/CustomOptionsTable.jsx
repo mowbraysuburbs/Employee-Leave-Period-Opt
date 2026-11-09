@@ -14,8 +14,8 @@ function ranks(options, value) {
   return options.map((o, i) => (i === 0 || value(o) !== value(options[i - 1]) ? ++rank : rank))
 }
 
-// Why an option can't be ticked: told once in a note under the table (and in
-// the row's tooltip / label). Options inside a ticked break are hidden instead, see `rows`.
+// Why an option can't be ticked (it overlaps a break you ticked, or needs more
+// leave than is left): told once in a note under the table, and in the row's tooltip / label.
 
 // The public holidays inside a break (their names show on hover).
 const holidaysIn = brk => brk.days.filter(d => d.type === 'public_holiday')
@@ -50,8 +50,8 @@ function SortHeading({ id, sort, onSort, phone, className }) {
  * The options of a list period (Custom; Easter and Christmas start with picks
  * ticked), best first: Start and End (with weekdays), public holidays used,
  * days off, leave and multiplier. One long break: radio buttons (pick one).
- * Holiday breaks: tick boxes; options that overlap a pick are hidden, and ones
- * that need more leave than is left are greyed, with one note under the table.
+ * Holiday breaks: tick boxes (joins first); options that overlap a pick or need
+ * more leave than is left are greyed, with one note under the table.
  * Click a column heading to sort by it. A start date with a dropdown can
  * move to another day for the same days off (the end follows).
  *
@@ -69,11 +69,9 @@ export function CustomOptionsTable({ planner, onHover, phone = false }) {
   // Rank once (best first), then show the rows in the chosen order; ties keep the rank order.
   const rank = ranks(options, long ? o => o.daysOff : o => o.multiplier)
   const value = SORTS[sort.by].value
-  // Options that overlap a ticked break (e.g. the long weekends inside a joined
-  // break) are hidden; they come back when you untick it.
+  // Every option stays listed; ones that clash with your ticks are greyed.
   const rows = options
     .map((o, i) => ({ o, rank: rank[i] }))
-    .filter(({ o }) => !planner.blockerFor(o)?.overlap)
     .sort((a, b) => {
       const x = value({ ...a.o, rank: a.rank })
       const y = value({ ...b.o, rank: b.rank })
@@ -104,13 +102,13 @@ export function CustomOptionsTable({ planner, onHover, phone = false }) {
               role="row"
               onMouseEnter={() => onHover?.(o.startDate)}
               onMouseLeave={() => onHover?.(null)}
-              title={blocker ? 'Not enough leave left: untick a break to free your leave' : undefined}
+              title={blocker?.overlap ? 'Overlaps a break you ticked: untick it to pick this one' : blocker ? 'Not enough leave left: untick a break to free your leave' : undefined}
               className={`${cols} px-1.5 py-2 border-t border-slate-100 ${picked ? 'bg-sky-50' : onHover ? 'hover:bg-slate-50' : ''} ${blocker ? 'opacity-50' : ''}`}
             >
               <input
                 type={long ? 'radio' : 'checkbox'}
                 name={long ? 'custom-long-break' : undefined}
-                aria-label={`Pick ${name}${blocker ? ' (not enough leave left)' : ''}`}
+                aria-label={`Pick ${name}${blocker?.overlap ? ' (overlaps a break you ticked)' : blocker ? ' (not enough leave left)' : ''}`}
                 checked={picked}
                 disabled={!!blocker}
                 onChange={() => planner.togglePick(o)}
@@ -130,9 +128,9 @@ export function CustomOptionsTable({ planner, onHover, phone = false }) {
         )
       })}
       {/* Greyed rows: one note for all of them, only when there are some. */}
-      {rows.some(({ o }) => planner.blockerFor(o)?.leave) && (
+      {rows.some(({ o }) => planner.blockerFor(o)) && (
         <p className={`m-0 mt-1.5 pt-2 px-1.5 border-t border-slate-100 text-slate-600 ${phone ? 'text-[11.5px]' : 'text-[12px]'}`}>
-          <b className="text-slate-500">Greyed:</b> not enough leave left. Untick a break to use your leave somewhere else.
+          <b className="text-slate-500">Greyed:</b> overlaps a break you ticked, or not enough leave left. Untick a break to pick it.
         </p>
       )}
       {/* Desktop shows this note under the table instead. */}

@@ -124,10 +124,7 @@ export function PlannerResults({ planner, isSaved, onAdd, onView, onUseRest, onH
             : <PlannerTable breaks={breaks} startOptions={startOptions} ticked={ticked} onToggle={toggleTick} onSwap={swapStart} onHover={onHover} phone={phone} />}
       </div>
       {/* Desktop: the dropdown note, fixed under the table (rows scroll above it). */}
-      {!phone && (planner.listMode
-        // List periods: only rows you can see (rows inside a ticked break are hidden).
-        ? planner.options.some(o => !planner.blockerFor(o)?.overlap && o.starts.length > 1)
-        : startOptions.some(o => o.length > 1)) && (
+      {!phone && startOptions.some(o => o.length > 1) && (
         <p className="m-0 shrink-0 flex items-center gap-2 px-3 py-2 rounded-xl bg-sky-50 text-[12.5px] text-slate-700">
           <span aria-hidden="true" className="shrink-0 w-8 h-8 rounded-lg border border-sky-300 bg-white text-sky-700 flex items-center justify-center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9" /></svg></span>
           <span>A <b>dropdown</b> on a start date means the break can start on other days for the same days off. Pick one; the end date follows.</span>

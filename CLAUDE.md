@@ -100,7 +100,7 @@ src/
   - holidays too far apart to join → **step 3 "Show": Holiday breaks / One long break** (Holiday breaks first)
   - the number row follows **Leave number rules** below (MIN / JOINS tags, skipped numbers struck through and not clickable); colours for the marks are a later branch
   - Holiday breaks = one best-value break per holiday and per join, no plain long weekends, needn't use all the leave; tick any that don't overlap and fit the leave. Columns Start ▾ · End · Holidays used · Days off · Leave days · Multiplier, click a heading to sort.
-- **Easter and Christmas holidays** use the same list and table as Custom (`listMode` in usePlanner), and start with **nothing ticked** (the card tiles show the suggested picks, `suggestedPicks`: joins first, then best value). No REC tag here: MIN and JOINS show which numbers are worth it (REC stays on Up next, School holidays and next year for now). The line under the title is about the number you're on ("✓ 4 leave days join Christmas + New Year: dates, days off"), no Use N. Rows inside a ticked break are hidden; rows needing more leave are greyed with one note under the table. Card tiles show those same picks. Up next, School holidays and next year still use the plan (planLeave).
+- **Easter and Christmas holidays** use the same list and table as Custom (`listMode` in usePlanner), and start with **nothing ticked** (the card tiles show the suggested picks, `suggestedPicks`: joins first, then best value). No REC tag here: MIN and JOINS show which numbers are worth it (REC stays on Up next, School holidays and next year for now). The line under the title is about the number you're on ("✓ 4 leave days join Christmas + New Year: dates, days off"), no Use N. Rows that clash with a tick (overlap it, or need more leave than is left) are greyed, with one note under the table; nothing is hidden. Card tiles show those same picks. Up next, School holidays and next year still use the plan (planLeave).
 - Advanced options: plan around school holidays; months to avoid / include.
 - Results table (Start / End with short years, a dropdown for equal start dates), Add / Export, and the same Details | Summary panel as the calendar.
 
@@ -180,7 +180,7 @@ Step 3 (the Holiday breaks / One long break toggle) only shows when the holidays
 One holiday: once there's a proper break (MIN), every number after it is usable. Two or more: numbers are usable again only once every holiday that can join has joined (after the last JOINS).
 
 List rules that go with it:
-- Below the first J each holiday gets its own best break (maximise). From J the join takes priority: the **best join you can afford** (most holidays, then most days off) replaces the long weekends it's made of; a holiday that isn't in that join keeps its own row (Christmas at 7: Reconciliation + Christmas join, New Year keeps its weekend).
+- The holiday breaks list shows **every row**: joins first (most holidays, then most days off), then each holiday's own break (best value first), so you can take the join or the separate long weekends (Christmas at 4: Christmas + New Year joined, then the Christmas weekend, the New Year weekend, Reconciliation). Ticking one greys the rows that clash with it; nothing is hidden.
 - Skipping only applies to holiday breaks; when step 3 is on One long break, every number is usable.
 - Easter and Christmas start with **nothing ticked**.
 - Leftover leave after the joins (or fewer days than the first J) → the line points to the Calendar to use it there.
@@ -193,7 +193,7 @@ Edge cases:
 - Breaks never run past the period, so a long weekend may shift (Christmas period starts 15 Dec: Reconciliation Wed 16 uses Thu–Fri).
 - Two joins at the same leave: one JOINS tag, the line names the bigger join.
 - Several seasons in one range: plain row, step 3, list by season (to build). This month with < 10 workdays left: Custom starts next month.
-- A pick overlaps another pick: the overlapping rows hide (untick to bring them back). Not enough leave for a row: greyed, one note under the table.
+- A row overlaps a tick, or needs more leave than is left: greyed (never hidden), one note under the table.
 - Advanced options (avoid months, school holidays): the list respects them; MIN / JOINS / skips don't yet. Holiday data ends after 2028 (Custom stops at January after next).
 
 After picking: Add to summary → leave left over? → the line offers "use them on the Calendar →", which opens the Calendar with the holidays filter off and the leave days set to what's left. On the Calendar, a break over or right next to a saved one asks Combine / Replace.
