@@ -25,9 +25,7 @@ import { fmtLongRange } from '../../../utils/dateFormat'
 function customEmpty(planner) {
   const text = planner.leaveLeft === 0
     ? 'No leave left: your Summary already uses your whole limit. Raise your limit or remove a break from your Summary.'
-    : planner.aim === 'max'
-      ? 'No public holidays fall on a weekday in these months, so there is nothing to join. Pick more months, or choose One long break.'
-      : 'No breaks fit these settings. Try fewer leave days, or avoid fewer months.'
+    : 'No breaks fit these settings. Try fewer leave days, or avoid fewer months.'
   return <p className="m-3 p-5 border-[1.5px] border-dashed border-slate-300 rounded-2xl text-sm text-slate-600 text-center">{text}</p>
 }
 

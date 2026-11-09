@@ -1,7 +1,5 @@
 import { useState } from 'react'
-import { formatMultiplier } from '../../../utils/breaks'
-import { fmtDayShortYear, fmtShortYear } from '../../../utils/dateFormat'
-import { StartCell } from './StartCell'
+import { OptionRow } from './OptionRow'
 
 // Start and End are as wide as their dates; the number columns share what's
 // left equally (so they spread out on wide screens). Everything is centred.
@@ -14,11 +12,26 @@ function ranks(options, value) {
   return options.map((o, i) => (i === 0 || value(o) !== value(options[i - 1]) ? ++rank : rank))
 }
 
-// Why an option can't be ticked (it overlaps a break you ticked, or needs more
-// leave than is left): told once in a note under the table, and in the row's tooltip / label.
-
 // The public holidays inside a break (their names show on hover).
 const holidaysIn = brk => brk.days.filter(d => d.type === 'public_holiday')
+
+// The two sections: their heading and how their rows rank (best first).
+const SECTIONS = {
+  // Each section has its own colour (heading + a stripe down its rows) so the two read apart.
+  long: { title: 'One long break', sub: leave => `all ${leave} leave days in one go`, rankBy: o => o.daysOff, head: 'bg-sky-50 text-sky-900 hover:bg-sky-100 border-sky-200' },
+  holiday: { title: 'Holiday breaks', sub: () => 'tick as many as fit', rankBy: o => o.multiplier, head: 'bg-violet-50 text-violet-900 hover:bg-violet-100 border-violet-200' },
+}
+
+// What a small (collapsed) section says instead of its rows: how many breaks and the best of them.
+function summary(id, rows) {
+  const n = rows.length
+  const count = `${n} break${n === 1 ? '' : 's'}`
+  if (id === 'long') return `${count} · up to ${Math.max(...rows.map(r => r.o.daysOff))} days off`
+  const leave = rows.map(r => r.o.leaveDays)
+  const lo = Math.min(...leave)
+  const hi = Math.max(...leave)
+  return `${count} · ${lo === hi ? lo : `${lo}–${hi}`} leave day${hi === 1 ? '' : 's'} each`
+}
 
 // Columns you can sort by: click a heading to sort, click again to flip.
 // 'rank' (best first) is the starting order and has no heading.
@@ -47,37 +60,43 @@ function SortHeading({ id, sort, onSort, phone, className }) {
 }
 
 /**
- * The options of a list period (Custom; Easter and Christmas start with picks
- * ticked), best first: Start and End (with weekdays), public holidays used,
- * days off, leave and multiplier. One long break: radio buttons (pick one).
- * Holiday breaks: tick boxes (joins first); options that overlap a pick or need
- * more leave than is left are greyed, with one note under the table.
- * Click a column heading to sort by it. A start date with a dropdown can
- * move to another day for the same days off (the end follows).
+ * The options of a list period (Custom, Easter, Christmas), nothing ticked until
+ * you tick it, in two sections (planner.sections):
+ *   One long break – all your leave in one go, most days off first
+ *   Holiday breaks – joins first, then each holiday's own break, best value first
+ * Click a section's heading to make it small (just the heading) or big again.
+ * Every row is a tick box; rows that clash with your ticks are greyed, with one
+ * note under the table. Click a column heading to sort (within each section).
+ * A start date with a dropdown can move to another day for the same days off.
  *
  * Props: planner – usePlanner() result; onHover – optional (startDate | null) => void; phone
  */
 export function CustomOptionsTable({ planner, onHover, phone = false }) {
-  const { options, aim } = planner
-  const long = aim === 'long'
+  const { options } = planner
   const cols = phone ? PHONE_COLUMNS : COLUMNS
   const head = 'text-[11px] font-bold text-slate-500 uppercase tracking-wide'
   const [sort, setSort] = useState({ by: 'rank', dir: 'asc' })
+  // Sections you've made small: 'long' / 'holiday' → true.
+  const [small, setSmall] = useState({})
   const onSort = id => setSort(prev => (prev.by === id
     ? { by: id, dir: prev.dir === 'asc' ? 'desc' : 'asc' }
     : { by: id, dir: SORTS[id].first }))
-  // Rank once (best first), then show the rows in the chosen order; ties keep the rank order.
-  const rank = ranks(options, long ? o => o.daysOff : o => o.multiplier)
   const value = SORTS[sort.by].value
-  // Every option stays listed; ones that clash with your ticks are greyed.
-  const rows = options
-    .map((o, i) => ({ o, rank: rank[i] }))
-    .sort((a, b) => {
-      const x = value({ ...a.o, rank: a.rank })
-      const y = value({ ...b.o, rank: b.rank })
-      const order = x < y ? -1 : x > y ? 1 : 0
-      return (sort.dir === 'asc' ? order : -order) || a.rank - b.rank
-    })
+  // Each section's rows: ranked once (best first), then in the chosen order; ties keep the rank.
+  const rowsOf = id => {
+    const list = options.filter(o => o.section === id)
+    const rank = ranks(list, SECTIONS[id].rankBy)
+    return list
+      .map((o, i) => ({ o, rank: rank[i] }))
+      .sort((a, b) => {
+        const x = value({ ...a.o, rank: a.rank })
+        const y = value({ ...b.o, rank: b.rank })
+        const order = x < y ? -1 : x > y ? 1 : 0
+        return (sort.dir === 'asc' ? order : -order) || a.rank - b.rank
+      })
+  }
+  const shown = ['long', 'holiday'].map(id => ({ id, rows: rowsOf(id) })).filter(s => s.rows.length)
+  const both = shown.length > 1
 
   return (
     <div role="table" aria-label="Options to pick from" className="text-[13px]">
@@ -90,51 +109,36 @@ export function CustomOptionsTable({ planner, onHover, phone = false }) {
         {!phone && <SortHeading id="leave" sort={sort} onSort={onSort} className={head} />}
         <SortHeading id="mult" sort={sort} onSort={onSort} phone={phone} className={head} />
       </div>
-      {rows.map(({ o }) => {
-        const picked = planner.isPicked(o)
-        const blocker = planner.blockerFor(o)
-        const hols = holidaysIn(o)
-        const date = d => (phone ? fmtShortYear(d) : fmtDayShortYear(d))
-        const name = `${fmtDayShortYear(o.startDate)} to ${fmtDayShortYear(o.endDate)}, ${o.daysOff} days off`
-        return (
-            <div
-              key={`${o.startDate}-${o.leaveDays}`}
-              role="row"
-              onMouseEnter={() => onHover?.(o.startDate)}
-              onMouseLeave={() => onHover?.(null)}
-              title={blocker?.overlap ? 'Overlaps a break you ticked: untick it to pick this one' : blocker ? 'Not enough leave left: untick a break to free your leave' : undefined}
-              className={`${cols} px-1.5 py-2 border-t border-slate-100 ${picked ? 'bg-sky-50' : onHover ? 'hover:bg-slate-50' : ''} ${blocker ? 'opacity-50' : ''}`}
-            >
-              <input
-                type={long ? 'radio' : 'checkbox'}
-                name={long ? 'custom-long-break' : undefined}
-                aria-label={`Pick ${name}${blocker?.overlap ? ' (overlaps a break you ticked)' : blocker ? ' (not enough leave left)' : ''}`}
-                checked={picked}
-                disabled={!!blocker}
-                onChange={() => planner.togglePick(o)}
-                // A picked radio can be clicked again to clear it.
-                onClick={() => long && picked && planner.togglePick(o)}
-                className="w-4 h-4 accent-sky-700"
-              />
-              <span role="cell" className="min-w-0">
-                <StartCell brk={o} options={planner.startChoicesFor(o)} onSwap={d => planner.swapOptionStart(o, d)} phone={phone} />
-              </span>
-              <span role="cell" className={`whitespace-nowrap ${phone ? 'text-[12px]' : ''}`}>{date(o.endDate)}</span>
-              <span role="cell" title={hols.map(h => h.holidayName).join(', ')} className="font-bold text-orange-800">{hols.length}</span>
-              <b role="cell">{o.daysOff}</b>
-              {!phone && <span role="cell">{o.leaveDays}</span>}
-              <span role="cell" className="font-bold text-amber-800">{formatMultiplier(o.multiplier)}</span>
+      {shown.map(({ id, rows }) => (
+        <div key={id} role="rowgroup" aria-label={SECTIONS[id].title}>
+          {/* With both sections, each has a heading that makes it small or big. */}
+          {both && (
+            <div role="row">
+              <button
+                type="button"
+                aria-expanded={!small[id]}
+                onClick={() => setSmall(prev => ({ ...prev, [id]: !prev[id] }))}
+                className={`w-full flex items-center gap-2 px-2 py-2 border-t text-left text-[11.5px] font-extrabold uppercase tracking-wide ${SECTIONS[id].head}`}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={`shrink-0 transition-transform ${small[id] ? '-rotate-90' : ''}`}><polyline points="6 9 12 15 18 9" /></svg>
+                {SECTIONS[id].title}
+                <span className="normal-case font-medium tracking-normal opacity-75">· {small[id] ? summary(id, rows) : SECTIONS[id].sub(planner.leave)}</span>
+              </button>
             </div>
-        )
-      })}
+          )}
+          {!small[id] && rows.map(({ o }) => (
+            <OptionRow key={`${o.startDate}-${o.leaveDays}`} planner={planner} option={o} cols={cols} onHover={onHover} phone={phone} stripe={both ? id : null} />
+          ))}
+        </div>
+      ))}
       {/* Greyed rows: one note for all of them, only when there are some. */}
-      {rows.some(({ o }) => planner.blockerFor(o)) && (
+      {options.some(o => planner.blockerFor(o)) && (
         <p className={`m-0 mt-1.5 pt-2 px-1.5 border-t border-slate-100 text-slate-600 ${phone ? 'text-[11.5px]' : 'text-[12px]'}`}>
           <b className="text-slate-500">Greyed:</b> overlaps a break you ticked, or not enough leave left. Untick a break to pick it.
         </p>
       )}
       {/* Desktop shows this note under the table instead. */}
-      {phone && rows.some(({ o }) => o.starts.length > 1) && (
+      {phone && options.some(o => o.starts.length > 1) && (
         <p className="m-0 mt-1.5 pt-2 px-1.5 border-t border-slate-100 text-[11.5px] text-slate-600">
           <b className="text-sky-700">▾</b> Same days off from another start date. Tap to swap.
         </p>

@@ -16,8 +16,8 @@ const TONES = {
  *   📈 no recommendation (next year): it plans for the best multiplier
  *   Custom, Easter and Christmas (list periods): about the number you're on:
  *      ✓ "N leave days join A + B: dates, days off" on a join number · 🗓️ no
- *      holidays · 🏝️ one holiday / one long break · 📈 holiday breaks (where they
- *      join next, or "N of M leave days used"). No Use N: REC on the row points the way.
+ *      holidays · 🏝️ one holiday, or both sections (long break or holiday breaks) ·
+ *      📈 holiday breaks (where they join next, or "N of M leave days used"). No Use N: REC on the row points the way.
  *      A number that adds nothing says so; too little leave for a proper break, or
  *      leave left over after your picks, offers "Use on the Calendar →".
  *
@@ -41,8 +41,9 @@ export function RecLine({ planner, onUseRest, phone = false }) {
     const joinHere = joins.find(j => j.leave === leave)
     const firstJoin = joins[0]
     const { options } = planner
-    // The break that joins them: the top long break, or the holiday break using exactly these leave days.
-    const joinBrk = planner.aim === 'long' ? options[0] : options.filter(o => o.leaveDays === leave).sort((a, b) => b.daysOff - a.daysOff)[0]
+    // The break that joins them: the best one using exactly these leave days (either section).
+    const joinBrk = options.filter(o => o.leaveDays === leave).sort((a, b) => b.daysOff - a.daysOff)[0]
+    const { long: hasLong, holiday: hasHoliday } = planner.sections
     const when = brk => (brk ? <>: {fmtShortRange(brk.startDate, brk.endDate)}, {brk.daysOff} days off</> : '')
     const marks = map?.marks
     const unpicked = planner.pickedLeave ? leave - planner.pickedLeave : 0
@@ -62,30 +63,23 @@ export function RecLine({ planner, onUseRest, phone = false }) {
       tone = 'done'
       icon = '✓'
       text = <><b>{leave} leave days join {joinHere.names.join(' + ')}</b>{when(joinBrk)}.</>
-    } else if (planner.aim === 'long') {
-      icon = '🏝️'
-      if (!map?.holidays) {
-        icon = '🗓️'
-        text = <><b>No public holidays in these months</b>, so every week is the same. Pick the week that suits you.</>
-      } else if (map.holidays === 1) {
-        text = <><b>Longest breaks.</b> Only one holiday here, so there's nothing to join. Pick one.</>
-      } else if (map.allJoin) {
-        tone = 'done'
-        icon = '✓'
-        text = <><b>One break around {joins[joins.length - 1].names.join(' + ')}</b>{when(options[0])}. Longest first; pick one.</>
-      } else {
-        text = <><b>One long break</b> with your {leave} leave day{leave === 1 ? '' : 's'}. Longest first; pick one.</>
-      }
     } else if (planner.pickedLeave) {
       // Holiday breaks don't have to use all your leave: the rest goes on the Calendar.
       text = <><b>{planner.pickedLeave} of {leave} leave days used.</b>{unpicked > 0 ? <> Use the other {unpicked} on the Calendar.</> : ''}</>
       toCalendar = unpicked > 0
-    } else if (map?.allJoin && firstJoin && leave < firstJoin.leave) {
+    } else if (!map?.holidays) {
+      icon = '🗓️'
+      text = <><b>No public holidays in these months</b>, so every week is the same. Pick the week that suits you.</>
+    } else if (map.holidays === 1) {
+      icon = '🏝️'
+      text = <><b>Longest breaks.</b> Only one holiday here, so there's nothing to join. Pick one.</>
+    } else if (hasLong && hasHoliday) {
+      icon = '🏝️'
+      text = <><b>One long break</b> or <b>holiday breaks</b>: take all your leave in one go, or tick holiday breaks that fit.</>
+    } else if (map.allJoin && firstJoin && leave < firstJoin.leave) {
       text = <><b>Holiday breaks</b>, best value first. Tick the ones you want. At {firstJoin.leave} leave days {firstJoin.names.join(' + ')} join.</>
-    } else if (map?.allJoin) {
-      text = <><b>Holiday breaks</b>, best value first. Tick the ones you want.</>
     } else {
-      text = <><b>Holiday breaks</b>, best value first: your holidays are too far apart to join. Tick the ones you want.</>
+      text = <><b>Holiday breaks</b>, best value first. Tick the ones you want.</>
     }
   } else if (rec && long) {
     const around = breaks[0] && aroundLabel(breaks[0])
