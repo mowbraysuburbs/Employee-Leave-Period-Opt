@@ -28,11 +28,12 @@ export function PlanDetailHead({ period, breaks, onView }) {
         <h2 className="m-0 text-[14.5px] font-bold">{period.title} · {count}</h2>
         <span className="text-[11.5px] text-slate-500">{fmtShortRange(period.from, period.to)}</span>
       </div>
-      <div className="grid grid-cols-2 gap-1.5">
-        <StatTile kind="leave" value={t.leave} caption="leave days" />
-        <StatTile kind="free" value={`+${t.daysOff - t.leave}`} caption="free days" />
-        <StatTile kind="total" value={t.daysOff} caption="days off" />
-        <StatTile kind="multiplier" value={formatMultiplier(t.multiplier)} caption="multiplier" />
+      {/* One row of four: the panel is narrow, so a 2 × 2 grid wasted the sides. */}
+      <div className="grid grid-cols-4 gap-1">
+        <StatTile kind="leave" value={t.leave} caption="leave days" compact />
+        <StatTile kind="free" value={`+${t.daysOff - t.leave}`} caption="free days" compact />
+        <StatTile kind="total" value={t.daysOff} caption="days off" compact />
+        <StatTile kind="multiplier" value={formatMultiplier(t.multiplier)} caption="multiplier" compact />
       </div>
       <PlanKey />
     </div>

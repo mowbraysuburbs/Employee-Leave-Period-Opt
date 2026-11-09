@@ -76,11 +76,12 @@ const KINDS = {
  *   value   – shown in the tile (number or text)
  *   label   – optional text after the value (used by the key, not the card)
  *   caption – optional word under the value (the Details stats)
+ *   compact – with caption: tighter, one-line caption (four tiles in one row)
  *   tiny    – small chip for the Overview period cards
  *   stacked – icon over the value, for the collapsed side panel (a button when onClick is given)
  *   title   – tooltip / accessible description
  */
-export function StatTile({ kind, value, label, caption, tiny = false, stacked = false, title, onClick }) {
+export function StatTile({ kind, value, label, caption, compact = false, tiny = false, stacked = false, title, onClick }) {
   const { className, Icon, small } = KINDS[kind]
   if (stacked) {
     return (
@@ -100,12 +101,12 @@ export function StatTile({ kind, value, label, caption, tiny = false, stacked = 
   }
   if (caption) {
     return (
-      <div className={`flex flex-col items-center gap-px rounded-[10px] px-2 py-1.5 ${className}`}>
-        <span className="flex items-center gap-1 text-base font-extrabold">
-          <Icon size={14} />
+      <div className={`flex flex-col items-center gap-px rounded-[10px] ${compact ? 'px-1 py-1.5' : 'px-2 py-1.5'} ${className}`}>
+        <span className={`flex items-center gap-1 font-extrabold ${compact ? 'text-[15px]' : 'text-base'}`}>
+          <Icon size={compact ? 13 : 14} />
           {value}
         </span>
-        <span className="text-[11px] font-semibold opacity-85">{caption}</span>
+        <span className={`font-semibold opacity-85 ${compact ? 'text-[10.5px] whitespace-nowrap' : 'text-[11px]'}`}>{caption}</span>
       </div>
     )
   }
