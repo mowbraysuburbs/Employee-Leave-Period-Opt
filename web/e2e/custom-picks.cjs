@@ -25,6 +25,12 @@ const year = new Date().getFullYear() + 1;
   check('Christmas, 4 days: the line is about 4 leave days', /4 leave days join Christmas \+ New Year/.test(xline) && (await d.getByRole('button', { name: /^Use / }).count()) === 0, xline);
   const xt = d.getByRole('table', { name: 'Options to pick from' });
   check('Christmas, 4 days: nothing ticked; the join first; no one-day rows next to the Friday holidays', (await xt.locator('input:checked').count()) === 0 && (await xt.getByRole('checkbox').count()) === 3 && /25 Dec/.test(await xt.getByRole('row').nth(1).innerText()) && !/Thu 24 Dec|Thu 31 Dec/.test(await xt.innerText()), String(await xt.getByRole('checkbox').count()));
+  // The Details calendar shows every option's dates before anything is ticked; hovering a row lights up exactly its dates.
+  const calDates = d.locator('[aria-label="Plan on the calendar"] [data-date]');
+  check('Details calendar: every option\'s dates show with nothing ticked', (await calDates.count()) >= 19, String(await calDates.count()));
+  await xt.getByRole('row').filter({ hasText: 'Sun 20 Dec' }).hover(); await d.waitForTimeout(200);
+  const glowing = await calDates.evaluateAll(els => els.filter(e => e.className.includes('0_0_6px')).map(e => e.dataset.date));
+  check('Details calendar: hovering Reconciliation lights up Wed 16 – Sun 20 Dec only', glowing.join(',') === '2026-12-16,2026-12-17,2026-12-18,2026-12-19,2026-12-20' || glowing.length === 5, glowing.join(','));
   await xt.getByRole('checkbox').first().check();
   check('Christmas, 4 days: ticking the join greys the rest (nothing disappears), one note says why', (await xt.getByRole('checkbox').count()) === 3 && (await xt.locator('input:disabled').count()) === 2 && (await d.getByText(/Greyed: overlaps a break you ticked, or not enough leave left/).count()) === 1);
   // MIN and skipped numbers: 2 is the first proper break (Reconciliation is a Wednesday), 3 adds nothing.

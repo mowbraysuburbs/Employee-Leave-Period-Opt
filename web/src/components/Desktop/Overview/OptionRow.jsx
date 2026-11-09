@@ -27,7 +27,7 @@ export function OptionRow({ planner, option: o, cols, onHover, phone = false, st
   return (
     <div
       role="row"
-      onMouseEnter={() => onHover?.(o.startDate)}
+      onMouseEnter={() => onHover?.(o)}
       onMouseLeave={() => onHover?.(null)}
       title={why ? `Greyed: ${why}. Untick a break to pick this one.` : undefined}
       className={`${cols} px-1.5 py-2 border-t border-slate-100 ${STRIPES[stripe] ?? ''} ${picked ? 'bg-sky-50' : onHover ? 'hover:bg-slate-50' : ''} ${blocker ? 'opacity-50' : ''}`}

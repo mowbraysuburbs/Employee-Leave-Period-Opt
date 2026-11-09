@@ -195,6 +195,11 @@ export function usePlanner({ today, lastDate, province, leaveLimit = MAX_LEAVE, 
       else setPicks(pickBlocker(option, current, leaveUsed) ? current : [...current, option])
     },
     pickedLeave: current.reduce((t, p) => t + p.leaveDays, 0),
+    // What the Overview's calendar shows: list periods show every option's dates
+    // (faint unless ticked); other periods show the plan, keyed by start date.
+    calendarBreaks: listMode
+      ? { breaks: options, ticked: new Set(picked.map(breakKey)), keyOf: breakKey }
+      : { breaks, ticked },
     leave: leaveUsed,
     leaveLimit,
     leaveLeft,
