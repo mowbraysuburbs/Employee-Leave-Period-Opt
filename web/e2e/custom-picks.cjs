@@ -24,9 +24,9 @@ const year = new Date().getFullYear() + 1;
   const xline = await d.getByRole('status').first().innerText();
   check('Christmas, 4 days: the line is about 4 leave days', /4 leave days join Christmas \+ New Year/.test(xline) && (await d.getByRole('button', { name: /^Use / }).count()) === 0, xline);
   const xt = d.getByRole('table', { name: 'Options to pick from' });
-  check('Christmas, 4 days: nothing ticked; the join replaces its long weekends', (await xt.locator('input:checked').count()) === 0 && (await xt.getByRole('checkbox').count()) === 2, String(await xt.getByRole('checkbox').count()));
+  check('Christmas, 4 days: nothing ticked; the join first, then its long weekends and Reconciliation', (await xt.locator('input:checked').count()) === 0 && (await xt.getByRole('checkbox').count()) === 4 && /25 Dec/.test(await xt.getByRole('row').nth(1).innerText()), String(await xt.getByRole('checkbox').count()));
   await xt.getByRole('checkbox').first().check();
-  check('Christmas, 4 days: after ticking the join, one note explains the greyed row', (await d.getByText(/Greyed: not enough leave left/).count()) === 1);
+  check('Christmas, 4 days: ticking the join greys the rest (nothing disappears), one note says why', (await xt.getByRole('checkbox').count()) === 4 && (await xt.locator('input:disabled').count()) === 3 && (await d.getByText(/Greyed: overlaps a break you ticked, or not enough leave left/).count()) === 1);
   // MIN and skipped numbers: 2 is the first proper break (Reconciliation is a Wednesday), 3 adds nothing.
   const lim = d.getByRole('radiogroup', { name: 'Days off limit' });
   check('Christmas: MIN on 2, 3 skipped (can\'t be picked)', (await lim.getByRole('radio', { name: /^2 \(first proper break\)/ }).count()) === 1 && await lim.getByRole('radio', { name: /^3 / }).isDisabled());
@@ -64,7 +64,7 @@ const year = new Date().getFullYear() + 1;
   const ticked = await table.locator('input:checked').count();
   check('Holiday breaks: ticks stop when the leave is used', ticked >= 1 && ticked <= 4 && /Add to summary \(\d\)/.test(await add.innerText()), await add.innerText());
   check('Holiday breaks: line under the title counts the leave', /4 of 4 leave days used|of 4 leave days used/.test(await d.getByRole('status').first().innerText()), await d.getByRole('status').first().innerText());
-  check('Holiday breaks: rows inside a ticked break are hidden, not greyed', (await table.getByText(/Already in your/).count()) === 0);
+  check('Holiday breaks: clashing rows are greyed with one note, never hidden', (await table.getByText(/Already in your/).count()) === 0 && (await d.getByText(/^Greyed:/).count()) <= 1);
 
   await d.getByRole('radio', { name: 'One long break' }).click();
   const radios = table.getByRole('radio');

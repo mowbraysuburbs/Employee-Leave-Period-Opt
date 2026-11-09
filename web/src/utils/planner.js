@@ -338,7 +338,8 @@ function holidayKey(brk) {
  *   aim 'long' – single breaks using all `leave` days, most days off first
  *   aim 'max'  – holidays only: for each public holiday, and each run of
  *                holidays joined together, the best-value break (fewest leave
- *                on a tie). No plain long weekends and no padding.
+ *                on a tie). No plain long weekends and no padding. Joins first,
+ *                then the single holidays (best value first).
  * Equal starts collapse to the earliest (as in planLeave); never past `to`;
  * avoided months and `within` (school holidays) apply; a long break must
  * touch every included month (holiday breaks: you pick the months yourself). At most `limit`.
@@ -371,17 +372,15 @@ export function customOptions({ from, to, leave, aim, avoidMonths = new Set(), i
       const old = best.get(key)
       if (!old || brk.multiplier > old.multiplier || (brk.multiplier === old.multiplier && brk.leaveDays < old.leaveDays)) best.set(key, brk)
     }
-    // The best join you can afford (most holidays, then most days off) replaces
-    // the long weekends it's made of; holidays outside it keep their own row.
-    const parts = brk => holidayKey(brk).split('+')
-    const top = [...best.values()].filter(b => parts(b).length > 1).sort((x, y) => parts(y).length - parts(x).length || y.daysOff - x.daysOff)[0]
-    const inTop = brk => top && brk !== top && parts(brk).length < parts(top).length && parts(brk).every(h => parts(top).includes(h))
-    options.splice(0, options.length, ...[...best.values()].filter(b => !inTop(b)))
+    options.splice(0, options.length, ...best.values())
   }
   const byDate = (a, b) => (a.startDate < b.startDate ? -1 : a.startDate > b.startDate ? 1 : 0)
+  // Holiday breaks: joins first (most holidays, then most days off), then the
+  // single holidays' breaks, best value first; every row stays in the list.
+  const joined = brk => holidayKey(brk).split('+').length
   options.sort(aim === 'long'
     ? (a, b) => b.daysOff - a.daysOff || byDate(a, b)
-    : (a, b) => b.multiplier - a.multiplier || b.daysOff - a.daysOff || byDate(a, b))
+    : (a, b) => Math.min(joined(b), 2) - Math.min(joined(a), 2) || (joined(a) > 1 ? joined(b) - joined(a) || b.daysOff - a.daysOff : 0) || b.multiplier - a.multiplier || b.daysOff - a.daysOff || byDate(a, b))
   // No public holidays at all: every week is the same, so one row per week (its best start).
   const noHolidays = ![...holidays.keys()].some(d => d >= from && d <= to && !isWeekend(d))
   if (aim === 'long' && noHolidays) {
