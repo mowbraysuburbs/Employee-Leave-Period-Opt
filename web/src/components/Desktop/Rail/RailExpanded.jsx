@@ -2,6 +2,7 @@ import { LeaveCard } from '../LeaveCard'
 import { PeriodPicker } from '../PeriodPicker'
 import { HolidayFilterMenu } from '../HolidayFilterMenu'
 import { ProvincePicker } from '../ProvincePicker'
+import { SwitchRow } from '../SwitchRow'
 
 const MODES = [
   { id: 'daysOff', label: 'Total days' },
@@ -9,11 +10,6 @@ const MODES = [
 ]
 
 const card = 'bg-white rounded-2xl p-3 shadow-sm flex flex-col gap-2'
-const toggle = on => [
-  'w-full min-h-9 px-3 py-1.5 rounded-lg text-left text-[13px] font-semibold border',
-  on ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-900 border-slate-300',
-].join(' ')
-
 function helpText(colourBy, picksOnly, leaveDays) {
   if (picksOnly) return 'Showing only your breaks.'
   if (colourBy === 'multiplier') return `Best deal using up to ${leaveDays} leave days.`
@@ -91,29 +87,13 @@ export function RailExpanded({ c }) {
       <section data-tour="show" className={card}>
         <div className="text-[13px] font-bold">Show</div>
         <HolidayFilterMenu inline options={c.holidayOptions} selected={c.holidayFilter} onChange={c.onHolidayFilterChange} />
-        <button type="button" aria-pressed={c.gapOnly} onClick={() => c.onGapOnlyChange(!c.gapOnly)} className={toggle(c.gapOnly)}>
-          <span className="block">Leave fills a gap</span>
-          <span className={`block text-[11px] font-medium ${c.gapOnly ? 'text-slate-300' : 'text-slate-500'}`}>Only breaks with a weekend or holiday on both sides of your leave</span>
-        </button>
-        {c.previewCount > 0 && (
-          <button type="button" aria-pressed={c.previewOnly} onClick={() => c.onPreviewOnlyChange(!c.previewOnly)} className={toggle(c.previewOnly)}>
-            Only plan dates ({c.previewCount})
-          </button>
-        )}
-        <button type="button" aria-pressed={c.picksOnly} onClick={() => c.onPicksOnlyChange(!c.picksOnly)} className={toggle(c.picksOnly)}>
-          Selected ({c.savedCount})
-        </button>
-        <div className="flex gap-1.5">
-          <button
-            type="button"
-            aria-pressed={c.schoolOn}
-            aria-label={`School holidays · ${c.provinceName}`}
-            onClick={() => c.onSchoolOnChange(!c.schoolOn)}
-            className={`flex-1 min-w-0 h-9 px-2.5 rounded-lg text-left text-xs font-semibold whitespace-nowrap border ${c.schoolOn ? 'bg-slate-900 text-white border-slate-900' : 'bg-white border-slate-300'}`}
-          >
-            School holidays
-          </button>
-          <div className="w-[86px] shrink-0">
+        <SwitchRow label="Leave fills a gap" on={c.gapOnly} onChange={c.onGapOnlyChange} />
+        {c.previewCount > 0 && <SwitchRow label={`Only plan dates (${c.previewCount})`} on={c.previewOnly} onChange={c.onPreviewOnlyChange} />}
+        <SwitchRow label={`Selected breaks (${c.savedCount})`} on={c.picksOnly} onChange={c.onPicksOnlyChange} />
+        <SwitchRow label="School holidays" ariaLabel={`School holidays · ${c.provinceName}`} on={c.schoolOn} onChange={c.onSchoolOnChange} />
+        <div className="flex items-center justify-between gap-2 -mt-1 text-xs text-slate-600">
+          Province
+          <div className="w-[96px] shrink-0">
             <ProvincePicker compact id="rail-province" value={c.province} onChange={c.onProvinceChange} />
           </div>
         </div>
