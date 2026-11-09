@@ -21,7 +21,7 @@ const res = []; const check = (n, ok, x = '') => res.push((ok ? 'PASS ' : 'FAIL 
   await d.getByRole('radio', { name: '2 leave days', exact: true }).first().click();
   const coloured = () => d.locator('button[data-date^="2026-12"]').evaluateAll(els => els.filter(e => { const st = e.getAttribute('style') || ''; return !e.disabled && !st.includes('slate-100') && !st.includes('transparent') }).map(e => e.dataset.date.slice(8)));
   const off = await coloured();
-  const gap = d.getByRole('button', { name: /^Leave fills a gap/ });
+  const gap = d.getByRole('switch', { name: /^Leave fills a gap/ });
   await gap.click();
   const on2 = await coloured();
   check('2 days, filter on: only the Reconciliation breaks', on2.join(',') === '12,13,14,16,17', on2.join(','));
@@ -31,7 +31,7 @@ const res = []; const check = (n, ok, x = '') => res.push((ok ? 'PASS ' : 'FAIL 
   const on4 = await coloured();
   check('4 days: the three December breaks', on4.join(',') === '12,13,14,19,20,21,25,26,27,28', on4.join(','));
   await d.getByRole('button', { name: /Clear filters/ }).click();
-  check('Clear filters turns it off', (await gap.getAttribute('aria-pressed')) === 'false');
+  check('Clear filters turns it off', (await gap.getAttribute('aria-checked')) === 'false');
 
   // Phone: the same switch in More filters.
   const p = await b.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true });
@@ -39,9 +39,9 @@ const res = []; const check = (n, ok, x = '') => res.push((ok ? 'PASS ' : 'FAIL 
   await p.addInitScript(() => localStorage.setItem('stretchmyleave.welcomeSeen', '1'));
   await p.goto(BASE); await p.getByRole('navigation', { name: 'Pages' }).getByRole('button', { name: 'Calendar' }).click();
   await p.getByRole('button', { name: /^Filters/ }).click(); await p.getByRole('button', { name: 'More…' }).click();
-  const pg = p.getByRole('button', { name: /Leave fills a gap/ });
+  const pg = p.getByRole('switch', { name: /Leave fills a gap/ });
   await pg.click();
-  check('phone: Leave fills a gap in More filters', (await pg.getAttribute('aria-pressed')) === 'true');
+  check('phone: Leave fills a gap in More filters', (await pg.getAttribute('aria-checked')) === 'true');
 
   check('no page errors', errors.length === 0, errors.join(' | '));
   console.log(res.join('\n'));

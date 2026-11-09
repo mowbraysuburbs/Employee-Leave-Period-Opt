@@ -2,11 +2,7 @@ import { BottomSheet } from './BottomSheet'
 import { PeriodPicker } from '../Desktop/PeriodPicker'
 import { HolidayFilterMenu } from '../Desktop/HolidayFilterMenu'
 import { ProvincePicker } from '../Desktop/ProvincePicker'
-
-const toggle = on => [
-  'w-full min-h-[42px] px-3 rounded-xl text-left text-sm font-semibold border',
-  on ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-900 border-slate-300',
-].join(' ')
+import { SwitchRow } from '../Desktop/SwitchRow'
 
 /**
  * The phone calendar's filters (leave days and colours live in the bottom
@@ -20,29 +16,14 @@ export function FiltersSheet({ c, activeCount, onClearAll, onClose }) {
     <BottomSheet label="More filters" title="More filters" backdrop onClose={onClose}>
       <div className="flex flex-col gap-4 pt-1 pb-2">
         <section className="flex flex-col gap-2">
-          <button type="button" aria-pressed={c.picksOnly} onClick={() => c.onPicksOnlyChange(!c.picksOnly)} className={toggle(c.picksOnly)}>
-            👁 Selected breaks only ({c.savedCount})
-          </button>
+          <SwitchRow large label={`Selected breaks (${c.savedCount})`} on={c.picksOnly} onChange={c.onPicksOnlyChange} />
           <HolidayFilterMenu inline options={c.holidayOptions} selected={c.holidayFilter} onChange={c.onHolidayFilterChange} />
-          <button type="button" aria-pressed={c.gapOnly} onClick={() => c.onGapOnlyChange(!c.gapOnly)} className={`${toggle(c.gapOnly)} py-2`}>
-            <span className="block">🌉 Leave fills a gap</span>
-            <span className={`block text-[12px] font-medium ${c.gapOnly ? 'text-slate-300' : 'text-slate-500'}`}>Only breaks with a weekend or holiday on both sides of your leave</span>
-          </button>
-          {c.previewCount > 0 && (
-            <button type="button" aria-pressed={c.previewOnly} onClick={() => c.onPreviewOnlyChange(!c.previewOnly)} className={toggle(c.previewOnly)}>
-              Only plan dates ({c.previewCount})
-            </button>
-          )}
-          <div className="flex gap-2">
-            <button
-              type="button"
-              aria-pressed={c.schoolOn}
-              aria-label={`School holidays · ${c.provinceName}`}
-              onClick={() => c.onSchoolOnChange(!c.schoolOn)}
-              className={`flex-1 min-w-0 h-[42px] px-3 rounded-xl text-left text-sm font-semibold border ${c.schoolOn ? 'bg-slate-900 text-white border-slate-900' : 'bg-white border-slate-300'}`}
-            >
-              🎓 School holidays
-            </button>
+          <SwitchRow large label="Leave fills a gap" on={c.gapOnly} onChange={c.onGapOnlyChange} />
+          {c.previewCount > 0 && <SwitchRow large label={`Only plan dates (${c.previewCount})`} on={c.previewOnly} onChange={c.onPreviewOnlyChange} />}
+          <div className="flex items-center gap-3">
+            <div className="flex-1 min-w-0">
+              <SwitchRow large label="School holidays" ariaLabel={`School holidays · ${c.provinceName}`} on={c.schoolOn} onChange={c.onSchoolOnChange} />
+            </div>
             <div className="w-[130px] shrink-0">
               <ProvincePicker compact id="mobile-province" value={c.province} onChange={c.onProvinceChange} />
             </div>
