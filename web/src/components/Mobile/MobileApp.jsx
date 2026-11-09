@@ -51,6 +51,13 @@ export function MobileApp() {
     setSheet(null)
   }
 
+  // The Overview's "Use on the Calendar": the leave that's left, anywhere.
+  function sendRestToCalendar() {
+    p.openRestOnCalendar()
+    setPage('calendar')
+    setSheet(null)
+  }
+
   return (
     <div className="h-[100dvh] flex flex-col overflow-hidden bg-slate-50 text-slate-900">
       <header className="shrink-0 h-14 px-4 bg-white border-b border-slate-200 flex items-center gap-2">
@@ -89,6 +96,7 @@ export function MobileApp() {
           onAdd={p.addBreaks}
           onOpenSummary={() => setSheet('summary')}
           onView={viewOnCalendar}
+          onUseRest={sendRestToCalendar}
           province={p.province}
           onProvinceChange={p.setProvince}
         />

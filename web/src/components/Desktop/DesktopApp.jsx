@@ -47,7 +47,7 @@ export function DesktopApp() {
   const {
     controls, activeFilters, clearAllFilters, colourBy, holidayFilter, picksOnly, setPicksOnly, activeDaysOff, province, setProvince, schoolDates,
     months, breaks, holidayView, demoDate, planner,
-    preview, setPreview, previewOnly, previewDays, previewLabel, openPreview,
+    preview, setPreview, previewOnly, previewDays, previewLabel, openPreview, openRestOnCalendar,
     saved, savedBreaks, savedDayTypes, savedStarts, isSaved, justAddedKey,
     detailBreak, bestNote, equalStarts, overlaps, combined,
     selectDay, openBreak, addBreaks, addDetailBreak, replaceOverlaps, removeBreak, clearSummary, moveBreak,
@@ -74,6 +74,13 @@ export function DesktopApp() {
   // Opens the calendar filtered to the ticked breaks, with the earliest in Details.
   function viewOnCalendar(list) {
     openPreview(list)
+    setTab('details')
+    setPage('calendar')
+  }
+
+  // The Overview's "Use on the Calendar": the leave that's left, anywhere.
+  function sendRestToCalendar() {
+    openRestOnCalendar()
     setTab('details')
     setPage('calendar')
   }
@@ -219,6 +226,7 @@ export function DesktopApp() {
               isSaved={isSaved}
               onAdd={addBreaks}
               onView={viewOnCalendar}
+              onUseRest={sendRestToCalendar}
               province={province}
               onProvinceChange={setProvince}
               savedCount={saved.length}

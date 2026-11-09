@@ -60,6 +60,8 @@ const res = []; const check = (n, ok, x = '') => res.push((ok ? 'PASS ' : 'FAIL 
   // Phone: Clear all from the Summary sheet.
   const p = d; await p.setViewportSize({ width: 390, height: 844 }); await p.reload(); await p.waitForTimeout(300);
   await p.getByRole('navigation', { name: 'Leave periods' }).getByRole('button', { name: 'Christmas' }).click();
+  // Christmas starts with nothing ticked: pick the first row.
+  await p.getByRole('table', { name: 'Options to pick from' }).locator('input:not(:disabled)').first().check(); 
   await p.getByRole('button', { name: /Add to summary/ }).click();
   await p.locator('header [data-tour=summary]').click();
   const sheet = p.getByRole('dialog', { name: 'My breaks' });

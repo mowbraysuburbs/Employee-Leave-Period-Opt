@@ -91,16 +91,16 @@ src/
 
 **Overview planner (2 steps; Custom sometimes adds step 3)**
 1. Pick a leave period: Custom, or themed cards (Up next, Christmas holidays, Easter, School holidays, next year). Each card shows its plan in 2×2 stat tiles.
-2. Days off limit (numbers 1–10; the period's recommended number is tagged **REC**).
+2. Days off limit (numbers 1–10; Up next, School holidays and next year tag the recommended number **REC**; Custom, Easter and Christmas use MIN / JOINS instead).
 - The leave days decide the plan: with the REC number or more → **one long break** joining the period's holidays (school holidays: covering the whole school holiday when that's ≤ 10 days); fewer, or no REC (next year) → **best multiplier**. A line under the plan title always says which (💡 suggestion with **Use N**, ✓ long break, 📈 best multiplier).
 - Breaks never run past the period's end and are **at least one working week apart**.
 - **Custom dates** is different: whole months (From / To, at least one month; this month only if it has 10+ workdays left), and **nothing is picked until you pick**. The months' weekday holidays (Easter, Christmas + Day of Goodwill count as one) decide the list (`customLeaveMap`, `customListFor`, `customOptions`, `pickBlocker` in `utils/planner.js`):
   - no holidays → one row per week ("every week is the same"); one holiday → longest breaks
   - holidays that all join within 10 leave days → **holiday breaks** below the last join number, **one long break** from it; no step 3
   - holidays too far apart to join → **step 3 "Show": Holiday breaks / One long break** (Holiday breaks first)
-  - the number row tags join numbers **JOINS** (title names the holidays) and greys numbers that add nothing ('pad'); colours for the marks are a later branch
+  - the number row follows **Leave number rules** below (MIN / JOINS tags, skipped numbers struck through and not clickable); colours for the marks are a later branch
   - Holiday breaks = one best-value break per holiday and per join, no plain long weekends, needn't use all the leave; tick any that don't overlap and fit the leave. Columns Start ▾ · End · Holidays used · Days off · Leave days · Multiplier, click a heading to sort.
-- **Easter and Christmas holidays** use the same list and table as Custom (`listMode` in usePlanner), but start with the **recommended picks** ticked (`suggestedPicks`: joins first, then best value; one long break = the top row). REC stays on its number; other join numbers get JOINS. The line under the title is about the number you're on ("✓ 4 leave days join Christmas + New Year: dates, days off"), no Use N. Rows inside a ticked break are hidden; rows needing more leave are greyed with one note under the table. Card tiles show those same picks. Up next, School holidays and next year still use the plan (planLeave).
+- **Easter and Christmas holidays** use the same list and table as Custom (`listMode` in usePlanner), and start with **nothing ticked** (the card tiles show the suggested picks, `suggestedPicks`: joins first, then best value). No REC tag here: MIN and JOINS show which numbers are worth it (REC stays on Up next, School holidays and next year for now). The line under the title is about the number you're on ("✓ 4 leave days join Christmas + New Year: dates, days off"), no Use N. Rows inside a ticked break are hidden; rows needing more leave are greyed with one note under the table. Card tiles show those same picks. Up next, School holidays and next year still use the plan (planLeave).
 - Advanced options: plan around school holidays; months to avoid / include.
 - Results table (Start / End with short years, a dropdown for equal start dates), Add / Export, and the same Details | Summary panel as the calendar.
 
@@ -155,6 +155,48 @@ Returns an array of 365/366 scores, one per calendar day.
 - Candidate breaks: every start day in the period (the day after a workday, so equal starts collapse) with 1..N leave days, never past the period's end.
 - Dynamic programming picks the most days off within the leave budget and a maximum number of breaks, with breaks at least 5 workdays apart; months can be avoided or required.
 - `recommendedLeave(period)`: the fewest leave days whose single longest break joins the most public holidays (best multiplier on a tie); `breaksFor(rec, leave)` = 1 break at or above it, else as many as help.
+
+### Leave number rules (Custom, Easter, Christmas)
+What each leave number (1–10) does depends on the holidays in the period and how far apart they are. Terms:
+- **Holiday** = a public holiday on a weekday. Holidays with no workday between them count as one (Easter Fri–Mon; Christmas + Day of Goodwill; Fri + next Mon). A holiday on a Saturday gives nothing.
+- **MIN (first proper break)** = the first number that makes a real break: a Tue / Thu holiday 1 (take Mon / Fri → 4 days), Wed 2 (→ 5 days), Mon / Fri **4** (the 3-day weekend is free, so the next real break is the full week → 9 days), unless a join comes sooner (Easter '27: join at 3). Saturday holiday: nothing. Several holidays: each one's long weekend adds up. No holidays: 1 (a Fri or Mon → 3 days). Numbers below MIN are skipped; MIN gets a tag.
+- **J (join number)** = leave needed to join holidays into one break (the workdays between them). JOINS tag on J.
+- **Skipped** = a number that adds nothing new (only pads a break): shown struck through, can't be picked.
+
+| # | Scenario | Numbers 1–10 | List | Example |
+|---|---|---|---|---|
+| 0 | No holidays | all usable (MIN 1) | one row per week ("every week is the same") | Feb '27 |
+| 1 | One holiday | below MIN skipped · MIN · then every number makes the break longer | longest breaks | Aug '27 Women's Day (Mon: skip 1–3, MIN 4 = 9 days) · Jun '27 Youth Day (Wed: skip 1, MIN 2) |
+| 2a | Two holidays, J ≤ 10 (about two weeks apart or less) | 1..W usable · W+1..J−1 skipped · J JOINS · J+1..10 one long break | holiday breaks below J, one long break from J | Dec '27: 1 · skip 2–5 · 6 joins (16–27 Dec) |
+| 2b | Two holidays, J ≤ W (same week, e.g. Tue + Thu) | no skips, straight to J | as 2a | |
+| 2c | Two holidays, both Mon / Fri (long weekends free) | skipped until J or 4, whichever comes first | as 2a | Easter '27: skip 1–2 · 3 joins (20–29 Mar) |
+| 2d | Two holidays, J > 10 (more than ~two weeks apart) | 1..W usable, rest usable (no join to jump to) | step 3: Holiday breaks / One long break | Jul–Sep '27 |
+| 3a | Three holidays, all join within 10 | MIN · skip · J1 JOINS (first pair) · skip · J2 JOINS (all three) · long | holiday breaks below the last J, one long break from it | Christmas '26: skip 1 · MIN 2 · skip 3 · 4 joins Christmas + New Year · skip 5–9 · 10 joins all three |
+| 3b | Three holidays, two join, one far | 1..W · skip · J JOINS · the far one keeps its own long weekend | step 3 (the far one can't join) | Mar–Apr '27: Human Rights Day + Easter join at 3, Freedom Day apart |
+| 3c | Three holidays, none join | as 2d | step 3 | |
+| 4+ | Several seasons (e.g. a whole year) | plain row, no tags or skips (the row can only describe one season) | step 3; holiday breaks grouped by season (not built) | Jan–Dec '27 |
+
+Step 3 (the Holiday breaks / One long break toggle) only shows when the holidays can't all join (2d, 3b, 3c, 4+).
+One holiday: once there's a proper break (MIN), every number after it is usable. Two or more: numbers are usable again only once every holiday that can join has joined (after the last JOINS).
+
+List rules that go with it:
+- Below the first J each holiday gets its own best break (maximise). From J the join takes priority: the **best join you can afford** (most holidays, then most days off) replaces the long weekends it's made of; a holiday that isn't in that join keeps its own row (Christmas at 7: Reconciliation + Christmas join, New Year keeps its weekend).
+- Skipping only applies to holiday breaks; when step 3 is on One long break, every number is usable.
+- Easter and Christmas start with **nothing ticked**.
+- Leftover leave after the joins (or fewer days than the first J) → the line points to the Calendar to use it there.
+
+Edge cases:
+- Holiday on a Saturday: gives nothing (Workers' Day Sat 1 May 2027). On a Sunday: moves to Monday (Women's Day Sun 9 Aug 2026 → Mon 10).
+- No workday between two holidays: one holiday (Easter Fri–Mon; Christmas Fri 25 + Day of Goodwill Sat 26 Dec 2026).
+- The join comes before MIN: the join is the minimum (Easter '27: 3, not 4; Freedom Fri 27 Apr + Workers' Tue 1 May 2029: 1 day joins).
+- Less leave left than MIN / the first join: those numbers stay skipped; the line says to use the days on the Calendar. Leave left 0: nothing to plan.
+- Breaks never run past the period, so a long weekend may shift (Christmas period starts 15 Dec: Reconciliation Wed 16 uses Thu–Fri).
+- Two joins at the same leave: one JOINS tag, the line names the bigger join.
+- Several seasons in one range: plain row, step 3, list by season (to build). This month with < 10 workdays left: Custom starts next month.
+- A pick overlaps another pick: the overlapping rows hide (untick to bring them back). Not enough leave for a row: greyed, one note under the table.
+- Advanced options (avoid months, school holidays): the list respects them; MIN / JOINS / skips don't yet. Holiday data ends after 2028 (Custom stops at January after next).
+
+After picking: Add to summary → leave left over? → the line offers "use them on the Calendar →", which opens the Calendar with the holidays filter off and the leave days set to what's left. On the Calendar, a break over or right next to a saved one asks Combine / Replace.
 
 ### Colour Scale (`utils/colorScale.js`)
 - Each distinct `totalDaysOff` value maps to a unique colour from a categorical palette

@@ -16,10 +16,10 @@ const SHORT = { custom: 'Custom', next: 'Up next', xmas: 'Christmas', easter: 'E
  * tabs. The slider starts with a "10 days" button that opens the plan
  * settings (days off limit, Advanced), with a badge when Advanced options are on.
  *
- * Props: planner, isSaved, onAdd, onView, province, onProvinceChange,
+ * Props: planner, isSaved, onAdd, onView, onUseRest, province, onProvinceChange,
  *        onOpenSummary – the My breaks sheet (from the Added note)
  */
-export function MobileOverview({ planner, isSaved, onAdd, onView, province, onProvinceChange, onOpenSummary }) {
+export function MobileOverview({ planner, isSaved, onAdd, onView, onUseRest, province, onProvinceChange, onOpenSummary }) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   // "Added N breaks · View summary" for a few seconds after adding.
   const [added, setAdded] = useState(0)
@@ -55,6 +55,7 @@ export function MobileOverview({ planner, isSaved, onAdd, onView, province, onPr
             isSaved={isSaved}
             onAdd={list => { planner.markAdded(list); onAdd(list); setAdded(list.length) }}
             onView={onView}
+            onUseRest={onUseRest}
             calendar={<PlanMonths phone period={period} breaks={planner.breaks} ticked={planner.ticked} />}
           />
         </section>
