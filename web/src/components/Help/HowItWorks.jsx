@@ -19,7 +19,7 @@ export function HowItWorks({ phone = false, onReplay }) {
     <><b>Advanced options</b>: plan around school holidays, or avoid / include months. A number shows how many are on.</>,
     phone
       ? <>Tap <b>Filters</b> for quick filters (Selected only, public holidays, school holidays) or More… for the rest. Hold Filters to remove them all. Settings (⚙): Compact calendar or Dark mode.</>
-      : <>Filters: days off, public holidays (or All holidays), Selected only. Both side panels collapse to icons. The moon button switches to dark mode.</>,
+      : <>Filters: days off, public holidays (or All), Leave fills a gap (a weekend or holiday on both sides of your leave), Selected only. Both side panels collapse to icons. The moon button switches to dark mode.</>,
     <>Your breaks are saved on this device. You can plan the rest of this year, next year and the January after.</>,
   ]
 

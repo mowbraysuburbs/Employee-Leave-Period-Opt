@@ -10,7 +10,7 @@ const toggle = on => [
 
 /**
  * The phone calendar's filters (leave days and colours live in the bottom
- * panel): Selected only, public holidays, plan dates, school holidays, the
+ * panel): Selected only, public holidays, leave fills a gap, plan dates, school holidays, the
  * dates and Clear all. Takes the same `c` object as ControlRail.
  *
  * Props: c, activeCount, onClearAll, onClose
@@ -24,6 +24,10 @@ export function FiltersSheet({ c, activeCount, onClearAll, onClose }) {
             👁 Selected breaks only ({c.savedCount})
           </button>
           <HolidayFilterMenu inline options={c.holidayOptions} selected={c.holidayFilter} onChange={c.onHolidayFilterChange} />
+          <button type="button" aria-pressed={c.gapOnly} onClick={() => c.onGapOnlyChange(!c.gapOnly)} className={`${toggle(c.gapOnly)} py-2`}>
+            <span className="block">🌉 Leave fills a gap</span>
+            <span className={`block text-[12px] font-medium ${c.gapOnly ? 'text-slate-300' : 'text-slate-500'}`}>Only breaks with a weekend or holiday on both sides of your leave</span>
+          </button>
           {c.previewCount > 0 && (
             <button type="button" aria-pressed={c.previewOnly} onClick={() => c.onPreviewOnlyChange(!c.previewOnly)} className={toggle(c.previewOnly)}>
               Only plan dates ({c.previewCount})

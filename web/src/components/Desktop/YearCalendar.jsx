@@ -17,6 +17,7 @@ import { buildMonthDays, keepMatchingRows, withBand } from '../../utils/calendar
  *   schoolDates    – Set of school-holiday dates to underline, or null when the filter is off
  *   daysOffFilter  – Set of days-off values to keep coloured, or null; months without a
  *                    match are hidden, but any row with a match is kept whole
+ *   gapOnly        – only breaks whose leave fills a gap between two free stretches (fillsGap)
  *   hoveredDate    – day under the mouse (owned by the parent so Details can follow it)
  *   selectedBreak  – the clicked break, drawn with a grey pill behind it, or null
  *   onDayHover, onDayClick
@@ -32,6 +33,7 @@ export function YearCalendar({
   previewDayTypes,
   schoolDates,
   daysOffFilter,
+  gapOnly,
   holidayView,
   hoveredDate,
   selectedBreak,
@@ -40,8 +42,8 @@ export function YearCalendar({
 }) {
   // Colours depend on everything except the hover, so hovering stays cheap.
   const monthDays = useMemo(
-    () => buildMonthDays({ months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, schoolDates, daysOffFilter, holidayView }),
-    [months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, schoolDates, daysOffFilter, holidayView]
+    () => buildMonthDays({ months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, schoolDates, daysOffFilter, gapOnly, holidayView }),
+    [months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, schoolDates, daysOffFilter, gapOnly, holidayView]
   )
 
   // How many month cards fit per row, matching the grid's minmax(260px, 1fr) and 16px gap.
@@ -58,8 +60,8 @@ export function YearCalendar({
   }, [])
 
   const visibleMonths = useMemo(
-    () => keepMatchingRows(monthDays, breaks, { daysOffFilter, holidayFilter }, columns),
-    [monthDays, daysOffFilter, holidayFilter, columns, breaks]
+    () => keepMatchingRows(monthDays, breaks, { daysOffFilter, holidayFilter, gapOnly }, columns),
+    [monthDays, daysOffFilter, holidayFilter, gapOnly, columns, breaks]
   )
 
   const hoverBreak = hoveredDate ? breaks[hoveredDate] : null

@@ -45,7 +45,7 @@ function initialPanelCollapsed() {
 export function DesktopApp() {
   const { theme, setTheme, leaveTotal, setLeaveTotal } = useSettings()
   const {
-    controls, activeFilters, clearAllFilters, colourBy, holidayFilter, picksOnly, setPicksOnly, activeDaysOff, province, setProvince, schoolDates,
+    controls, activeFilters, clearAllFilters, colourBy, holidayFilter, gapOnly, picksOnly, setPicksOnly, activeDaysOff, province, setProvince, schoolDates,
     months, breaks, holidayView, demoDate, planner,
     preview, setPreview, previewOnly, previewDays, previewLabel, openPreview, openRestOnCalendar,
     saved, savedBreaks, savedDayTypes, savedStarts, isSaved, justAddedKey,
@@ -144,6 +144,7 @@ export function DesktopApp() {
               breaks={breaks}
               colourBy={colourBy}
               holidayFilter={holidayFilter}
+              gapOnly={gapOnly}
               picksOnly={picksOnly}
               savedDayTypes={savedDayTypes}
               savedStarts={savedStarts}

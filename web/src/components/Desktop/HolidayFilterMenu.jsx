@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react'
 // Nothing ticked = no filter ("Off"); everything ticked = only breaks with any holiday.
 function label(selected, total) {
   if (selected.length === 0) return 'Off'
-  if (selected.length >= total) return 'All holidays'
+  if (selected.length >= total) return 'All'
   if (selected.length === 1) return selected[0]
   return `${selected.length} selected`
 }

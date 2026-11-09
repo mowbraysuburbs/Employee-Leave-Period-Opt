@@ -145,7 +145,7 @@ export function calendarTourSteps(demo, { reset, showDate, showSummary }) {
       target: 'show',
       enter: reset,
       title: 'Show only…',
-      text: 'Breaks with a public holiday (or All holidays), your Selected breaks, or school holidays for your province.',
+      text: 'Breaks with a public holiday (or All), breaks where your leave fills a gap, your Selected breaks, or school holidays for your province.',
     },
     {
       date: demo?.startDate,

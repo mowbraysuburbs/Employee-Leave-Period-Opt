@@ -1,6 +1,6 @@
 import { getColourForDaysOff, getColourForMultiplier } from './colorScale'
 import { DAY_TYPE_COLOUR } from './dayTypes'
-import { holidayNamesIn, formatMultiplier, hasGain } from './breaks'
+import { holidayNamesIn, formatMultiplier, hasGain, fillsGap } from './breaks'
 import { getHolidayName } from '../data/publicHolidays'
 import { fmtDay, addDays } from './dateFormat'
 
@@ -44,11 +44,11 @@ export function withBand(day, brk, selected = false) {
  * are coloured (a view; nothing can be tapped or added as leave).
  *
  * Options: months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes,
- * savedStarts, previewDayTypes, schoolDates, daysOffFilter
+ * savedStarts, previewDayTypes, schoolDates, daysOffFilter, gapOnly
  * (see YearCalendar for what each means).
  */
-export function buildMonthDays({ months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, schoolDates, daysOffFilter, holidayView = false }) {
-  const passesFilter = brk => holidayFilter.length === 0 || holidayNamesIn(brk).some(n => holidayFilter.includes(n))
+export function buildMonthDays({ months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, schoolDates, daysOffFilter, gapOnly = false, holidayView = false }) {
+  const passesFilter = brk => (holidayFilter.length === 0 || holidayNamesIn(brk).some(n => holidayFilter.includes(n))) && (!gapOnly || fillsGap(brk))
 
   function look(date, brk) {
     if (!brk) return OUTSIDE
@@ -124,13 +124,14 @@ export function buildMonthDays({ months, breaks, colourBy, holidayFilter, picksO
  * so the grid never has gaps. A day matches when its break passes every filter
  * that's on.
  *
- * filters: { daysOffFilter: Set | null, holidayFilter: string[] }
+ * filters: { daysOffFilter: Set | null, holidayFilter: string[], gapOnly: boolean }
  */
-export function keepMatchingRows(monthDays, breaks, { daysOffFilter = null, holidayFilter = [] }, columns) {
-  if (!daysOffFilter && holidayFilter.length === 0) return monthDays
+export function keepMatchingRows(monthDays, breaks, { daysOffFilter = null, holidayFilter = [], gapOnly = false }, columns) {
+  if (!daysOffFilter && holidayFilter.length === 0 && !gapOnly) return monthDays
   const matches = brk => brk
     && (!daysOffFilter || daysOffFilter.has(brk.daysOff))
     && (holidayFilter.length === 0 || holidayNamesIn(brk).some(n => holidayFilter.includes(n)))
+    && (!gapOnly || fillsGap(brk))
   const kept = []
   for (let i = 0; i < monthDays.length; i += columns) {
     const row = monthDays.slice(i, i + columns)

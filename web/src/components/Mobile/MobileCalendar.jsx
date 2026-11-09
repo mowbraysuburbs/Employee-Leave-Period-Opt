@@ -16,14 +16,14 @@ const noHover = () => {}
  *   compact       – two smaller months per row instead of one
  */
 export function MobileCalendar({ selectedBreak, onDayClick, compact = false, ...options }) {
-  const { months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, schoolDates, daysOffFilter, holidayView } = options
+  const { months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, schoolDates, daysOffFilter, gapOnly, holidayView } = options
   const monthDays = useMemo(
-    () => buildMonthDays({ months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, schoolDates, daysOffFilter, holidayView }),
-    [months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, schoolDates, daysOffFilter, holidayView]
+    () => buildMonthDays({ months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, schoolDates, daysOffFilter, gapOnly, holidayView }),
+    [months, breaks, colourBy, holidayFilter, picksOnly, savedDayTypes, savedStarts, previewDayTypes, schoolDates, daysOffFilter, gapOnly, holidayView]
   )
   // The days-off filter hides rows (one or two months) without a match.
   const columns = compact ? 2 : 1
-  const visibleMonths = useMemo(() => keepMatchingRows(monthDays, breaks, { daysOffFilter, holidayFilter }, columns), [monthDays, breaks, daysOffFilter, holidayFilter, columns])
+  const visibleMonths = useMemo(() => keepMatchingRows(monthDays, breaks, { daysOffFilter, holidayFilter, gapOnly }, columns), [monthDays, breaks, daysOffFilter, holidayFilter, gapOnly, columns])
 
   // Bring the tapped break's first day near the top, above the sheet.
   const scrollRef = useRef(null)

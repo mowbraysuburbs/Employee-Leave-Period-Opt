@@ -112,6 +112,7 @@ export function MobileApp() {
             breaks={p.breaks}
             colourBy={p.colourBy}
             holidayFilter={p.holidayFilter}
+            gapOnly={p.gapOnly}
             picksOnly={p.picksOnly}
             savedDayTypes={p.savedDayTypes}
             savedStarts={p.savedStarts}
