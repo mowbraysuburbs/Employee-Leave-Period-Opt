@@ -179,7 +179,8 @@ There's no step 3: One long break and Holiday breaks are two sections of one lis
 One holiday: once there's a proper break (MIN), every number after it is usable. Two or more: numbers are usable again only once every holiday that can join has joined (after the last JOINS).
 
 List rules that go with it:
-- The holiday breaks list shows **every row**: joins first (most holidays, then most days off), then each holiday's own break (best value first), so you can take the join or the separate long weekends (Christmas at 4: Christmas + New Year joined, then the Christmas weekend, the New Year weekend, Reconciliation). Ticking one greys the rows that clash with it; nothing is hidden.
+- A single holiday's row must be a **proper break** (catch a weekend it doesn't already have for free): a Mon / Fri holiday plus one day (Thu–Sun, Fri–Mon) fills no gap, so it isn't listed; its row is the full week (4–5 leave) instead. Joins always count.
+- The holiday breaks list shows **every row**: joins first (most holidays, then most days off), then each holiday's own break (best value first), so you can take the join or the separate long weekends (Christmas at 4: Christmas + New Year joined, Reconciliation (Wed, 2 days), Christmas as a full week). Ticking one greys the rows that clash with it; nothing is hidden.
 - Easter and Christmas start with **nothing ticked**.
 - Leftover leave after the joins (or fewer days than the first J) → the line points to the Calendar to use it there.
 

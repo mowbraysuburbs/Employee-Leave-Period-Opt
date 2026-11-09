@@ -338,8 +338,10 @@ function holidayKey(brk) {
  *   aim 'long' – single breaks using all `leave` days, most days off first
  *   aim 'max'  – holidays only: for each public holiday, and each run of
  *                holidays joined together, the best-value break (fewest leave
- *                on a tie). No plain long weekends and no padding. Joins first,
- *                then the single holidays (best value first).
+ *                on a tie). No plain long weekends and no padding: a single
+ *                holiday's break must catch a weekend it doesn't have for free
+ *                (Mon / Fri holiday → the full week). Joins first, then the single
+ *                holidays (best value first).
  * Equal starts collapse to the earliest (as in planLeave); never past `to`;
  * avoided months and `within` (school holidays) apply; a long break must
  * touch every included month (holiday breaks: you pick the months yourself). At most `limit`.
@@ -364,9 +366,26 @@ export function customOptions({ from, to, leave, aim, avoidMonths = new Set(), i
     }
   }
   if (aim === 'max') {
+    // A single holiday's break must catch a weekend the holiday doesn't already
+    // have for free: a Mon / Fri holiday plus one day (Thu–Sun, Fri–Mon) fills
+    // no gap, so its first real break is the full week. Joins always count.
+    const freeWeekendDays = date => {
+      let a = date
+      let b = date
+      while (isFree(addDays(a, -1)) && addDays(a, -1) >= from) a = addDays(a, -1)
+      while (isFree(addDays(b, 1)) && addDays(b, 1) <= to) b = addDays(b, 1)
+      let n = 0
+      for (let d = a; d <= b; d = addDays(d, 1)) if (isWeekend(d)) n++
+      return n
+    }
+    const proper = brk => {
+      if (holidayKey(brk).split('+').length > 1) return true
+      const hol = brk.days.find(d => d.type === 'public_holiday' && !isWeekend(d.date))
+      return !hol || brk.days.filter(d => isWeekend(d.date)).length > freeWeekendDays(hol.date)
+    }
     // One break per holiday (or set of joined holidays): the best multiplier.
     const best = new Map()
-    for (const brk of options) {
+    for (const brk of options.filter(proper)) {
       const key = holidayKey(brk)
       if (!key) continue
       const old = best.get(key)
