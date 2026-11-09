@@ -56,8 +56,10 @@ export function RailExpanded({ c }) {
             </button>
           ))}
         </div>
-        <p className="m-0 text-xs text-slate-600">{helpText(c.colourBy, c.picksOnly, c.leaveDays)}</p>
-        <div className="flex flex-wrap gap-1">
+        {/* Fixed heights (two lines of help, two rows of chips, the Clear filter row) so the
+            card never grows or shrinks as the leave days, colouring or filter change. */}
+        <p className="m-0 min-h-8 text-xs text-slate-600">{helpText(c.colourBy, c.picksOnly, c.leaveDays)}</p>
+        <div className="h-[52px] flex flex-wrap content-start gap-1 overflow-hidden">
           {c.legend.map(l => {
             const chip = 'min-w-[26px] h-6 px-1 rounded-full inline-flex items-center justify-center text-[11px] font-bold text-slate-900'
             if (!filterable) return <span key={l.label} className={chip} style={{ backgroundColor: l.colour }}>{l.label}</span>
@@ -77,11 +79,9 @@ export function RailExpanded({ c }) {
             )
           })}
         </div>
-        {filtering && (
-          <button type="button" onClick={c.onClearDaysOff} className="self-start h-6 px-2 rounded-md bg-slate-100 text-sky-700 text-xs font-bold">
-            Clear filter
-          </button>
-        )}
+        <button type="button" onClick={c.onClearDaysOff} disabled={!filtering} className={`self-start h-6 px-2 rounded-md bg-slate-100 text-sky-700 text-xs font-bold ${filtering ? '' : 'invisible'}`}>
+          Clear filter
+        </button>
       </section>
 
       <section data-tour="dates" className={card}>
