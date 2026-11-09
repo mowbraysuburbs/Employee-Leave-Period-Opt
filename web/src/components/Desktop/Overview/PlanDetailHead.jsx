@@ -1,5 +1,4 @@
 import { StatTile } from '../StatTile'
-import { PlanKey } from './PlanMonths'
 import { formatMultiplier } from '../../../utils/breaks'
 import { summarise } from '../../../utils/planner'
 import { fmtShortRange } from '../../../utils/dateFormat'
@@ -7,7 +6,7 @@ import { fmtShortRange } from '../../../utils/dateFormat'
 /**
  * The pinned top of the Overview's Details: Go to calendar, the plan's name and
  * dates, its four stats (the same tiles as the calendar's Details, worked out
- * from the ticked breaks), then the colour key.
+ * from the ticked breaks). The colour key lives in the header's Key button.
  *
  * Props: period, breaks (the ticked ones), onView
  */
@@ -35,7 +34,6 @@ export function PlanDetailHead({ period, breaks, onView }) {
         <StatTile kind="total" value={t.daysOff} caption="days off" compact />
         <StatTile kind="multiplier" value={formatMultiplier(t.multiplier)} caption="multiplier" compact />
       </div>
-      <PlanKey />
     </div>
   )
 }

@@ -76,9 +76,9 @@ export function OverviewPage({ planner, isSaved, onAdd, onView, onUseRest, provi
               head={tab === 'details' && (
                 <PlanDetailHead period={period} breaks={planner.breaks.filter(b => planner.ticked.has(b.startDate))} onView={onView} />
               )}
-              details={planner.breaks.length > 0
-                ? <PlanMonths bare period={period} breaks={planner.breaks} ticked={planner.ticked} highlight={hovered} />
-                : <p className="m-0 text-sm text-slate-600">{planner.listMode ? 'Nothing picked yet. Pick a break in the list to see it here.' : 'No breaks to show for these settings.'}</p>}
+              details={planner.calendarBreaks.breaks.length > 0
+                ? <PlanMonths bare period={period} {...planner.calendarBreaks} highlight={hovered} />
+                : <p className="m-0 text-sm text-slate-600">No breaks to show for these settings.</p>}
               summary={summary}
             />
           </div>

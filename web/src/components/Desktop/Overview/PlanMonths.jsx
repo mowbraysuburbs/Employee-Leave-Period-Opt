@@ -68,20 +68,21 @@ function Month({ months, dayInfo, highlight }) {
           const weekday = i % 7
           const left = info.first || weekday === 0 || date === firstDay
           const right = info.last || weekday === 6 || date === lastDay
-          // Unticked breaks fade; the break whose table row is hovered glows (nothing else changes).
-          const dim = !info.ticked
-          const glow = highlight === info.start
+          // Dates no ticked break uses fade; the hovered row's dates glow. One style
+          // per date, so a date in two breaks never gets a double outline.
+          const glow = highlight.has(date)
+          const dim = !info.ticked && !glow
           return (
             <span
               key={date}
-              data-break-start={info.first ? info.start : undefined}
+              data-date={date}
               title={info.holiday ?? undefined}
               className={[
                 'relative h-[26px] flex flex-col items-center justify-center text-[11.5px] leading-none font-bold transition-opacity',
                 left ? 'rounded-l-md' : '',
                 right ? 'rounded-r-md' : '',
                 dim ? 'opacity-30' : '',
-                glow ? 'z-10 shadow-[0_0_10px_3px_rgba(14,165,233,0.85)]' : '',
+                glow ? 'z-10 shadow-[0_0_6px_1px_rgba(14,165,233,0.9)]' : '',
                 info.holiday ? 'cursor-help' : '',
               ].join(' ')}
               style={{
@@ -92,7 +93,7 @@ function Month({ months, dayInfo, highlight }) {
             >
               {n}
               {label}
-              {info.first && <i aria-hidden="true" className="absolute top-0.5 left-0.5 w-[5px] h-[5px] rounded-full bg-white shadow-[0_0_0_1px_rgba(15,23,42,0.3)]" />}
+              {info.dot && <i aria-hidden="true" className="absolute top-0.5 left-0.5 w-[5px] h-[5px] rounded-full bg-white shadow-[0_0_0_1px_rgba(15,23,42,0.3)]" />}
             </span>
           )
         })}
@@ -122,29 +123,45 @@ export function PlanKey() {
  * scrolls underneath, showing only the weeks that matter (months a break runs
  * across are joined into one strip). Hovering a row in the
  * results makes that break glow here and scrolls it into view.
+ * List periods (Custom, Easter, Christmas, next year) pass every option: all
+ * their dates show (faint unless a ticked break uses them), so you see
+ * everything you're choosing from.
  *
  * Props:
  *   period          – { from, to }
- *   breaks, ticked  – the plan's breaks and the ticked start dates
- *   highlight       – start date of the break to highlight (a hovered row), or null
+ *   breaks, ticked  – the breaks to show, and the ticked ones (a Set of keys)
+ *   keyOf           – a break → its key in `ticked` (default: its start date)
+ *   highlight       – the hovered row: a break, or its start date, or null
  *   onOpen          – opens the full calendar with the ticked breaks
  *   phone           – no column frame or Open link (shown inside the results card)
  *   bare            – just the months (the Overview's Details tab, which pins the key itself)
  */
-export function PlanMonths({ period, breaks, ticked, highlight, onOpen, phone = false, bare = false }) {
+export function PlanMonths({ period, breaks, ticked, keyOf = b => b.startDate, highlight, onOpen, phone = false, bare = false }) {
   const scroller = useRef(null)
+  // The hovered break (a row passes the break itself; older tables pass its start date).
+  const hovered = typeof highlight === 'string' ? breaks.find(b => b.startDate === highlight) : highlight
+  const hoverDays = new Set(hovered ? hovered.days.map(d => d.date) : [])
+  // Every date any break uses, once: ticked if a ticked break uses it; a dot on
+  // the first day of a ticked or hovered break.
+  const isHovered = b => !!hovered && b.startDate === hovered.startDate && b.leaveDays === hovered.leaveDays
   const dayInfo = new Map()
   for (const b of breaks) {
+    const on = ticked.has(keyOf(b))
+    const marked = on || isHovered(b)
     for (const d of b.days) {
+      const was = dayInfo.get(d.date)
       dayInfo.set(d.date, {
         type: d.type,
-        start: b.startDate,
-        first: d.date === b.startDate,
-        last: d.date === b.endDate,
-        ticked: ticked.has(b.startDate),
+        ticked: (was?.ticked ?? false) || on,
+        dot: (was?.dot ?? false) || (marked && d.date === b.startDate),
         holiday: d.type === 'public_holiday' ? d.holidayName : null,
       })
     }
+  }
+  // Runs of dates are drawn as joined rectangles: a run starts after a date no break uses.
+  for (const [date, info] of dayInfo) {
+    info.first = !dayInfo.has(addDays(date, -1))
+    info.last = !dayInfo.has(addDays(date, 1))
   }
   const breakMonths = monthsIn(period.from, period.to).filter(m => [...dayInfo.keys()].some(d => d.startsWith(m)))
   const groups = groupMonths(breakMonths, breaks)
@@ -152,7 +169,7 @@ export function PlanMonths({ period, breaks, ticked, highlight, onOpen, phone = 
   // Scroll the months (not the page) so the highlighted break's first day shows.
   useEffect(() => {
     const box = scroller.current
-    const target = highlight && box?.querySelector(`[data-break-start="${highlight}"]`)
+    const target = hovered && box?.querySelector(`[data-date="${hovered.startDate}"]`)
     if (!target) return
     if (bare) {
       // Inside the side panel, which does the scrolling.
@@ -161,14 +178,14 @@ export function PlanMonths({ period, breaks, ticked, highlight, onOpen, phone = 
     }
     const top = target.getBoundingClientRect().top - box.getBoundingClientRect().top + box.scrollTop
     box.scrollTo({ top: Math.max(0, top - 40), behavior: 'smooth' })
-  }, [highlight, bare])
+  }, [hovered, bare])
 
   if (breakMonths.length === 0) return null
 
   if (bare) {
     return (
       <div ref={scroller} aria-label="Plan on the calendar" className="flex flex-col gap-3">
-        {groups.map(g => <Month key={g[0]} months={g} dayInfo={dayInfo} highlight={highlight} />)}
+        {groups.map(g => <Month key={g[0]} months={g} dayInfo={dayInfo} highlight={hoverDays} />)}
       </div>
     )
   }
@@ -189,7 +206,7 @@ export function PlanMonths({ period, breaks, ticked, highlight, onOpen, phone = 
         {!phone && <span className="text-[11px] text-slate-500">Hover a holiday to see its name.</span>}
       </div>
       <div ref={scroller} className={phone ? 'flex flex-col gap-3' : 'flex-1 min-h-0 overflow-y-auto px-3.5 py-3 flex flex-col gap-3'}>
-        {groups.map(g => <Month key={g[0]} months={g} dayInfo={dayInfo} highlight={highlight} />)}
+        {groups.map(g => <Month key={g[0]} months={g} dayInfo={dayInfo} highlight={hoverDays} />)}
       </div>
     </aside>
   )
