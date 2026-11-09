@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { formatMultiplier } from '../../../utils/breaks'
-import { fmtDayShortYear, fmtShortRange, fmtShortYear } from '../../../utils/dateFormat'
+import { fmtDayShortYear, fmtShortYear } from '../../../utils/dateFormat'
 import { StartCell } from './StartCell'
 
 // Start and End are as wide as their dates; the number columns share what's
@@ -14,12 +14,8 @@ function ranks(options, value) {
   return options.map((o, i) => (i === 0 || value(o) !== value(options[i - 1]) ? ++rank : rank))
 }
 
-// Why an option can't be ticked (shown under its start date), or ''.
-function blockedText(blocker) {
-  if (blocker?.overlap) return `Already in your ${fmtShortRange(blocker.overlap.startDate, blocker.overlap.endDate)} break`
-  if (blocker?.leave) return 'Not enough leave left'
-  return ''
-}
+// Why an option can't be ticked: told once in a note under the table (and in
+// the row's tooltip / label). Options inside a ticked break are hidden instead, see `rows`.
 
 // The public holidays inside a break (their names show on hover).
 const holidaysIn = brk => brk.days.filter(d => d.type === 'public_holiday')
@@ -51,11 +47,11 @@ function SortHeading({ id, sort, onSort, phone, className }) {
 }
 
 /**
- * Custom dates' options, best first, nothing picked until you pick it:
- * Start and End (with weekdays), public holidays used, days off, leave and
- * multiplier. One long break: radio buttons (pick one). Holiday breaks: tick boxes; options
- * that overlap a pick, or need more leave than is left, are greyed with the
- * reason under the start date.
+ * The options of a list period (Custom; Easter and Christmas start with picks
+ * ticked), best first: Start and End (with weekdays), public holidays used,
+ * days off, leave and multiplier. One long break: radio buttons (pick one).
+ * Holiday breaks: tick boxes; options that overlap a pick are hidden, and ones
+ * that need more leave than is left are greyed, with one note under the table.
  * Click a column heading to sort by it. A start date with a dropdown can
  * move to another day for the same days off (the end follows).
  *
@@ -73,8 +69,11 @@ export function CustomOptionsTable({ planner, onHover, phone = false }) {
   // Rank once (best first), then show the rows in the chosen order; ties keep the rank order.
   const rank = ranks(options, long ? o => o.daysOff : o => o.multiplier)
   const value = SORTS[sort.by].value
+  // Options that overlap a ticked break (e.g. the long weekends inside a joined
+  // break) are hidden; they come back when you untick it.
   const rows = options
     .map((o, i) => ({ o, rank: rank[i] }))
+    .filter(({ o }) => !planner.blockerFor(o)?.overlap)
     .sort((a, b) => {
       const x = value({ ...a.o, rank: a.rank })
       const y = value({ ...b.o, rank: b.rank })
@@ -96,7 +95,6 @@ export function CustomOptionsTable({ planner, onHover, phone = false }) {
       {rows.map(({ o }) => {
         const picked = planner.isPicked(o)
         const blocker = planner.blockerFor(o)
-        const why = blockedText(blocker)
         const hols = holidaysIn(o)
         const date = d => (phone ? fmtShortYear(d) : fmtDayShortYear(d))
         const name = `${fmtDayShortYear(o.startDate)} to ${fmtDayShortYear(o.endDate)}, ${o.daysOff} days off`
@@ -106,12 +104,13 @@ export function CustomOptionsTable({ planner, onHover, phone = false }) {
               role="row"
               onMouseEnter={() => onHover?.(o.startDate)}
               onMouseLeave={() => onHover?.(null)}
+              title={blocker ? 'Not enough leave left: untick a break to free your leave' : undefined}
               className={`${cols} px-1.5 py-2 border-t border-slate-100 ${picked ? 'bg-sky-50' : onHover ? 'hover:bg-slate-50' : ''} ${blocker ? 'opacity-50' : ''}`}
             >
               <input
                 type={long ? 'radio' : 'checkbox'}
                 name={long ? 'custom-long-break' : undefined}
-                aria-label={`Pick ${name}`}
+                aria-label={`Pick ${name}${blocker ? ' (not enough leave left)' : ''}`}
                 checked={picked}
                 disabled={!!blocker}
                 onChange={() => planner.togglePick(o)}
@@ -121,7 +120,6 @@ export function CustomOptionsTable({ planner, onHover, phone = false }) {
               />
               <span role="cell" className="min-w-0">
                 <StartCell brk={o} options={planner.startChoicesFor(o)} onSwap={d => planner.swapOptionStart(o, d)} phone={phone} />
-                {why && <span className={`block leading-tight text-slate-600 ${phone ? 'text-[10.5px]' : 'text-[11.5px]'}`}>{why}</span>}
               </span>
               <span role="cell" className={`whitespace-nowrap ${phone ? 'text-[12px]' : ''}`}>{date(o.endDate)}</span>
               <span role="cell" title={hols.map(h => h.holidayName).join(', ')} className="font-bold text-orange-800">{hols.length}</span>
@@ -131,8 +129,14 @@ export function CustomOptionsTable({ planner, onHover, phone = false }) {
             </div>
         )
       })}
+      {/* Greyed rows: one note for all of them, only when there are some. */}
+      {rows.some(({ o }) => planner.blockerFor(o)?.leave) && (
+        <p className={`m-0 mt-1.5 pt-2 px-1.5 border-t border-slate-100 text-slate-600 ${phone ? 'text-[11.5px]' : 'text-[12px]'}`}>
+          <b className="text-slate-500">Greyed:</b> not enough leave left. Untick a break to use your leave somewhere else.
+        </p>
+      )}
       {/* Desktop shows this note under the table instead. */}
-      {phone && options.some(o => o.starts.length > 1) && (
+      {phone && rows.some(({ o }) => o.starts.length > 1) && (
         <p className="m-0 mt-1.5 pt-2 px-1.5 border-t border-slate-100 text-[11.5px] text-slate-600">
           <b className="text-sky-700">▾</b> Same days off from another start date. Tap to swap.
         </p>

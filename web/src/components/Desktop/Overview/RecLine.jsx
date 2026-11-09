@@ -14,9 +14,10 @@ const TONES = {
  *      that break, and a "Use N" button
  *   ✓  on the recommended days: the same tag; above them: the one break you have
  *   📈 no recommendation (next year): it plans for the best multiplier
- *   Custom: which list and why: 🗓️ no holidays (every week the same) · 🏝️ one
- *      holiday / one long break · ✓ the holidays join · 📈 holiday breaks, then
- *      "N of M leave days used. Want more? Add breaks on the Calendar." 
+ *   Custom, Easter and Christmas (list periods): about the number you're on:
+ *      ✓ "N leave days join A + B: dates, days off" on a join number · 🗓️ no
+ *      holidays · 🏝️ one holiday / one long break · 📈 holiday breaks (where they
+ *      join next, or "N of M leave days used"). No Use N: REC on the row points the way.
  *
  * Props: planner – usePlanner() result; phone – smaller text
  */
@@ -28,10 +29,21 @@ export function RecLine({ planner, phone = false }) {
   let use = null
   const tag = rec && <span className="inline-block mx-0.5 px-1.5 rounded-md bg-amber-100 text-amber-900 text-[0.92em] font-bold whitespace-nowrap">{rec.reason}</span>
 
-  if (planner.isCustom) {
+  if (planner.listMode) {
+    // Custom, Easter and Christmas: the line is about the number you're on.
     const map = planner.customMap
-    const lastJoin = map?.joins[map.joins.length - 1]
-    if (planner.aim === 'long') {
+    const joins = map?.joins ?? []
+    const joinHere = joins.find(j => j.leave === leave)
+    const firstJoin = joins[0]
+    const { options } = planner
+    // The break that joins them: the top long break, or the holiday break using exactly these leave days.
+    const joinBrk = planner.aim === 'long' ? options[0] : options.filter(o => o.leaveDays === leave).sort((a, b) => b.daysOff - a.daysOff)[0]
+    const when = brk => (brk ? <>: {fmtShortRange(brk.startDate, brk.endDate)}, {brk.daysOff} days off</> : '')
+    if (joinHere) {
+      tone = 'done'
+      icon = '✓'
+      text = <><b>{leave} leave days join {joinHere.names.join(' + ')}</b>{when(joinBrk)}.</>
+    } else if (planner.aim === 'long') {
       icon = '🏝️'
       if (!map?.holidays) {
         icon = '🗓️'
@@ -41,15 +53,17 @@ export function RecLine({ planner, phone = false }) {
       } else if (map.allJoin) {
         tone = 'done'
         icon = '✓'
-        text = <><b>{lastJoin.names.join(' + ')}</b> join into one break. Longest first; pick one.</>
+        text = <><b>One break around {joins[joins.length - 1].names.join(' + ')}</b>{when(options[0])}. Longest first; pick one.</>
       } else {
         text = <><b>One long break</b> with your {leave} leave day{leave === 1 ? '' : 's'}. Longest first; pick one.</>
       }
     } else if (planner.pickedLeave) {
       // Holiday breaks don't have to use all your leave.
       text = <><b>{planner.pickedLeave} of {leave} leave days used.</b> Want more? Add breaks on the Calendar.</>
+    } else if (map?.allJoin && firstJoin && leave < firstJoin.leave) {
+      text = <><b>Holiday breaks</b>, best value first. Tick the ones you want. At {firstJoin.leave} leave days {firstJoin.names.join(' + ')} join.</>
     } else if (map?.allJoin) {
-      text = <><b>Holiday breaks</b>, best value first. Tick the ones you want. With {lastJoin.leave} leave days they join into one break.</>
+      text = <><b>Holiday breaks</b>, best value first. Tick the ones you want.</>
     } else {
       text = <><b>Holiday breaks</b>, best value first: your holidays are too far apart to join. Tick the ones you want.</>
     }

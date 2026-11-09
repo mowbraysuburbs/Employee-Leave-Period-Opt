@@ -17,6 +17,15 @@ const year = new Date().getFullYear() + 1;
   const nav = d.getByRole('navigation', { name: 'Leave periods' });
   const add = d.getByRole('button', { name: /Add to summary|Added/ }).first();
   check('themed period: no step 3', (await d.getByRole('radiogroup', { name: 'Show which list' }).count()) === 0);
+  // Christmas holidays at 4 days: the Christmas + New Year join is ticked, its long weekends are hidden,
+  // and the line is about 4 (no "Use 10").
+  await nav.getByRole('button', { name: /^Christmas/ }).first().click();
+  await d.getByRole('radiogroup', { name: 'Days off limit' }).getByRole('radio', { name: /^4/ }).click();
+  const xline = await d.getByRole('status').first().innerText();
+  check('Christmas, 4 days: the line is about 4 leave days', /4 leave days join Christmas \+ New Year/.test(xline) && (await d.getByRole('button', { name: /^Use / }).count()) === 0, xline);
+  const xt = d.getByRole('table', { name: 'Options to pick from' });
+  check('Christmas, 4 days: one note explains the greyed row', (await d.getByText(/Greyed: not enough leave left/).count()) === 1);
+  check('Christmas, 4 days: the join is ticked and its long weekends are hidden', (await xt.locator('input:checked').count()) === 1 && (await xt.getByRole('checkbox').count()) === 2 && (await xt.getByText(/Already in your/).count()) === 0, String(await xt.getByRole('checkbox').count()));
 
   await nav.getByRole('button', { name: 'Custom dates' }).click();
   const limit = d.getByRole('radiogroup', { name: 'Days off limit' });
@@ -28,7 +37,7 @@ const year = new Date().getFullYear() + 1;
   check('March: holidays that join = no step 3', (await d.getByRole('radiogroup', { name: 'Show which list' }).count()) === 0);
   check('March, 2 days: holiday breaks (tick boxes)', (await d.getByRole('table', { name: 'Options to pick from' }).getByRole('checkbox').count()) > 0);
   await limit.getByRole('radio', { name: /^3/ }).click();
-  check('March, 3 days: the joined break (pick one)', /join into one break/.test(await d.getByRole('status').first().innerText()) && (await d.getByRole('table', { name: 'Options to pick from' }).getByRole('radio').count()) > 0, await d.getByRole('status').first().innerText());
+  check('March, 3 days: the joined break (pick one)', /3 leave days join Human Rights Day \+ Easter/.test(await d.getByRole('status').first().innerText()) && (await d.getByRole('table', { name: 'Options to pick from' }).getByRole('radio').count()) > 0, await d.getByRole('status').first().innerText());
   // February: no holidays, every week the same.
   await d.selectOption('#overview-from-month', `${year}-02`);
   await d.selectOption('#overview-to-month', `${year}-02`);
@@ -43,11 +52,16 @@ const year = new Date().getFullYear() + 1;
   check('Custom: Add is off until you pick', await add.isDisabled());
 
   // Tick until the leave runs out: the rest grey out.
-  for (let i = 0, n = await boxes.count(); i < n; i++) if (await boxes.nth(i).isEnabled()) await boxes.nth(i).check();
+  // Rows inside a ticked break disappear, so keep ticking the first free one.
+  for (let guard = 0; guard < 20; guard++) {
+    const free = table.locator('input[type=checkbox]:not(:checked):not(:disabled)');
+    if (!(await free.count())) break;
+    await free.first().check();
+  }
   const ticked = await table.locator('input:checked').count();
   check('Holiday breaks: ticks stop when the leave is used', ticked >= 1 && ticked <= 4 && /Add to summary \(\d\)/.test(await add.innerText()), await add.innerText());
   check('Holiday breaks: line under the title counts the leave', /4 of 4 leave days used|of 4 leave days used/.test(await d.getByRole('status').first().innerText()), await d.getByRole('status').first().innerText());
-  check('Holiday breaks: blocked options say why', (await table.getByText(/Already in your|Not enough leave left/).count()) > 0);
+  check('Holiday breaks: rows inside a ticked break are hidden, not greyed', (await table.getByText(/Already in your/).count()) === 0);
 
   await d.getByRole('radio', { name: 'One long break' }).click();
   const radios = table.getByRole('radio');
