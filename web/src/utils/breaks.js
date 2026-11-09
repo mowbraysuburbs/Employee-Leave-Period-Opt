@@ -125,6 +125,25 @@ export function holidayNamesIn(brk) {
   return brk.days.filter(d => d.holidayName).map(d => d.holidayName)
 }
 
+// A weekend day or a public holiday.
+function isFree(date) {
+  const weekday = new Date(date + 'T00:00:00').getDay()
+  return weekday === 0 || weekday === 6 || !!getHolidayName(date, Number(date.slice(0, 4)))
+}
+
+/**
+ * Whether the break's leave fills a gap: the day before its first leave day
+ * and the day after its last leave day are both free (a weekend or a public
+ * holiday), so the leave joins two free stretches instead of padding one.
+ */
+export function fillsGap(brk) {
+  const leave = brk.days.flatMap((d, i) => (d.type === 'leave' ? [i] : []))
+  if (!leave.length) return false
+  const before = leave[0] > 0 || isFree(addDays(brk.startDate, -1))
+  const after = leave.at(-1) < brk.days.length - 1
+  return before && after
+}
+
 export function formatMultiplier(multiplier) {
   return multiplier.toFixed(2)
 }

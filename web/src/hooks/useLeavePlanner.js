@@ -55,6 +55,8 @@ export function useLeavePlanner({ leaveLimit = MAX_LEAVE, onLeaveLimitChange = (
   const [holidaysAll, setHolidaysAll] = useState(true)
   const [pickedHolidays, setPickedHolidays] = useState([])
   const [picksOnly, setPicksOnly] = useState(false)
+  // Only breaks whose leave sits between two free stretches (weekend or holiday on both sides).
+  const [gapOnly, setGapOnly] = useState(false)
   // Days-off values picked from the legend; only applies in Days off mode for now.
   const [daysOffFilter, setDaysOffFilter] = useState([])
   // Details changes when a day is clicked/tapped, never on hover.
@@ -305,6 +307,7 @@ export function useLeavePlanner({ leaveLimit = MAX_LEAVE, onLeaveLimitChange = (
     activeDaysOff && { key: 'daysOff', label: 'Days off', value: [...daysOffFilter].sort((a, b) => a - b).join(', '), clear: () => setDaysOffFilter([]) },
     period.changed && { key: 'dates', label: 'Dates', value: `${fmtShortYear(from)} – ${fmtShortYear(to)}`, clear: period.onReset },
     holidayFilter.length > 0 && { key: 'holidays', label: 'Holidays', value: holidaysAll ? 'All' : holidayFilter.length === 1 ? holidayFilter[0] : `${holidayFilter.length} picked`, clear: () => setHolidayFilter([]) },
+    gapOnly && { key: 'gap', label: 'Fills a gap', value: '', clear: () => setGapOnly(false) },
     picksOnly && { key: 'mine', label: 'Selected', value: '', clear: () => setPicksOnly(false) },
     schoolOn && { key: 'school', label: 'School holidays', value: provinceLabel(province), clear: () => setSchoolOn(false) },
   ].filter(Boolean)
@@ -336,6 +339,8 @@ export function useLeavePlanner({ leaveLimit = MAX_LEAVE, onLeaveLimitChange = (
     onHolidayFilterChange: setHolidayFilter,
     picksOnly,
     onPicksOnlyChange: setPicksOnly,
+    gapOnly,
+    onGapOnlyChange: setGapOnly,
     savedCount: saved.length,
     previewCount: preview?.breaks.length ?? 0,
     previewOnly,
@@ -350,7 +355,7 @@ export function useLeavePlanner({ leaveLimit = MAX_LEAVE, onLeaveLimitChange = (
   return {
     controls, activeFilters, clearAllFilters,
     leaveDays: leaveDaysUsed, changeLeaveDays, colourBy, setColourBy, period, leaveLimit, leaveLeft, leaveInSummary,
-    holidayFilter, setHolidayFilter, holidayOptions, picksOnly, setPicksOnly,
+    holidayFilter, setHolidayFilter, holidayOptions, gapOnly, setGapOnly, picksOnly, setPicksOnly,
     daysOffFilter, toggleDaysOff, clearDaysOff: () => setDaysOffFilter([]), activeDaysOff, legend,
     province, setProvince, schoolOn, setSchoolOn, schoolDates,
     months, breaks, holidayView, demoDate, planner, exportBreaks,

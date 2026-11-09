@@ -91,6 +91,10 @@ export function RailExpanded({ c }) {
       <section data-tour="show" className={card}>
         <div className="text-[13px] font-bold">Show</div>
         <HolidayFilterMenu inline options={c.holidayOptions} selected={c.holidayFilter} onChange={c.onHolidayFilterChange} />
+        <button type="button" aria-pressed={c.gapOnly} onClick={() => c.onGapOnlyChange(!c.gapOnly)} className={toggle(c.gapOnly)}>
+          <span className="block">Leave fills a gap</span>
+          <span className={`block text-[11px] font-medium ${c.gapOnly ? 'text-slate-300' : 'text-slate-500'}`}>Only breaks with a weekend or holiday on both sides of your leave</span>
+        </button>
         {c.previewCount > 0 && (
           <button type="button" aria-pressed={c.previewOnly} onClick={() => c.onPreviewOnlyChange(!c.previewOnly)} className={toggle(c.previewOnly)}>
             Only plan dates ({c.previewCount})
