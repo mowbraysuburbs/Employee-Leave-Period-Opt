@@ -1,14 +1,12 @@
 import { StepHeading } from './StepHeading'
 import { LimitPicker } from './LimitPicker'
-import { AimPicker } from './AimPicker'
 
 /**
  * Step 2 of the Overview (in line with step 1's heading): the days off limit
  * as numbers, the period's recommended number marked REC (not on Custom, Easter or Christmas: MIN / JOINS show the way there), with Advanced
- * options (a down arrow, with a count of options on) on the right. Themed
- * periods have no aim (the leave days decide, see RecLine). Custom dates tags
- * the numbers where holidays join, greys the ones that add nothing, and adds
- * step 3 (Holiday breaks / One long break) only when its holidays are too far apart to join.
+ * options (a down arrow, with a count of options on) on the right. There's no
+ * step 3: the leave days decide (see RecLine), and Custom, Easter and Christmas
+ * list one long break and holiday breaks together.
  *
  * Props: planner – usePlanner() result; moreOpen, onMoreToggle – Advanced options
  */
@@ -24,7 +22,6 @@ export function PlannerBar({ planner, moreOpen, onMoreToggle }) {
           </span>
         )}
       </div>
-      {planner.aimShown && <AimPicker value={planner.aim} onChange={planner.setAim} />}
       <button
         type="button"
         data-tour="advanced"

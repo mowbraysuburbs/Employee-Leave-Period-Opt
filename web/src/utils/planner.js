@@ -553,6 +553,20 @@ export function customLeaveMap(from, to) {
 }
 
 /**
+ * Which sections the list of a list period shows for these leave days:
+ *   long    – "One long break": all your leave in one go (once a long break is
+ *             worth it: from the last join, or from MIN when nothing joins)
+ *   holiday – "Holiday breaks": joins and each holiday's own break (2+ holidays)
+ * No or one holiday: only the long breaks. Returns { long, holiday }.
+ */
+export function listSections(map, leave) {
+  if (!map || map.holidays < 2) return { long: true, holiday: false }
+  const joins = map.joins ?? []
+  const from = joins.length ? joins[joins.length - 1].leave : map.minLeave
+  return { long: leave >= from, holiday: true }
+}
+
+/**
  * Which Custom list to show for these leave days, and whether step 3 (choose)
  * appears: no or one holiday → one long break; holidays that all join within
  * 10 days → holiday breaks below the last join, one long break from it; holidays
