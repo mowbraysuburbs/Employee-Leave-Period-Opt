@@ -38,7 +38,11 @@ export function RailExpanded({ c }) {
       <LeaveCard c={c} />
 
       <section data-tour="colours" className={card}>
-        <div className="text-[13px] font-bold">Colour by</div>
+        {/* Clear filter sits beside the heading, so it never moves the card. */}
+        <div className="h-5 flex items-center justify-between">
+          <span className="text-[13px] font-bold">Colour by</span>
+          {filtering && <button type="button" onClick={c.onClearDaysOff} className="text-xs font-bold text-sky-700">Clear filter</button>}
+        </div>
         <div role="group" aria-label="Colour by" className="flex p-[3px] rounded-[10px] bg-slate-100">
           {MODES.map(m => (
             <button
@@ -52,7 +56,7 @@ export function RailExpanded({ c }) {
             </button>
           ))}
         </div>
-        {/* Fixed heights (two lines of help, two rows of chips, the Clear filter row) so the
+        {/* Fixed heights (two lines of help, two rows of chips) so the
             card never grows or shrinks as the leave days, colouring or filter change. */}
         <p className="m-0 min-h-8 text-xs text-slate-600">{helpText(c.colourBy, c.picksOnly, c.leaveDays)}</p>
         <div className="h-[52px] flex flex-wrap content-start gap-1 overflow-hidden">
@@ -75,9 +79,6 @@ export function RailExpanded({ c }) {
             )
           })}
         </div>
-        <button type="button" onClick={c.onClearDaysOff} disabled={!filtering} className={`self-start h-6 px-2 rounded-md bg-slate-100 text-sky-700 text-xs font-bold ${filtering ? '' : 'invisible'}`}>
-          Clear filter
-        </button>
       </section>
 
       <section data-tour="dates" className={card}>
