@@ -144,7 +144,6 @@ export function MobileApp() {
         <BottomSheet label="Day details" onClose={closeSheet} maxHeight="max-h-[58dvh]">
           <div className="flex flex-col gap-4">
             <BreakDetailHead
-              row
               brk={p.detailBreak}
               isSaved={p.isSaved(p.detailBreak)}
               onAdd={p.addDetailBreak}
