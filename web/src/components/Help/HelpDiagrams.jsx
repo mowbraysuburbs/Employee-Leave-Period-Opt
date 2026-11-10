@@ -40,7 +40,7 @@ export function OverviewDiagram() {
       <div className="h-[132px] p-1.5 rounded-xl bg-slate-100 grid grid-cols-[74px_1fr_82px] gap-1.5">
         <div className={box}><span className={num}>1</span>Leave periods<br /><span className="font-medium text-slate-500">Custom dates on top</span></div>
         <div className="grid grid-rows-[34px_1fr] gap-1.5">
-          <div className={`${box} flex-row gap-2`}><span><span className={num}>2</span> Days off limit · REC</span></div>
+          <div className={`${box} flex-row gap-2`}><span><span className={num}>2</span> Leave days · left · MIN / JOINS</span></div>
           <div className={box}>Your plan: the breaks<br /><span className="font-medium text-slate-500">untick any, then Add to summary</span></div>
         </div>
         <div className={box}>Details<br /><span className="font-medium text-slate-500">stats + calendar</span><span className="mt-1">Summary</span></div>

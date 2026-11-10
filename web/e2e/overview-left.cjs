@@ -12,8 +12,12 @@ const res = []; const check = (n, ok, x = '') => res.push((ok ? 'PASS ' : 'FAIL 
   await p.addInitScript(() => { localStorage.setItem('stretchmyleave.welcomeSeen', '1'); localStorage.setItem('stretchmyleave.calendarTourSeen', '1'); localStorage.setItem('stretchmyleave.panelCollapsed', 'false') });
   await p.goto(BASE); await p.evaluate(() => { localStorage.removeItem('stretchmyleave.desktopBreaks'); localStorage.removeItem('stretchmyleave.settings') }); await p.reload();
   const nav = p.getByRole('navigation', { name: 'Leave periods' });
-  // Step 2's days off limit: numbers 1–10 (the recommended one is labelled "N (recommended)").
-  const pickLimit = n => p.getByRole('radiogroup', { name: 'Days off limit' }).getByRole('radio', { name: new RegExp(`^${n}( |$)`) }).click();
+  // Step 2's leave card: the limit is its dropdown; then pick that many leave days if the number can be picked.
+  const pickLimit = async n => {
+    await p.locator('#overview-limit').selectOption(String(n));
+    const r = p.getByRole('radiogroup', { name: 'Leave days to plan' }).getByRole('radio', { name: new RegExp(`^${n}( |$)`) });
+    if (await r.isEnabled()) await r.click();
+  };
   // Leave used by the plan: the "leave days" tile in Details.
   const planLeave = async () => {
     await p.locator('[data-tour=panel]').getByRole('tab', { name: 'Details' }).click();
@@ -40,13 +44,15 @@ const res = []; const check = (n, ok, x = '') => res.push((ok ? 'PASS ' : 'FAIL 
   const used2 = await planLeave();
   check('another period plans with what\'s left (10 − ' + used + ')', used2 > 0 && used2 <= 10 - used, used2 + ' ≤ ' + (10 - used));
   const note = await p.locator('[data-tour=limit]').innerText();
-  check('the note explains it', /what's left after your Summary/.test(note), note.replace(/\n/g, ' '));
+  check('the leave card shows what\'s left and locks the rest', /\d+ left · \d+ used/.test(note) && /only \d+ left/.test(note), note.replace(/\n/g, ' '));
 
   // Limit down to what's in the Summary: nothing left.
   await pickLimit(used);
   await nav.getByRole('button', { name: /^Easter/ }).click();
   const msg = await p.getByRole('article').innerText();
-  check('nothing left: the results say so', /No leave left/.test(msg));
+  check('nothing left: the results say so, with Raise my limit / Open Summary', /leave days? (is|are) in your Summary/.test(msg) && (await p.getByRole('button', { name: 'Raise my limit' }).count()) === 1 && (await p.getByRole('button', { name: 'Open Summary' }).count()) === 1, msg.slice(0, 120));
+  await p.getByRole('button', { name: 'Open Summary' }).click();
+  check('Open Summary shows the Summary tab', (await p.locator('[data-tour=panel]').getByRole('tab', { name: /Summary/ }).getAttribute('aria-selected')) === 'true');
   check('no errors', errors.length === 0, errors.join(' | '));
   console.log(res.join('\n')); if (res.some(r => r.startsWith('FAIL'))) process.exitCode = 1;
   await b.close();

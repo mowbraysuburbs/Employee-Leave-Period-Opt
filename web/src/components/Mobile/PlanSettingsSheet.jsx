@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { StepHeading } from '../Desktop/Overview/StepHeading'
-import { LimitPicker } from '../Desktop/Overview/LimitPicker'
+import { OverviewLeaveCard } from '../Desktop/Overview/OverviewLeaveCard'
 import { MoreOptions } from '../Desktop/Overview/MoreOptions'
 import { BottomSheet } from './BottomSheet'
 
 /**
  * The phone planner's settings, opened from the "10 days" button by the
- * period slider: the days off limit (1–10, the period's recommended number
- * marked REC; MIN / JOINS on Custom, Easter and Christmas) and Advanced options.
+ * period slider: the leave card (OverviewLeaveCard: leave left, the limit, and
+ * the blocks with REC / MIN / JOINS) and Advanced options.
  *
  * Props: planner – usePlanner() result; province, onProvinceChange; onClose
  */
@@ -17,13 +17,8 @@ export function PlanSettingsSheet({ planner, province, onProvinceChange, onClose
     <BottomSheet label="Plan settings" title="Plan settings" backdrop onClose={onClose}>
       <div className="px-4 pb-5 flex flex-col gap-4">
         <section className="flex flex-col gap-2">
-          <StepHeading phone number={2}>Days off limit</StepHeading>
-          <LimitPicker phone value={planner.leaveLimit} onChange={planner.setLimitAndLeave} rec={planner.listMode ? null : planner.rec?.leave} reason={planner.rec?.reason} {...planner.limitMarks} />
-          {planner.maxLeave < planner.leaveLimit && (
-            <span className="text-[11.5px] text-slate-600">
-              {planner.leaveLeft < planner.leaveLimit && planner.maxLeave === Math.min(planner.leaveLeft, 10) ? `Uses ${planner.maxLeave}: what's left after your Summary.` : `Uses ${planner.maxLeave}: all the workdays in these dates.`}
-            </span>
-          )}
+          <StepHeading phone number={2}>How many leave days?</StepHeading>
+          <OverviewLeaveCard phone planner={planner} />
         </section>
         <section className="flex flex-col gap-2">
           <button

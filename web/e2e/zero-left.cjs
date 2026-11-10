@@ -9,7 +9,7 @@ const res = []; const check = (n, ok, x = '') => res.push((ok ? 'PASS ' : 'FAIL 
   await p.addInitScript(() => { localStorage.setItem('stretchmyleave.welcomeSeen', '1') });
   await p.goto(BASE); await p.evaluate(() => { localStorage.removeItem('stretchmyleave.desktopBreaks'); localStorage.removeItem('stretchmyleave.settings') }); await p.reload(); await p.waitForTimeout(300);
   await p.getByRole('navigation', { name: 'Leave periods' }).getByRole('button', { name: 'Christmas' }).click();
-  await p.locator('[data-tour=settings]').click(); await p.getByRole('dialog', { name: 'Plan settings' }).getByRole('radio', { name: '4' }).click();
+  await p.locator('[data-tour=settings]').click(); await p.locator('#plan-sheet-limit').selectOption('4'); await p.getByRole('dialog', { name: 'Plan settings' }).getByRole('radio', { name: /^4/ }).click();
   await p.getByRole('dialog', { name: 'Plan settings' }).getByRole('button', { name: 'Show results' }).click();
   // Nothing is ticked: pick the first row (Christmas + New Year, 4 leave days).
   await p.getByRole('table', { name: 'Options to pick from' }).locator('input:not(:disabled)').first().check(); 

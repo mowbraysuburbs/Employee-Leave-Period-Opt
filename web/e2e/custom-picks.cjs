@@ -20,7 +20,7 @@ const year = new Date().getFullYear() + 1;
   // Christmas holidays at 4 days: the Christmas + New Year join is ticked, its long weekends are hidden,
   // and the line is about 4 (no "Use 10").
   await nav.getByRole('button', { name: /^Christmas/ }).first().click();
-  await d.getByRole('radiogroup', { name: 'Days off limit' }).getByRole('radio', { name: /^4/ }).click();
+  await d.getByRole('radiogroup', { name: 'Leave days to plan' }).getByRole('radio', { name: /^4/ }).click();
   const xline = await d.getByRole('status').first().innerText();
   check('Christmas, 4 days: the line is about 4 leave days', /4 leave days join Christmas \+ New Year/.test(xline) && (await d.getByRole('button', { name: /^Use / }).count()) === 0, xline);
   const xt = d.getByRole('table', { name: 'Options to pick from' });
@@ -34,7 +34,7 @@ const year = new Date().getFullYear() + 1;
   await xt.getByRole('checkbox').first().check();
   check('Christmas, 4 days: ticking the join greys the rest (nothing disappears), one note says why', (await xt.getByRole('checkbox').count()) === 3 && (await xt.locator('input:disabled').count()) === 2 && (await d.getByText(/Greyed: overlaps a break you ticked, or not enough leave left/).count()) === 1);
   // MIN and skipped numbers: 2 is the first proper break (Reconciliation is a Wednesday), 3 adds nothing.
-  const lim = d.getByRole('radiogroup', { name: 'Days off limit' });
+  const lim = d.getByRole('radiogroup', { name: 'Leave days to plan' });
   check('Christmas: MIN on 2, 3 skipped (can\'t be picked)', (await lim.getByRole('radio', { name: /^2 \(first proper break\)/ }).count()) === 1 && await lim.getByRole('radio', { name: /^3 / }).isDisabled());
 
   // Easter (limit still 4 from Christmas): capped at the join (3); 4–10 skipped; the rest goes to the Calendar.
@@ -43,7 +43,7 @@ const year = new Date().getFullYear() + 1;
   check('Easter past the join: capped at 3, 4–10 skipped, the rest to the Calendar', /3 leave days join Human Rights Day \+ Easter/.test(eline) && /use your other \d+ on the Calendar/.test(eline) && await lim.getByRole('radio', { name: /^5 / }).isDisabled() && (await d.getByRole('button', { name: 'Use on the Calendar →' }).count()) === 1, eline);
 
   await nav.getByRole('button', { name: 'Custom dates' }).click();
-  const limit = d.getByRole('radiogroup', { name: 'Days off limit' });
+  const limit = d.getByRole('radiogroup', { name: 'Leave days to plan' });
   // March: both long weekends are free, so 1–2 add nothing (skipped); 3 joins Human Rights Day + Easter; no step 3.
   await d.selectOption('#overview-from-month', `${year}-03`);
   await d.selectOption('#overview-to-month', `${year}-03`);
@@ -88,7 +88,7 @@ const year = new Date().getFullYear() + 1;
   await r.getByRole('navigation', { name: 'Leave periods' }).getByRole('button', { name: 'Custom dates' }).click();
   await r.selectOption('#overview-from-month', `${year}-03`);
   await r.selectOption('#overview-to-month', `${year}-10`);
-  await r.getByRole('radiogroup', { name: 'Days off limit' }).getByRole('radio', { name: /^4/ }).click();
+  await r.getByRole('radiogroup', { name: 'Leave days to plan' }).getByRole('radio', { name: /^4/ }).click();
   await r.getByRole('table', { name: 'Options to pick from' }).getByRole('checkbox').first().check();
   const rest = r.getByRole('button', { name: 'Use on the Calendar →' });
   check('leftover leave: the line offers the Calendar', (await rest.count()) === 1, await r.getByRole('status').first().innerText());
@@ -106,7 +106,7 @@ const year = new Date().getFullYear() + 1;
   await p.selectOption('#mobile-overview-to-month', `${year}-10`);
   await p.locator('[data-tour=settings]').click();
   await p.getByRole('dialog', { name: 'Plan settings' }).waitFor({ timeout: 3000 }).catch(() => {});
-  check('phone: no step 3 in the settings sheet', (await p.getByRole('dialog').getByRole('radiogroup', { name: 'Show which list' }).count()) === 0 && (await p.getByRole('dialog').getByRole('radiogroup', { name: 'Days off limit' }).count()) === 1);
+  check('phone: no step 3 in the settings sheet', (await p.getByRole('dialog').getByRole('radiogroup', { name: 'Show which list' }).count()) === 0 && (await p.getByRole('dialog').getByRole('radiogroup', { name: 'Leave days to plan' }).count()) === 1);
 
   check('no errors', errors.length === 0, errors.join(' | '));
   console.log(res.join('\n')); if (res.some(r => r.startsWith('FAIL'))) process.exitCode = 1;
