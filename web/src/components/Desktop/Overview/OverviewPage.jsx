@@ -80,17 +80,10 @@ export function OverviewPage({ planner, isSaved, onAdd, onView, onUseRest, provi
             savedBreaks={savedBreaks}
           />
         ) : (
-          // Same as the calendar: a "Collapse to icons" bar above the panel.
+          // Same as the calendar: the » to collapse sits on the left of the tabs.
           <div data-tour="panel" className="w-[300px] xl:w-[340px] shrink-0 h-full flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={() => onCollapsedChange(true)}
-              aria-label="Collapse details and summary"
-              className="shrink-0 h-7 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs font-bold"
-            >
-              Collapse to icons »
-            </button>
             <SidePanel
+              onCollapse={() => onCollapsedChange(true)}
               width="w-full flex-1 min-h-0"
               tab={tab}
               onTabChange={setTab}

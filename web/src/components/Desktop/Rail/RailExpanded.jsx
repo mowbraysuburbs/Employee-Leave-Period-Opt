@@ -26,23 +26,27 @@ export function RailExpanded({ c }) {
 
   return (
     <aside aria-label="Calendar controls" className="w-[236px] shrink-0 h-full overflow-y-auto flex flex-col gap-2 pr-1">
-      <button
-        type="button"
-        data-tour="collapse"
-        onClick={c.onToggleCollapsed}
-        className="shrink-0 h-7 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs font-bold"
-      >
-        « Collapse to icons
-      </button>
-      {/* Clear filters sits at the top, right under Collapse, so it's always in reach. */}
-      <button
-        type="button"
-        onClick={c.onClearAll}
-        disabled={!c.activeCount}
-        className="shrink-0 h-9 rounded-xl border border-red-300 bg-white text-red-700 text-[13px] font-bold disabled:border-slate-200 disabled:text-slate-300"
-      >
-        {c.activeCount ? `✕ Clear filters (${c.activeCount})` : 'No filters on'}
-      </button>
+      {/* Top line: Clear filters (always in reach) and a small « to collapse to icons, as tall as it. */}
+      <div className="shrink-0 flex items-stretch gap-1.5">
+        <button
+          type="button"
+          onClick={c.onClearAll}
+          disabled={!c.activeCount}
+          className="flex-1 min-w-0 h-9 rounded-xl border border-red-300 bg-white text-red-700 text-[13px] font-bold disabled:border-slate-200 disabled:text-slate-300"
+        >
+          {c.activeCount ? `✕ Clear filters (${c.activeCount})` : 'No filters on'}
+        </button>
+        <button
+          type="button"
+          data-tour="collapse"
+          onClick={c.onToggleCollapsed}
+          aria-label="Collapse to icons"
+          title="Collapse to icons"
+          className="shrink-0 w-10 rounded-xl border border-slate-300 bg-white text-slate-700 text-[15px] font-extrabold hover:border-slate-500"
+        >
+          «
+        </button>
+      </div>
 
       <LeaveCard c={c} />
 

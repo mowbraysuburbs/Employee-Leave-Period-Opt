@@ -15,12 +15,18 @@ const TABS = [
  *   head             – pinned under the tabs (e.g. Add + dates on Details)
  *   footer           – pinned at the bottom (the leave bar)
  *   width            – Tailwind width classes
+ *   onCollapse       – optional: a small » on the left of the tabs collapses the panel to icons
  */
-export function SidePanel({ tab, onTabChange, savedCount, details, summary, head, footer, width = 'w-[300px] xl:w-[340px]' }) {
+export function SidePanel({ tab, onTabChange, savedCount, details, summary, head, footer, onCollapse, width = 'w-[300px] xl:w-[340px]' }) {
   return (
     <aside className={`${width} shrink-0 h-full flex flex-col bg-white rounded-[20px] shadow-sm`}>
       <div className="px-[22px] pt-[22px] pb-3 flex flex-col gap-3 border-b border-slate-100">
-        <div role="tablist" aria-label="Side panel" data-tour="breaks" className="flex p-1 rounded-xl bg-slate-100">
+        <div className="flex items-stretch gap-2">
+        {/* » on the side facing the page, as tall as the tabs: pushes the panel away to icons. */}
+        {onCollapse && (
+          <button type="button" onClick={onCollapse} aria-label="Collapse details and summary" title="Collapse to icons" className="shrink-0 w-10 rounded-xl border border-slate-300 bg-white text-slate-700 text-[15px] font-extrabold hover:border-slate-500">»</button>
+        )}
+        <div role="tablist" aria-label="Side panel" data-tour="breaks" className="flex-1 min-w-0 flex p-1 rounded-xl bg-slate-100">
           {TABS.map(t => (
             <button
               key={t.id}
@@ -36,6 +42,7 @@ export function SidePanel({ tab, onTabChange, savedCount, details, summary, head
               {t.label(savedCount)}
             </button>
           ))}
+        </div>
         </div>
         {head}
       </div>

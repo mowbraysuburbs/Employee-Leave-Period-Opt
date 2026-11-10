@@ -171,7 +171,7 @@ export function calendarTourSteps(demo, { reset, showDate, showSummary }) {
       target: 'collapse',
       enter: reset,
       title: 'More room',
-      text: 'Both side columns collapse to a slim strip of icons ("Collapse to icons"), and the icons still work.',
+      text: 'Both side columns collapse to a slim strip of icons (the small « and » buttons), and the icons still work.',
     },
     {
       target: 'help',
