@@ -3,12 +3,12 @@ import { PlanIcon } from '../Desktop/Overview/PlanIcon'
 import { PlanMonths } from '../Desktop/Overview/PlanMonths'
 import { PlannerResults } from '../Desktop/Overview/PlannerResults'
 import { PeriodMonths } from '../Desktop/Overview/PeriodMonths'
-import { PERIOD_DESCRIPTIONS } from '../Desktop/Overview/periodThemes'
+import { PERIOD_DESCRIPTIONS, PERIOD_SHORT } from '../Desktop/Overview/periodThemes'
 import { fmtShortRange } from '../../utils/dateFormat'
 import { PlanSettingsSheet } from './PlanSettingsSheet'
 
 // Short labels for the period slider.
-const SHORT = { custom: 'Custom', next: 'Up next', xmas: 'Christmas', easter: 'Easter', school: 'School' }
+const SHORT = PERIOD_SHORT
 
 /**
  * The phone Overview: the period's card on top (name, description and dates;

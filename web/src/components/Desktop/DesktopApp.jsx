@@ -33,10 +33,13 @@ function initialRailCollapsed() {
   return window.innerWidth < 1200
 }
 
-// The Details / Summary panel starts open unless it was collapsed last time.
+// The Details / Summary panel: remembered between visits; on a first visit,
+// narrow windows (under 1100px) start with it collapsed, like the periods column.
 function initialPanelCollapsed() {
   try {
-    return localStorage.getItem(PANEL_KEY) === 'true'
+    const stored = localStorage.getItem(PANEL_KEY)
+    if (stored !== null) return stored === 'true'
+    return window.innerWidth < 1100
   } catch {
     return false
   }

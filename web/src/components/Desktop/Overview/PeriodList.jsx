@@ -55,11 +55,17 @@ function CustomCard({ period, selected, onSelect, months, onChangeMonths }) {
  *   onChangeMonths – ({ fromMonth, toMonth }) => void; makes the plan Custom
  *   selectedId – 'custom' or a period id
  *   onSelect   – (id) => void
+ *   onCollapse – folds the column into icons (PeriodStrip)
  */
-export function PeriodList({ periods, period, months, onChangeMonths, selectedId, onSelect }) {
+export function PeriodList({ periods, period, months, onChangeMonths, selectedId, onSelect, onCollapse }) {
   return (
     <div className="w-[270px] shrink-0 flex flex-col gap-2 lg:h-full min-h-0">
-      <div className="h-10 shrink-0 flex items-center"><StepHeading number={1}>Pick a leave period</StepHeading></div>
+      <div className="h-10 shrink-0 flex items-center gap-2">
+        <StepHeading number={1}>Pick a leave period</StepHeading>
+        {onCollapse && (
+          <button type="button" onClick={onCollapse} aria-label="Fold the leave periods into icons" title="Fold into icons" className="ml-auto h-7 px-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs font-bold hover:border-slate-500">«</button>
+        )}
+      </div>
       <nav data-tour="period" aria-label="Leave periods" className="flex-1 min-h-0 flex flex-col gap-1.5 lg:overflow-y-auto lg:pr-1 lg:pb-2 [&>*]:shrink-0">
         <CustomCard period={period} selected={selectedId === 'custom'} onSelect={onSelect} months={months} onChangeMonths={onChangeMonths} />
         {periods.map(p => (
