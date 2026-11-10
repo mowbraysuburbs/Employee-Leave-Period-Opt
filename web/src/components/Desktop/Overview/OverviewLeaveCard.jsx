@@ -43,9 +43,9 @@ export function OverviewLeaveCard({ planner, phone = false }) {
       {!target ? 'No days left' : target < Math.min(planner.leaveLeft, planner.maxLeave) ? `Snap to ${target} (best of ${planner.leaveLeft} left)` : `Snap to ${target} days left`}
     </button>
   )
-  // Gone over: under the blocks, in two lines kept free in every state (so the card never changes height).
+  // Gone over: one line under the blocks, kept free in every state (so the card never changes height).
   const note = over > 0
-    ? `You've picked ${over} more leave day${over === 1 ? '' : 's'} than you have left. Raise your limit or remove a break from your Summary to add ${over === 1 ? 'it' : 'them'}.`
+    ? `${over} more leave day${over === 1 ? '' : 's'} than you have left. Raise your limit to add ${over === 1 ? 'it' : 'them'}.`
     : planner.maxLeave < 10 ? `Only ${planner.maxLeave} workdays in these dates.` : ''
   const blocks = (
     <LimitPicker
@@ -74,9 +74,9 @@ export function OverviewLeaveCard({ planner, phone = false }) {
           {snap}
         </div>
         {/* The blocks, centred beside the fraction near the top, and the prompt under them. */}
-        <div className={`min-w-0 flex flex-col gap-1.5 ${phone ? '' : 'flex-1 items-center'}`}>
+        <div className={`min-w-0 flex flex-col gap-1 ${phone ? '' : 'flex-1 items-center -mt-2'}`}>
           <div className={phone ? '' : 'w-full max-w-[480px]'}>{blocks}</div>
-          <span role={over > 0 ? 'status' : undefined} title={note || undefined} className={`h-8 w-full max-w-[480px] line-clamp-2 text-center text-[11.5px] leading-4 ${over > 0 ? 'text-amber-800 font-semibold' : 'text-slate-500'}`}>{note}</span>
+          <span role={over > 0 ? 'status' : undefined} title={note || undefined} className={`h-4 w-full max-w-[480px] truncate text-center text-[11.5px] leading-4 ${over > 0 ? 'text-amber-800 font-semibold' : 'text-slate-500'}`}>{note}</span>
         </div>
       </div>
     </section>
