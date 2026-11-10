@@ -38,7 +38,7 @@ src/
       PanelCollapsed.jsx# Side panel collapsed to a slim strip (mirrors the left rail)
       BreakDetailHead/Panel.jsx, StartDateChips.jsx, BreakWeeks.jsx, BreakDaysTable.jsx  # Details tab
       MyBreaksPanel.jsx, SavedBreaksTable.jsx, CalendarExport.jsx  # Summary tab + Apple/Google export
-      LeaveCard.jsx     # Calendar leave card: "5 / 10▾ limit", blocks, Snap to days left switch
+      LeaveCard.jsx     # Calendar leave card: "5 / 10▾ limit", blocks, Snap to N days left button
       LeaveBlocks.jsx   # Shared LeaveBlocks + LeaveFraction (calendar card and Overview step 2)
       StatTile.jsx      # Coloured stat tiles (leave, free, days off, multiplier, breaks)
       Overview/         # The 3-step planner page
@@ -81,7 +81,7 @@ src/
 - One **leave limit** for the whole site (1–10, never more than 10 — `MAX_LEAVE` in `utils/planner.js`), saved in settings.
 - **Leave left** = limit − leave in the Summary.
 - Leave days are shown as **"5 / 10▾ limit"** (the limit is a dropdown) with **numbered blocks**, one per day up to the limit.
-- **📍 Snap to days left** is one on/off switch: on = the calendar uses the leave left; picking a block turns it off (exploring is allowed past what's left, with a note).
+- **Snap to N days left** is a button, like the Overview's: the calendar follows the leave left (greyed while it does; at 0 left only the public holidays show); picking a block stops it. Exploring past what's left is allowed (amber blocks), with no notes under the card.
 
 **Calendar page**
 - Colours show days off (or the multiplier) if leave starts that day.
