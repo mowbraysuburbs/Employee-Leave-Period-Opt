@@ -47,7 +47,7 @@ const res = []; const check = (n, ok, x = '') => res.push((ok ? 'PASS ' : 'FAIL 
   const d = p; await d.setViewportSize({ width: 1280, height: 800 });
   await d.evaluate(() => { localStorage.setItem('stretchmyleave.calendarTourSeen', '1'); localStorage.setItem('stretchmyleave.railCollapsed', 'false') });
   await d.goto(BASE); await d.getByRole('button', { name: 'Calendar', exact: true }).click();
-  await d.getByRole('switch', { name: /Snap to days left/ }).click(); await d.waitForTimeout(200);
+  await d.getByRole('button', { name: /^Snap to \d+ days? left/ }).click(); await d.waitForTimeout(200);
   check('desktop: snap at 0 left = holidays only, nothing clickable', (await d.locator('button[data-date]').evaluateAll(els => els.filter(e => !e.disabled).length)) === 0);
   check('no errors', errors.length === 0, errors.join(' | '));
   console.log(res.join('\n')); if (res.some(r => r.startsWith('FAIL'))) process.exitCode = 1; await b.close();

@@ -127,7 +127,7 @@ export function calendarTourSteps(demo, { reset, showDate, showSummary }) {
       target: 'leave',
       enter: reset,
       title: 'Your leave days',
-      text: 'The big number is the leave days for one break; click a block to change it. The dropdown is your leave limit, and Snap to days left uses exactly what is left after your Summary.',
+      text: 'The big number is the leave days for one break; click a block to change it. The dropdown is your leave limit, and Snap to N days left uses exactly what is left after your Summary.',
     },
     {
       target: 'colours',
