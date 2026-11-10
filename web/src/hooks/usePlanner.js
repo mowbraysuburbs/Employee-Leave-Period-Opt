@@ -53,8 +53,9 @@ export function usePlanner({ today, lastDate, province, leaveLimit = MAX_LEAVE, 
 
   // What's left to plan with: the limit minus the Summary (not counting this plan's own adds).
   const leaveLeft = Math.max(0, leaveLimit - saved.filter(s => !addedKeys.includes(breakKey(s))).reduce((t, s) => t + s.leaveDays, 0))
-  // Never more than what's left (10 at most), or the workdays in the period; 0 = nothing to plan.
-  const maxLeave = leaveLeft === 0 ? 0 : Math.max(1, Math.min(leaveLeft, workdaysIn(period.from, period.to)))
+  // You can pick any number up to 10 (or the workdays in the period), even past what's left:
+  // the leave card shows it in amber and Add to summary waits until the ticked breaks fit.
+  const maxLeave = Math.max(1, Math.min(MAX_LEAVE, workdaysIn(period.from, period.to)))
   const leaveUsed = Math.min(leave, maxLeave)
   // For the leave card: everything in the Summary, and what's really left (this plan's adds included).
   const leaveInSummary = saved.reduce((t, s) => t + s.leaveDays, 0)
@@ -191,7 +192,7 @@ export function usePlanner({ today, lastDate, province, leaveLimit = MAX_LEAVE, 
     // Call when the ticked breaks are added to the Summary, so the plan stays put.
     markAdded: list => setAddedKeys(keys => [...keys, ...list.map(breakKey)]),
     maxLeave,
-    // The leave card's blocks: this plan's leave days (never past what's left; the limit stays).
+    // The leave card's blocks: this plan's leave days (any number, even past what's left; the limit stays).
     setLeave: reset(n => setLeave(Math.max(1, Math.min(n, maxLeave)))),
     // "Use N" on Up next / School holidays: raises your limit if needed and plans with N.
     setLimitAndLeave: reset(n => { onLeaveLimitChange(n); setLeave(n) }),
