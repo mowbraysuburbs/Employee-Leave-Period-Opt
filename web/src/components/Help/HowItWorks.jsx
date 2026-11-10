@@ -16,7 +16,7 @@ export function HowItWorks({ phone = false, onReplay }) {
     <><b>Days left:</b> your limit minus the leave in your Summary. Turn on <b>Snap to days left</b> and the calendar follows what you have left.</>,
     <><b>Summary:</b> your saved breaks and totals. Add them to Apple / iPhone (also Outlook) or Google Calendar from there. <b>Clear all</b> starts over; your limit and province stay.</>,
     <>A break you've kept shows <b>✓ In your Summary</b>. Pick another start date with the same days off and the kept break moves there.</>,
-    <><b>Advanced options</b>: plan around school holidays, or avoid / include months. A number shows how many are on.</>,
+    <><b>Advanced filters</b> (the small window beside the leave card): plan around school holidays, or avoid / include months. A number shows how many are on.</>,
     phone
       ? <>Tap <b>Filters</b> for quick filters (Selected only, public holidays, school holidays) or More… for the rest. Hold Filters to remove them all. Settings (⚙): Compact calendar or Dark mode.</>
       : <>Filters: days off, public holidays (or All), Leave fills a gap (a weekend or holiday on both sides of your leave), Selected only. Both side panels collapse to icons. The moon button switches to dark mode.</>,
