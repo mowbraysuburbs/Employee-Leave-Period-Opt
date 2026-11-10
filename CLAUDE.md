@@ -105,7 +105,7 @@ src/
 - The Details calendar (beside the list) shows **every option's dates** for these list periods: faint unless a ticked break uses them, solid when ticked, and the hovered row's dates glow (one style per date, so overlaps never double up).
 - Advanced options: plan around school holidays; months to avoid / include.
 - **Fold step 1 into icons** («, like the Calendar's rail): `PeriodStrip` shows the periods as the phone's icons + short names (`PERIOD_SHORT`), » opens it again, Custom opens a From / To pop-out. Remembered (`stretchmyleave.periodsFolded`); on a first visit, windows under 1100px start with the periods and the Details panel folded, and with both folded the three columns stay side by side on narrow windows.
-- Results table (Start / End with short years, a dropdown for equal start dates), Add / Export, and the same Details | Summary panel as the calendar.
+- Tables: both (the plan table for Up next / School holidays, the list table for the rest) show the **standard columns** Start · End · Holidays used · Days off · Leave days used · Multiplier. **More columns** (a button beside Add to summary, desktop, remembered) adds Around · Weekends used · Free days (`breakCounts.js`), with shorter headers so it fits at the laptop size (Hols used, Wknds used, Leave used instead of Leave days used). End dates show the weekday in both tables. Phones keep their compact tables. Start has a dropdown for equal start dates; Add / Export and the same Details | Summary panel as the calendar.
 
 ---
 
