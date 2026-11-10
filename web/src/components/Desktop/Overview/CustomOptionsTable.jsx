@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { OptionRow } from './OptionRow'
+import { holidaysIn, weekendsIn, freeDaysIn } from './breakCounts'
 
 // Start and End are as wide as their dates; the number columns share what's
 // left equally (so they spread out on wide screens). Everything is centred.
 const COLUMNS = 'grid grid-cols-[22px_146px_112px_minmax(60px,1fr)_minmax(44px,1fr)_minmax(46px,1fr)_minmax(86px,1fr)] gap-1 items-center justify-items-center text-center'
+// More columns: adds Around, Weekends used and Free days.
+const MORE_COLUMNS = 'grid grid-cols-[22px_128px_92px_minmax(86px,2fr)_minmax(38px,1fr)_minmax(40px,1fr)_minmax(36px,1fr)_minmax(36px,1fr)_minmax(44px,1fr)_minmax(48px,1fr)] gap-1 items-center justify-items-center text-center'
 const PHONE_COLUMNS = 'grid grid-cols-[20px_96px_70px_repeat(3,minmax(30px,1fr))] gap-1 items-center justify-items-center text-center'
 
 // Rank 1, 2, 3… where equal options share a number.
@@ -11,9 +14,6 @@ function ranks(options, value) {
   let rank = 0
   return options.map((o, i) => (i === 0 || value(o) !== value(options[i - 1]) ? ++rank : rank))
 }
-
-// The public holidays inside a break (their names show on hover).
-const holidaysIn = brk => brk.days.filter(d => d.type === 'public_holiday')
 
 // The two sections: their heading and how their rows rank (best first).
 const SECTIONS = {
@@ -38,16 +38,19 @@ function summary(id, rows) {
 const SORTS = {
   rank: { label: 'Best first', value: o => o.rank, first: 'asc' },
   start: { label: 'Start', value: o => o.startDate, first: 'asc' },
-  hols: { label: 'Holidays used', phone: 'Hols used', value: o => holidaysIn(o).length, first: 'desc' },
+  hols: { label: 'Holidays\nused', compact: 'Hols\nused', phone: 'Hols used', value: o => holidaysIn(o).length, first: 'desc' },
+  wknd: { label: 'Wknds\nused', value: o => weekendsIn(o), first: 'desc' },
+  free: { label: 'Free\ndays', value: o => freeDaysIn(o), first: 'desc' },
   off: { label: 'Days\noff', value: o => o.daysOff, first: 'desc' },
-  leave: { label: 'Leave\ndays', value: o => o.leaveDays, first: 'asc' },
+  leave: { label: 'Leave\ndays used', compact: 'Leave\nused', value: o => o.leaveDays, first: 'asc' },
   mult: { label: 'Multiplier', phone: 'Mult.', value: o => o.multiplier, first: 'desc' },
 }
 
 // A column heading that sorts the table (aria-sort tells screen readers the order).
-function SortHeading({ id, sort, onSort, phone, className }) {
+function SortHeading({ id, sort, onSort, phone, compact = false, className }) {
   const on = sort.by === id
-  const { label, phone: short } = SORTS[id]
+  const { label: full, phone: short, compact: tight } = SORTS[id]
+  const label = compact && tight ? tight : full
   return (
     <span role="columnheader" aria-sort={on ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'} className={className}>
       <button type="button" onClick={() => onSort(id)} className={`uppercase tracking-wide text-center leading-tight ${on ? 'text-slate-900' : 'hover:text-slate-700'}`}>
@@ -69,12 +72,14 @@ function SortHeading({ id, sort, onSort, phone, className }) {
  * note under the table. Click a column heading to sort (within each section).
  * A start date with a dropdown can move to another day for the same days off.
  *
- * Props: planner – usePlanner() result; onHover – optional (startDate | null) => void; phone
+ * Props: planner – usePlanner() result; onHover – optional (break | null) => void;
+ *   more – show Around, Weekends used and Free days (desktop); phone
  */
-export function CustomOptionsTable({ planner, onHover, phone = false }) {
+export function CustomOptionsTable({ planner, onHover, more = false, phone = false }) {
   const { options } = planner
-  const cols = phone ? PHONE_COLUMNS : COLUMNS
-  const head = 'text-[11px] font-bold text-slate-500 uppercase tracking-wide'
+  const extra = more && !phone
+  const cols = phone ? PHONE_COLUMNS : extra ? MORE_COLUMNS : COLUMNS
+  const head = `${extra ? 'text-[10px]' : 'text-[11px]'} font-bold text-slate-500 uppercase tracking-wide`
   const [sort, setSort] = useState({ by: 'rank', dir: 'asc' })
   // Sections you've made small: 'long' / 'holiday' → true.
   const [small, setSmall] = useState({})
@@ -104,10 +109,13 @@ export function CustomOptionsTable({ planner, onHover, phone = false }) {
         <span />
         <SortHeading id="start" sort={sort} onSort={onSort} className={head} />
         <span role="columnheader" className={head}>End</span>
-        <SortHeading id="hols" sort={sort} onSort={onSort} phone={phone} className={head} />
+        {extra && <span role="columnheader" className={head}>Around</span>}
+        <SortHeading id="hols" sort={sort} onSort={onSort} phone={phone} compact={extra} className={head} />
+        {extra && <SortHeading id="wknd" sort={sort} onSort={onSort} className={head} />}
+        {extra && <SortHeading id="free" sort={sort} onSort={onSort} className={head} />}
         <SortHeading id="off" sort={sort} onSort={onSort} phone={phone} className={head} />
-        {!phone && <SortHeading id="leave" sort={sort} onSort={onSort} className={head} />}
-        <SortHeading id="mult" sort={sort} onSort={onSort} phone={phone} className={head} />
+        {!phone && <SortHeading id="leave" sort={sort} onSort={onSort} compact={extra} className={head} />}
+        <SortHeading id="mult" sort={sort} onSort={onSort} phone={phone || extra} className={head} />
       </div>
       {shown.map(({ id, rows }) => (
         <div key={id} role="rowgroup" aria-label={SECTIONS[id].title}>
@@ -127,7 +135,7 @@ export function CustomOptionsTable({ planner, onHover, phone = false }) {
             </div>
           )}
           {!small[id] && rows.map(({ o }) => (
-            <OptionRow key={`${o.startDate}-${o.leaveDays}`} planner={planner} option={o} cols={cols} onHover={onHover} phone={phone} stripe={both ? id : null} />
+            <OptionRow key={`${o.startDate}-${o.leaveDays}`} planner={planner} option={o} cols={cols} onHover={onHover} phone={phone} more={extra} stripe={both ? id : null} />
           ))}
         </div>
       ))}

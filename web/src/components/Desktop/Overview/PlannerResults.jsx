@@ -43,7 +43,18 @@ function customEmpty(planner, actions) {
   return <p className="m-3 p-5 border-[1.5px] border-dashed border-slate-300 rounded-2xl text-sm text-slate-600 text-center">No breaks fit these settings. Try fewer leave days, or avoid fewer months.</p>
 }
 
+// More columns (Around, Weekends used, Free days): remembered between visits.
+const MORE_KEY = 'stretchmyleave.moreColumns'
+function initialMore() {
+  try { return localStorage.getItem(MORE_KEY) === 'true' } catch { return false }
+}
+
 export function PlannerResults({ planner, isSaved, onAdd, onView, onUseRest, onHover, onRaiseLimit, onOpenSummary, calendar, phone = false }) {
+  const [more, setMore] = useState(initialMore)
+  const toggleMore = () => setMore(m => {
+    try { localStorage.setItem(MORE_KEY, String(!m)) } catch { /* not remembered */ }
+    return !m
+  })
   const noLeaveActions = { onRaiseLimit, onOpenSummary }
   const [showCalendar, setShowCalendar] = useState(false)
   const { period, breaks, startOptions, ticked, toggleTick, swapStart } = planner
@@ -105,6 +116,15 @@ export function PlannerResults({ planner, isSaved, onAdd, onView, onUseRest, onH
                 </span>
               </div>
               <button
+                type="button"
+                aria-pressed={more}
+                onClick={toggleMore}
+                title="Around, weekends used and free days"
+                className={`h-9 px-3 rounded-xl border-[1.5px] text-[12.5px] font-bold whitespace-nowrap ${more ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300 bg-white text-slate-700 hover:border-slate-500'}`}
+              >
+                {more ? 'Fewer columns' : 'More columns'}
+              </button>
+              <button
                 data-tour="plan-add"
                 type="button"
                 disabled={none || allSaved}
@@ -128,12 +148,12 @@ export function PlannerResults({ planner, isSaved, onAdd, onView, onUseRest, onH
         </div>
       )}
       {/* The table scrolls on its own (header row stays), so the page doesn't have to. */}
-      <div className={phone ? 'flex-1 min-h-0 overflow-y-auto' : 'flex-1 min-h-[200px] overflow-y-auto rounded-xl border border-slate-100'}>
+      <div className={phone ? 'flex-1 min-h-0 overflow-y-auto' : 'flex-1 min-h-[200px] overflow-auto rounded-xl border border-slate-100'}>
         {phone && showCalendar
           ? calendar
           : planner.listMode
-            ? (planner.options.length ? <CustomOptionsTable planner={planner} onHover={onHover} phone={phone} /> : customEmpty(planner, noLeaveActions))
-            : <PlannerTable breaks={breaks} startOptions={startOptions} ticked={ticked} onToggle={toggleTick} onSwap={swapStart} onHover={onHover} phone={phone} />}
+            ? (planner.options.length ? <CustomOptionsTable planner={planner} onHover={onHover} more={more} phone={phone} /> : customEmpty(planner, noLeaveActions))
+            : <PlannerTable breaks={breaks} startOptions={startOptions} ticked={ticked} onToggle={toggleTick} onSwap={swapStart} onHover={onHover} more={more} phone={phone} />}
       </div>
       {/* Desktop: the dropdown note, fixed under the table (rows scroll above it). */}
       {!phone && startOptions.some(o => o.length > 1) && (
