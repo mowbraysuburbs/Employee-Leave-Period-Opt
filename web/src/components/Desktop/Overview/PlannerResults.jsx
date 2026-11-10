@@ -18,18 +18,33 @@ import { fmtLongRange } from '../../../utils/dateFormat'
  *   isSaved                 – (break) => bool
  *   onAdd, onView           – (tickedBreaks) => void (View is phone only; desktop has it in Details)
  *   onHover                 – optional (startDate | null) => void as a row is hovered
+ *   onRaiseLimit, onOpenSummary – the buttons when your whole limit is in the Summary
  *   calendar                – phone only: the 2-month view, shown instead of the table when switched on
  *   phone
  */
-// Why Custom has nothing to pick from.
-function customEmpty(planner) {
-  const text = planner.leaveLeft === 0
-    ? 'No leave left: your Summary already uses your whole limit. Raise your limit or remove a break from your Summary.'
-    : 'No breaks fit these settings. Try fewer leave days, or avoid fewer months.'
-  return <p className="m-3 p-5 border-[1.5px] border-dashed border-slate-300 rounded-2xl text-sm text-slate-600 text-center">{text}</p>
+// Your whole limit is in the Summary: one message, with the two ways out.
+function NoLeaveLeft({ planner, onRaiseLimit, onOpenSummary }) {
+  const btn = 'h-9 px-3.5 rounded-xl text-[13px] font-extrabold'
+  return (
+    <div role="status" className="m-3 p-5 border-[1.5px] border-dashed border-slate-300 rounded-2xl flex flex-col items-center gap-2 text-center">
+      <b className="text-[15px]">All {planner.leaveLimit} leave day{planner.leaveLimit === 1 ? ' is' : 's are'} in your Summary</b>
+      <span className="text-sm text-slate-600">You can still look around the periods, but there's nothing left to plan with.</span>
+      <div className="flex gap-2 mt-1">
+        {onRaiseLimit && <button type="button" onClick={onRaiseLimit} className={`${btn} bg-sky-700 text-white`}>Raise my limit</button>}
+        {onOpenSummary && <button type="button" onClick={onOpenSummary} className={`${btn} border-[1.5px] border-slate-300 text-slate-800`}>Open Summary</button>}
+      </div>
+    </div>
+  )
 }
 
-export function PlannerResults({ planner, isSaved, onAdd, onView, onUseRest, onHover, calendar, phone = false }) {
+// Why a list period has nothing to pick from.
+function customEmpty(planner, actions) {
+  if (planner.leaveLeft === 0) return <NoLeaveLeft planner={planner} {...actions} />
+  return <p className="m-3 p-5 border-[1.5px] border-dashed border-slate-300 rounded-2xl text-sm text-slate-600 text-center">No breaks fit these settings. Try fewer leave days, or avoid fewer months.</p>
+}
+
+export function PlannerResults({ planner, isSaved, onAdd, onView, onUseRest, onHover, onRaiseLimit, onOpenSummary, calendar, phone = false }) {
+  const noLeaveActions = { onRaiseLimit, onOpenSummary }
   const [showCalendar, setShowCalendar] = useState(false)
   const { period, breaks, startOptions, ticked, toggleTick, swapStart } = planner
   const chosen = breaks.filter(b => ticked.has(b.startDate))
@@ -41,11 +56,10 @@ export function PlannerResults({ planner, isSaved, onAdd, onView, onUseRest, onH
 
   // Custom, Easter and Christmas keep their title and say why the list is empty (see customEmpty).
   if (!planner.listMode && breaks.length === 0) {
+    if (planner.leaveLeft === 0) return <NoLeaveLeft planner={planner} {...noLeaveActions} />
     return (
       <div className="p-5 border-[1.5px] border-dashed border-slate-300 rounded-2xl text-sm text-slate-600 text-center">
-        {planner.leaveLeft === 0
-          ? 'No leave left: your Summary already uses your whole limit. Raise your limit or remove a break from your Summary.'
-          : 'No breaks fit these settings. Try more leave days, or avoid fewer months.'}
+        No breaks fit these settings. Try more leave days, or avoid fewer months.
       </div>
     )
   }
@@ -118,7 +132,7 @@ export function PlannerResults({ planner, isSaved, onAdd, onView, onUseRest, onH
         {phone && showCalendar
           ? calendar
           : planner.listMode
-            ? (planner.options.length ? <CustomOptionsTable planner={planner} onHover={onHover} phone={phone} /> : customEmpty(planner))
+            ? (planner.options.length ? <CustomOptionsTable planner={planner} onHover={onHover} phone={phone} /> : customEmpty(planner, noLeaveActions))
             : <PlannerTable breaks={breaks} startOptions={startOptions} ticked={ticked} onToggle={toggleTick} onSwap={swapStart} onHover={onHover} phone={phone} />}
       </div>
       {/* Desktop: the dropdown note, fixed under the table (rows scroll above it). */}

@@ -52,7 +52,7 @@ export function tourSteps(phone, demo, { reset, showDate, showSummary }) {
 }
 
 // The first-visit journey on the Overview: the planner's steps, the plan,
-// adding it, then where to go next. Phones have the days off limit
+// adding it, then where to go next. Phones have the leave card
 // behind one settings button by the period slider. openPanel (desktop)
 // opens a collapsed Details / Summary panel for its step.
 export function plannerTourSteps(phone = false, { openPanel } = {}) {
@@ -60,14 +60,14 @@ export function plannerTourSteps(phone = false, { openPanel } = {}) {
   const settings = phone
     ? [{
         target: 'settings',
-        title: '2 · Days off limit',
-        text: 'This button shows your days off limit. Tap it to change it (REC marks the recommended number), or for Advanced options (school holidays, months to avoid). A number on it shows how many advanced options are on. The plan uses what\'s left after your Summary.',
+        title: '2 · How many leave days?',
+        text: 'This button shows the leave days for this plan and how many you have left. Tap it for the leave card (your limit, and the numbers worth picking: REC, MIN, JOINS) or Advanced options (school holidays, months to avoid). A number on it shows how many advanced options are on.',
       }]
     : [
         {
           target: 'limit',
-          title: '2 · Your days off limit',
-          text: "How many leave days you want to spend (up to 10), with what's left after your Summary. REC marks the recommended number (best bang for buck, joins holidays, or covers the school holiday): with that many or more you get one break; with fewer, the best multiplier.",
+          title: '2 · How many leave days?',
+          text: "The same leave card as the Calendar: what's left after your Summary, your limit (its dropdown, shared with the Calendar) and the leave days for this plan. Only the useful numbers can be picked: REC, MIN and JOINS mark the good ones, struck-through numbers add nothing, and numbers past what's left are locked.",
         },
         {
           target: 'advanced',

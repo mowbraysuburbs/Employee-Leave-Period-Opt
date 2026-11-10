@@ -14,7 +14,7 @@ const SHORT = { custom: 'Custom', next: 'Up next', xmas: 'Christmas', easter: 'E
  * The phone Overview: the period's card on top (name, description and dates;
  * Summary is in the header), the plan underneath, and the period slider above the bottom
  * tabs. The slider starts with a "10 days" button that opens the plan
- * settings (days off limit, Advanced), with a badge when Advanced options are on.
+ * settings (the leave card, Advanced), with a badge when Advanced options are on.
  *
  * Props: planner, isSaved, onAdd, onView, onUseRest, province, onProvinceChange,
  *        onOpenSummary – the My breaks sheet (from the Added note)
@@ -56,6 +56,8 @@ export function MobileOverview({ planner, isSaved, onAdd, onView, onUseRest, pro
             onAdd={list => { planner.markAdded(list); onAdd(list); setAdded(list.length) }}
             onView={onView}
             onUseRest={onUseRest}
+            onRaiseLimit={() => setSettingsOpen(true)}
+            onOpenSummary={onOpenSummary}
             calendar={<PlanMonths phone period={period} {...planner.calendarBreaks} />}
           />
         </section>
@@ -74,11 +76,12 @@ export function MobileOverview({ planner, isSaved, onAdd, onView, onUseRest, pro
           type="button"
           data-tour="settings"
           onClick={() => setSettingsOpen(true)}
-          aria-label={`Plan settings: ${planner.leaveLimit} days off limit${planner.moreCount ? `, ${planner.moreCount} advanced options on` : ''}`}
+          aria-label={`Plan settings: ${planner.leave} leave days, ${planner.leaveLeftNow} left of your ${planner.leaveLimit}${planner.moreCount ? `, ${planner.moreCount} advanced options on` : ''}`}
           className="relative shrink-0 w-14 rounded-xl bg-slate-900 text-white flex flex-col items-center justify-center text-[10.5px] font-extrabold leading-tight"
         >
-          <span className="text-[15px] leading-none">{planner.leaveLimit}</span>
+          <span className="text-[15px] leading-none">{planner.leave}</span>
           <span>days</span>
+          <span className={`text-[9px] font-bold ${planner.leaveLeftNow ? 'text-green-300' : 'text-amber-300'}`}>{planner.leaveLeftNow} left</span>
           {planner.moreCount > 0 && <span className="absolute -top-1 -right-1 min-w-[17px] h-[17px] px-1 rounded-full bg-sky-500 border-2 border-white text-[9.5px] leading-[13px]">{planner.moreCount}</span>}
         </button>
         <span aria-hidden="true" className="shrink-0 w-px bg-slate-200 mx-0.5" />
