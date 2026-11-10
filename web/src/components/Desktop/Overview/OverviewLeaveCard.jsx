@@ -16,8 +16,28 @@ function StepBadge() {
  *
  * Props: planner – usePlanner() result; phone – stacked, for the Plan settings sheet
  */
+// The best number you can pick within what's left: the highest one that isn't
+// struck through (list periods), else what's left itself.
+function snapTarget(planner) {
+  const marks = planner.limitMarks.marks
+  for (let n = planner.maxLeave; n >= 1; n--) if (marks?.[n - 1] !== 'pad') return n
+  return planner.maxLeave
+}
+
 export function OverviewLeaveCard({ planner, phone = false }) {
   const left = planner.leaveLeftNow
+  const target = snapTarget(planner)
+  // "Snap to 6 days left": one tap to the best number within what's left; only when you're below it.
+  const snap = target > planner.leave && (
+    <button
+      type="button"
+      onClick={() => planner.setLeave(target)}
+      title={target < planner.maxLeave ? `${target} is the best number you can pick within your ${planner.maxLeave} left` : `Use all ${target} days you have left`}
+      className="self-start h-7 px-2.5 rounded-lg border-[1.5px] border-green-600 bg-white text-green-800 text-[11.5px] font-extrabold whitespace-nowrap hover:bg-green-50"
+    >
+      {target < planner.maxLeave ? `Snap to ${target} (best of ${planner.maxLeave} left)` : `Snap to ${target} days left`}
+    </button>
+  )
   const lockedFrom = planner.maxLeave + 1
   const note = planner.maxLeave === 0
     ? 'No leave left: raise your limit or remove a break from your Summary.'
@@ -48,10 +68,12 @@ export function OverviewLeaveCard({ planner, phone = false }) {
         </span>
       </div>
       <div className={phone ? 'flex flex-col gap-1 mt-1' : 'flex items-center gap-4'}>
-        <div className="shrink-0">
+        <div className="shrink-0 flex flex-col gap-1">
           <LeaveFraction value={planner.leave} limit={planner.leaveLimit} onLimitChange={planner.setLeaveLimit} idPrefix={phone ? 'plan-sheet' : 'overview'} size="md" />
+          {snap}
         </div>
-        <div className={`min-w-0 ${phone ? '' : 'flex-1 max-w-[420px] ml-auto'}`}>{blocks}</div>
+        {/* The blocks: bigger, centred in the space beside the fraction. */}
+        <div className={`min-w-0 ${phone ? '' : 'flex-1 flex justify-center'}`}><div className={phone ? '' : 'w-full max-w-[480px]'}>{blocks}</div></div>
       </div>
       {note && <span className={`text-[10.5px] ${planner.maxLeave === 0 ? 'text-amber-800 font-semibold' : 'text-slate-500'} ${phone ? '' : 'text-right'}`}>{note}</span>}
     </section>

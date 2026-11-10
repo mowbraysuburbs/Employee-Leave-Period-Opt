@@ -48,7 +48,7 @@ export function LimitPicker({ value, onChange, maxPick = MAX_LEAVE, left = null,
               onClick={() => onChange(n)}
               className={[
                 'relative flex-1 min-w-0 rounded-md font-extrabold transition-transform',
-                phone ? 'h-9 text-sm' : 'h-7 text-[12px]',
+                phone ? 'h-9 text-sm' : 'h-8 text-[13px]',
                 locked ? 'bg-slate-50 text-slate-300 border-[1.5px] border-dashed border-slate-300 cursor-not-allowed'
                   : filled ? 'bg-sky-700 text-white'
                     : skipped ? 'bg-slate-50 text-slate-300 line-through cursor-not-allowed'
@@ -69,7 +69,7 @@ export function LimitPicker({ value, onChange, maxPick = MAX_LEAVE, left = null,
       {/* Where your leave left ends, as on the Calendar (the label sits under it, clear of the tags). */}
       {showLeft && (
         <span aria-hidden="true" className="absolute bottom-0 -translate-x-1/2 flex flex-col items-center pointer-events-none" style={{ left: `calc(${(left / MAX_LEAVE) * 100}% - ${left === MAX_LEAVE ? 0 : 2}px)` }}>
-          <span className={`w-0.5 rounded bg-green-600 ${phone ? 'h-10' : 'h-8'}`} />
+          <span className={`w-0.5 rounded bg-green-600 ${phone ? 'h-10' : 'h-9'}`} />
           <span className="text-[9px] font-extrabold text-green-800 leading-none whitespace-nowrap">{left} left</span>
         </span>
       )}
