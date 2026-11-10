@@ -38,15 +38,15 @@ export function OverviewLeaveCard({ planner, phone = false }) {
       disabled={!target || target === planner.leave}
       onClick={() => planner.setLeave(target)}
       title={!target ? 'No leave left to snap to' : target < Math.min(planner.leaveLeft, planner.maxLeave) ? `${target} is the best number you can pick within your ${planner.leaveLeft} left` : `Use the ${target} days you have left`}
-      className="self-start h-7 px-2.5 rounded-lg border-[1.5px] border-green-600 bg-white text-green-800 text-[11.5px] font-extrabold whitespace-nowrap hover:bg-green-50 disabled:border-slate-200 disabled:text-slate-400 disabled:hover:bg-white"
+      className="self-start h-8 px-3 rounded-lg border-[1.5px] border-green-600 bg-white text-green-800 text-[13px] font-extrabold whitespace-nowrap hover:bg-green-50 disabled:border-slate-200 disabled:text-slate-400 disabled:hover:bg-white"
     >
       {!target ? 'No days left' : target < Math.min(planner.leaveLeft, planner.maxLeave) ? `Snap to ${target} (best of ${planner.leaveLeft} left)` : `Snap to ${target} days left`}
     </button>
   )
-  // Gone over: a short, one-line prompt (in the title row, so the card never grows).
+  // Gone over: under the blocks, in two lines kept free in every state (so the card never changes height).
   const note = over > 0
-    ? `${over} over your leave`
-    : planner.maxLeave < 10 ? `Only ${planner.maxLeave} workdays in these dates` : ''
+    ? `You've picked ${over} more leave day${over === 1 ? '' : 's'} than you have left. Raise your limit or remove a break from your Summary to add ${over === 1 ? 'it' : 'them'}.`
+    : planner.maxLeave < 10 ? `Only ${planner.maxLeave} workdays in these dates.` : ''
   const blocks = (
     <LimitPicker
       phone={phone}
@@ -64,20 +64,19 @@ export function OverviewLeaveCard({ planner, phone = false }) {
       <div className="flex items-center gap-2">
         <StepBadge />
         <h2 className="m-0 text-[13px] font-bold whitespace-nowrap">Choose leave day limit</h2>
-        {/* Gone over (or few workdays): one short line in the title row's empty middle. */}
-        <span role={over > 0 ? 'status' : undefined} className={`flex-1 min-w-0 truncate text-center text-[11.5px] ${over > 0 ? 'text-amber-800 font-bold' : 'text-slate-500'}`}>{note}</span>
-        <span className="text-[11.5px] text-slate-600 whitespace-nowrap">
+        <span className="ml-auto text-[11.5px] text-slate-600 whitespace-nowrap">
           <b className={left ? 'text-green-800' : 'text-amber-700'}>{left ? `${left} left` : 'None left'}</b> · {planner.leaveInSummary} used
         </span>
       </div>
       <div className={phone ? 'flex flex-col gap-4' : 'flex items-stretch gap-6'}>
         <div className="shrink-0 flex flex-col gap-4">
-          <LeaveFraction value={planner.leave} limit={planner.leaveLimit} onLimitChange={planner.setLeaveLimit} idPrefix={phone ? 'plan-sheet' : 'overview'} size="md" />
+          <LeaveFraction value={planner.leave} limit={planner.leaveLimit} onLimitChange={planner.setLeaveLimit} idPrefix={phone ? 'plan-sheet' : 'overview'} size={phone ? 'md' : 'lg'} />
           {snap}
         </div>
-        {/* The blocks, bigger and centred beside the fraction. */}
-        <div className={`min-w-0 ${phone ? '' : 'flex-1 flex items-center justify-center'}`}>
+        {/* The blocks, centred beside the fraction near the top, and the prompt under them. */}
+        <div className={`min-w-0 flex flex-col gap-1.5 ${phone ? '' : 'flex-1 items-center'}`}>
           <div className={phone ? '' : 'w-full max-w-[480px]'}>{blocks}</div>
+          <span role={over > 0 ? 'status' : undefined} title={note || undefined} className={`h-8 w-full max-w-[480px] line-clamp-2 text-center text-[11.5px] leading-4 ${over > 0 ? 'text-amber-800 font-semibold' : 'text-slate-500'}`}>{note}</span>
         </div>
       </div>
     </section>

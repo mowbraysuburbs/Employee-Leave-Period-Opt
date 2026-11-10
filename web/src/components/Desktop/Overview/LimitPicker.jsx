@@ -17,8 +17,9 @@ import { MAX_LEAVE } from '../../../utils/planner'
  */
 export function LimitPicker({ value, onChange, maxPick = MAX_LEAVE, left = null, rec = null, reason = '', marks = null, joins = [], phone = false }) {
   const showLeft = left !== null && left >= 0 && left < Math.min(maxPick, MAX_LEAVE)
+  // Room for the "N left" label is always kept, so the card's height never changes.
   return (
-    <div className={`relative pt-3 ${showLeft ? 'pb-3.5' : ''}`}>
+    <div className="relative pt-3 pb-3.5">
       <div role="radiogroup" aria-label="Leave days to plan" className="flex gap-1">
         {Array.from({ length: MAX_LEAVE }, (_, i) => i + 1).map(n => {
           const on = n === value
