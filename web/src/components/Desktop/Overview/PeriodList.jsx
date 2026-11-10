@@ -1,11 +1,9 @@
 import { PlanIcon } from './PlanIcon'
 import { StepHeading } from './StepHeading'
-import { CARD_DESCRIPTIONS } from './periodThemes'
 import { PeriodMonths } from './PeriodMonths'
 
-// What the card is for, then a fixed holiday count and its dates (nothing here
-// changes as you pick leave days: the numbers live in the plan and Details).
-function PeriodCard({ id, kind, title, subtitle, holidays, selected, onSelect }) {
+// Three lines: the title, which holidays are in it (one line), and how many with the dates.
+function PeriodCard({ id, kind, title, holidayLine, dates, holidays, selected, onSelect }) {
   return (
     <button
       type="button"
@@ -17,12 +15,12 @@ function PeriodCard({ id, kind, title, subtitle, holidays, selected, onSelect })
       ].join(' ')}
     >
       <PlanIcon kind={kind} size={30} />
-      <span className="flex-1 min-w-0 flex flex-col">
-        <span className="text-[13.5px] font-extrabold">{title}</span>
-        <span className="text-[12px] leading-snug text-slate-700">{CARD_DESCRIPTIONS[kind]}</span>
-        <span className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 mt-1">
-          {holidays > 0 && <span className="h-[18px] px-1.5 rounded-md bg-orange-100 text-orange-800 text-[10.5px] font-extrabold leading-[18px]">{holidays} holiday{holidays === 1 ? '' : 's'}</span>}
-          {subtitle && <span className="text-[11px] text-slate-400">{subtitle}</span>}
+      <span className="flex-1 min-w-0 flex flex-col gap-0.5">
+        <span className="text-[13.5px] font-extrabold leading-[18px]">{title}</span>
+        <span title={holidayLine} className="truncate text-[12px] leading-4 text-slate-700">{holidayLine}</span>
+        <span className="flex items-center gap-1.5 min-w-0 leading-4">
+          {holidays > 0 && <span className="shrink-0 h-4 px-1.5 rounded-md bg-orange-100 text-orange-800 text-[10.5px] font-extrabold leading-4">{holidays} holiday{holidays === 1 ? '' : 's'}</span>}
+          <span className="truncate text-[11px] text-slate-500">{dates}</span>
         </span>
       </span>
     </button>
@@ -45,8 +43,8 @@ function CustomCard({ period, selected, onSelect, months, onChangeMonths }) {
 
 /**
  * Step 1 of the Overview planner: the Custom dates card (From / To months), then the
- * ready-made leave periods, each saying what it's for, how many holidays it has
- * and its dates. The list scrolls on its own.
+ * ready-made leave periods, each in three lines: title, which holidays are in
+ * it, and how many with the dates. The list scrolls on its own.
  *
  * Props:
  *   periods    – planPeriods() result
