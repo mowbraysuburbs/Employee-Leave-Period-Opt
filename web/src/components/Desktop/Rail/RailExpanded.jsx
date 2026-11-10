@@ -71,7 +71,8 @@ export function RailExpanded({ c }) {
         </div>
         {/* Two rows of chips kept free (the help text is the heading's tooltip), so the
             card never grows or shrinks as the leave days, colouring or filter change. */}
-        <div className="h-[52px] flex flex-wrap content-start gap-1 overflow-hidden">
+        {/* Room around and between the chips so a picked chip's ring isn't cut off or touching its neighbours. */}
+        <div className="h-16 p-1 flex flex-wrap content-start gap-x-1.5 gap-y-2 overflow-hidden">
           {c.legend.map(l => {
             const chip = 'min-w-[26px] h-6 px-1 rounded-full inline-flex items-center justify-center text-[11px] font-bold text-slate-900'
             if (!filterable) return <span key={l.label} className={chip} style={{ backgroundColor: l.colour }}>{l.label}</span>
