@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { StepHeading } from '../Desktop/Overview/StepHeading'
 import { OverviewLeaveCard } from '../Desktop/Overview/OverviewLeaveCard'
 import { MoreOptions } from '../Desktop/Overview/MoreOptions'
 import { BottomSheet } from './BottomSheet'
@@ -7,7 +6,7 @@ import { BottomSheet } from './BottomSheet'
 /**
  * The phone planner's settings, opened from the "10 days" button by the
  * period slider: the leave card (OverviewLeaveCard: leave left, the limit, and
- * the blocks with REC / MIN / JOINS) and Advanced options.
+ * the blocks with REC / MIN / JOINS) and Advanced filters.
  *
  * Props: planner – usePlanner() result; province, onProvinceChange; onClose
  */
@@ -17,7 +16,6 @@ export function PlanSettingsSheet({ planner, province, onProvinceChange, onClose
     <BottomSheet label="Plan settings" title="Plan settings" backdrop onClose={onClose}>
       <div className="px-4 pb-5 flex flex-col gap-4">
         <section className="flex flex-col gap-2">
-          <StepHeading phone number={2}>How many leave days?</StepHeading>
           <OverviewLeaveCard phone planner={planner} />
         </section>
         <section className="flex flex-col gap-2">
@@ -28,7 +26,7 @@ export function PlanSettingsSheet({ planner, province, onProvinceChange, onClose
             className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-slate-50 text-left"
           >
             <span className="flex-1">
-              <b className="block text-[13px]">Advanced options</b>
+              <b className="block text-[13px]">Advanced filters</b>
               <span className="text-[11.5px] text-slate-500">School holidays, avoid / include months</span>
             </span>
             {planner.moreCount > 0 && <span className="min-w-5 h-5 px-1 rounded-full bg-sky-500 text-white text-[11px] font-extrabold leading-5 text-center">{planner.moreCount}</span>}

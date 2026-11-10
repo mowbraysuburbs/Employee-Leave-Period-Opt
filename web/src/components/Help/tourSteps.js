@@ -60,18 +60,18 @@ export function plannerTourSteps(phone = false, { openPanel } = {}) {
   const settings = phone
     ? [{
         target: 'settings',
-        title: '2 · How many leave days?',
+        title: '2 · Choose leave day limit',
         text: 'This button shows the leave days for this plan and how many you have left. Tap it for the leave card (your limit, and the numbers worth picking: REC, MIN, JOINS) or Advanced options (school holidays, months to avoid). A number on it shows how many advanced options are on.',
       }]
     : [
         {
           target: 'limit',
-          title: '2 · How many leave days?',
+          title: '2 · Choose leave day limit',
           text: "The same leave card as the Calendar: what's left after your Summary, your limit (its dropdown, shared with the Calendar) and the leave days for this plan. Only the useful numbers can be picked: REC, MIN and JOINS mark the good ones, struck-through numbers add nothing, and numbers past what's left are locked.",
         },
         {
           target: 'advanced',
-          title: 'Advanced options',
+          title: 'Advanced filters',
           text: 'Plan around your school holidays, or avoid / include certain months. A number on the arrow shows how many are on.',
         },
       ]
