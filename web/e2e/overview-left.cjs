@@ -50,7 +50,7 @@ const res = []; const check = (n, ok, x = '') => res.push((ok ? 'PASS ' : 'FAIL 
   // Past what's left you can still pick: amber, a prompt, and Add waits.
   await p.getByRole('radiogroup', { name: 'Leave days to plan' }).getByRole('radio', { name: /^10/ }).click();
   const over = await p.locator('[data-tour=limit]').innerText();
-  check('picking past what\'s left: allowed, with the over prompt', /over your leave/.test(over), over.replace(/\n/g, ' '));
+  check('picking past what\'s left: allowed, with the over prompt', /more leave days? than you have left/.test(over), over.replace(/\n/g, ' '));
   check('…and Add to summary waits', await p.getByRole('button', { name: /^Add to summary/ }).isDisabled());
 
   // Limit down to what's in the Summary: nothing left.
