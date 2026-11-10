@@ -56,8 +56,6 @@ export function MobileOverview({ planner, isSaved, onAdd, onView, onUseRest, pro
             onAdd={list => { planner.markAdded(list); onAdd(list); setAdded(list.length) }}
             onView={onView}
             onUseRest={onUseRest}
-            onRaiseLimit={() => setSettingsOpen(true)}
-            onOpenSummary={onOpenSummary}
             calendar={<PlanMonths phone period={period} {...planner.calendarBreaks} />}
           />
         </section>

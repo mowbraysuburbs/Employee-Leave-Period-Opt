@@ -41,18 +41,24 @@ const res = []; const check = (n, ok, x = '') => res.push((ok ? 'PASS ' : 'FAIL 
 
   await pickLimit(10);
   await nav.getByRole('button', { name: /^School holidays/ }).click();
+  // Snap to what's left (you can also pick more; Add then waits).
+  await p.getByRole('button', { name: /^Snap to/ }).click();
   const used2 = await planLeave();
   check('another period plans with what\'s left (10 − ' + used + ')', used2 > 0 && used2 <= 10 - used, used2 + ' ≤ ' + (10 - used));
   const note = await p.locator('[data-tour=limit]').innerText();
-  check('the leave card shows what\'s left and locks the rest', /\d+ left · \d+ used/.test(note) && /only \d+ left/.test(note), note.replace(/\n/g, ' '));
+  check('the leave card shows what\'s left and a Snap button', /\d+ left · \d+ used/.test(note) && /Snap to \d+/.test(note), note.replace(/\n/g, ' '));
+  // Past what's left you can still pick: amber, a prompt, and Add waits.
+  await p.getByRole('radiogroup', { name: 'Leave days to plan' }).getByRole('radio', { name: /^10/ }).click();
+  const over = await p.locator('[data-tour=limit]').innerText();
+  check('picking past what\'s left: allowed, with the over prompt', /over your leave/.test(over), over.replace(/\n/g, ' '));
+  check('…and Add to summary waits', await p.getByRole('button', { name: /^Add to summary/ }).isDisabled());
 
   // Limit down to what's in the Summary: nothing left.
   await pickLimit(used);
   await nav.getByRole('button', { name: /^Easter/ }).click();
   const msg = await p.getByRole('article').innerText();
-  check('nothing left: the results say so, with Raise my limit / Open Summary', /leave days? (is|are) in your Summary/.test(msg) && (await p.getByRole('button', { name: 'Raise my limit' }).count()) === 1 && (await p.getByRole('button', { name: 'Open Summary' }).count()) === 1, msg.slice(0, 120));
-  await p.getByRole('button', { name: 'Open Summary' }).click();
-  check('Open Summary shows the Summary tab', (await p.locator('[data-tour=panel]').getByRole('tab', { name: /Summary/ }).getAttribute('aria-selected')) === 'true');
+  const card0 = await p.locator('[data-tour=limit]').innerText();
+  check('nothing left: None left, Snap greyed, still explorable', /None left/.test(card0) && await p.getByRole('button', { name: 'No days left' }).isDisabled() && msg.length > 0, card0.replace(/\n/g, ' '));
   check('no errors', errors.length === 0, errors.join(' | '));
   console.log(res.join('\n')); if (res.some(r => r.startsWith('FAIL'))) process.exitCode = 1;
   await b.close();

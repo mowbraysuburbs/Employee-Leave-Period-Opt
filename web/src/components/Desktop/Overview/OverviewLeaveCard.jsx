@@ -11,71 +11,75 @@ function StepBadge() {
  * short. Top row: ② "Choose leave day limit" and, on the right (over the
  * blocks), "6 left · 4 used". Second row: the "6 / 10⌄ limit" fraction (the
  * limit is shared with the Calendar and only changes in its dropdown) and the
- * blocks, which pick this plan's leave (see LimitPicker for which numbers can
- * be picked). A note shows only when numbers are locked or nothing is left.
+ * blocks, which pick this plan's leave (any number, amber past what's left;
+ * see LimitPicker). Under the fraction, "Snap to N days left" (always there);
+ * at the bottom one fixed line, the prompt when you've gone over.
  *
  * Props: planner – usePlanner() result; phone – stacked, for the Plan settings sheet
  */
 // The best number you can pick within what's left: the highest one that isn't
-// struck through (list periods), else what's left itself.
+// struck through (list periods), else what's left itself (0 = nothing left).
 function snapTarget(planner) {
+  const most = Math.min(planner.leaveLeft, planner.maxLeave)
   const marks = planner.limitMarks.marks
-  for (let n = planner.maxLeave; n >= 1; n--) if (marks?.[n - 1] !== 'pad') return n
-  return planner.maxLeave
+  for (let n = most; n >= 1; n--) if (marks?.[n - 1] !== 'pad') return n
+  return most
 }
 
 export function OverviewLeaveCard({ planner, phone = false }) {
   const left = planner.leaveLeftNow
   const target = snapTarget(planner)
-  // "Snap to 6 days left": one tap to the best number within what's left; only when you're below it.
-  const snap = target > planner.leave && (
+  const over = planner.leave - planner.leaveLeft
+  // "Snap to 6 days left" is always there (so the card never changes height);
+  // greyed when you're already on it or nothing is left.
+  const snap = (
     <button
       type="button"
+      disabled={!target || target === planner.leave}
       onClick={() => planner.setLeave(target)}
-      title={target < planner.maxLeave ? `${target} is the best number you can pick within your ${planner.maxLeave} left` : `Use all ${target} days you have left`}
-      className="self-start h-7 px-2.5 rounded-lg border-[1.5px] border-green-600 bg-white text-green-800 text-[11.5px] font-extrabold whitespace-nowrap hover:bg-green-50"
+      title={!target ? 'No leave left to snap to' : target < Math.min(planner.leaveLeft, planner.maxLeave) ? `${target} is the best number you can pick within your ${planner.leaveLeft} left` : `Use the ${target} days you have left`}
+      className="self-start h-7 px-2.5 rounded-lg border-[1.5px] border-green-600 bg-white text-green-800 text-[11.5px] font-extrabold whitespace-nowrap hover:bg-green-50 disabled:border-slate-200 disabled:text-slate-400 disabled:hover:bg-white"
     >
-      {target < planner.maxLeave ? `Snap to ${target} (best of ${planner.maxLeave} left)` : `Snap to ${target} days left`}
+      {!target ? 'No days left' : target < Math.min(planner.leaveLeft, planner.maxLeave) ? `Snap to ${target} (best of ${planner.leaveLeft} left)` : `Snap to ${target} days left`}
     </button>
   )
-  const lockedFrom = planner.maxLeave + 1
-  const note = planner.maxLeave === 0
-    ? 'No leave left: raise your limit or remove a break from your Summary.'
-    : planner.maxLeave < 10 && planner.maxLeave < planner.leaveLimit
-      ? `${lockedFrom}${lockedFrom < 10 ? '–10' : ''}: only ${planner.maxLeave} left. Raise your limit or remove a break from your Summary.`
-      : planner.maxLeave < 10 && planner.maxLeave === planner.workdays
-        ? `Only ${planner.maxLeave} workdays in these dates.`
-        : null
+  // Gone over: a short, one-line prompt (in the title row, so the card never grows).
+  const note = over > 0
+    ? `${over} over your leave`
+    : planner.maxLeave < 10 ? `Only ${planner.maxLeave} workdays in these dates` : ''
   const blocks = (
     <LimitPicker
       phone={phone}
       value={planner.leave}
       onChange={planner.setLeave}
       maxPick={planner.maxLeave}
-      left={planner.maxLeave > 0 && planner.maxLeave < 10 && planner.maxLeave < planner.leaveLimit ? planner.maxLeave : null}
+      left={planner.leaveLeft < 10 ? planner.leaveLeft : null}
       rec={planner.listMode ? null : planner.rec?.leave}
       reason={planner.rec?.reason}
       {...planner.limitMarks}
     />
   )
   return (
-    <section data-tour="limit" aria-label="Choose leave day limit" className="flex-1 min-w-0 bg-white border-2 border-sky-700 rounded-2xl px-3 py-1.5 flex flex-col">
+    <section data-tour="limit" aria-label="Choose leave day limit" className="flex-1 min-w-0 bg-white border-2 border-sky-700 rounded-2xl px-4 py-3 flex flex-col gap-4">
       <div className="flex items-center gap-2">
         <StepBadge />
         <h2 className="m-0 text-[13px] font-bold whitespace-nowrap">Choose leave day limit</h2>
-        <span className="ml-auto text-[11.5px] text-slate-600 whitespace-nowrap">
+        {/* Gone over (or few workdays): one short line in the title row's empty middle. */}
+        <span role={over > 0 ? 'status' : undefined} className={`flex-1 min-w-0 truncate text-center text-[11.5px] ${over > 0 ? 'text-amber-800 font-bold' : 'text-slate-500'}`}>{note}</span>
+        <span className="text-[11.5px] text-slate-600 whitespace-nowrap">
           <b className={left ? 'text-green-800' : 'text-amber-700'}>{left ? `${left} left` : 'None left'}</b> · {planner.leaveInSummary} used
         </span>
       </div>
-      <div className={phone ? 'flex flex-col gap-1 mt-1' : 'flex items-center gap-4'}>
-        <div className="shrink-0 flex flex-col gap-1">
+      <div className={phone ? 'flex flex-col gap-4' : 'flex items-stretch gap-6'}>
+        <div className="shrink-0 flex flex-col gap-4">
           <LeaveFraction value={planner.leave} limit={planner.leaveLimit} onLimitChange={planner.setLeaveLimit} idPrefix={phone ? 'plan-sheet' : 'overview'} size="md" />
           {snap}
         </div>
-        {/* The blocks: bigger, centred in the space beside the fraction. */}
-        <div className={`min-w-0 ${phone ? '' : 'flex-1 flex justify-center'}`}><div className={phone ? '' : 'w-full max-w-[480px]'}>{blocks}</div></div>
+        {/* The blocks, bigger and centred beside the fraction. */}
+        <div className={`min-w-0 ${phone ? '' : 'flex-1 flex items-center justify-center'}`}>
+          <div className={phone ? '' : 'w-full max-w-[480px]'}>{blocks}</div>
+        </div>
       </div>
-      {note && <span className={`text-[10.5px] ${planner.maxLeave === 0 ? 'text-amber-800 font-semibold' : 'text-slate-500'} ${phone ? '' : 'text-right'}`}>{note}</span>}
     </section>
   )
 }
