@@ -63,7 +63,7 @@ export function PeriodList({ periods, period, months, onChangeMonths, selectedId
       <div className="h-10 shrink-0 flex items-center gap-2">
         <StepHeading number={1}>Pick a leave period</StepHeading>
         {onCollapse && (
-          <button type="button" onClick={onCollapse} aria-label="Fold the leave periods into icons" title="Fold into icons" className="ml-auto h-7 px-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs font-bold hover:border-slate-500">«</button>
+          <button type="button" onClick={onCollapse} aria-label="Fold the leave periods into icons" title="Fold into icons" className="ml-auto w-10 h-9 rounded-xl border border-slate-300 bg-white text-slate-700 text-[15px] font-extrabold hover:border-slate-500">«</button>
         )}
       </div>
       <nav data-tour="period" aria-label="Leave periods" className="flex-1 min-h-0 flex flex-col gap-1.5 lg:overflow-y-auto lg:pr-1 lg:pb-2 [&>*]:shrink-0">
