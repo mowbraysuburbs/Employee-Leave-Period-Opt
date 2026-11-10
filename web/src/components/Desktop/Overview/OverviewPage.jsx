@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { PlannerBar } from './PlannerBar'
 import { PeriodList } from './PeriodList'
+import { PeriodStrip } from './PeriodStrip'
 import { PlanDetailHead } from './PlanDetailHead'
 import { PlanMonths } from './PlanMonths'
 import { SidePanel } from '../SidePanel'
@@ -24,9 +25,28 @@ import { PlannerResults } from './PlannerResults'
  *   savedBreaks                – for the collapsed strip's Summary totals
  *   collapsed, onCollapsedChange – the panel collapsed to a strip (shared with the calendar)
  */
+const PERIODS_KEY = 'stretchmyleave.periodsFolded'
+
+// Step 1's column: remembered between visits; on a first visit, narrow windows
+// (under 1100px, e.g. half a 13-inch screen) start folded into icons.
+function initialPeriodsFolded() {
+  try {
+    const stored = localStorage.getItem(PERIODS_KEY)
+    if (stored !== null) return stored === 'true'
+  } catch { /* storage unavailable — fall back to the window width */ }
+  return window.innerWidth < 1100
+}
+
 export function OverviewPage({ planner, isSaved, onAdd, onView, onUseRest, province, onProvinceChange, savedCount, summary, savedBreaks, collapsed, onCollapsedChange }) {
   const [tab, setTab] = useState('details')
   const [moreOpen, setMoreOpen] = useState(false)
+  const [periodsFolded, setPeriodsFolded] = useState(initialPeriodsFolded)
+  const foldPeriods = folded => {
+    setPeriodsFolded(folded)
+    try { localStorage.setItem(PERIODS_KEY, String(folded)) } catch { /* not remembered */ }
+  }
+  // Both side columns folded: the three columns fit side by side even on narrow windows.
+  const fits = periodsFolded && collapsed
   // The break whose table row is hovered, highlighted in the calendar column.
   const [hovered, setHovered] = useState(null)
   const { period } = planner
@@ -35,9 +55,11 @@ export function OverviewPage({ planner, isSaved, onAdd, onView, onUseRest, provi
     <>
 
       {/* Same layout as the calendar: on wide screens one screen tall, each column scrolling on its own. */}
-      <div className="flex flex-wrap gap-5 items-start lg:flex-nowrap lg:items-stretch lg:h-full">
-        <PeriodList periods={planner.periods} period={period} months={planner.monthChoices} onChangeMonths={planner.changeMonths} selectedId={period.id} onSelect={planner.selectPeriod} />
-        <div className="flex-[999_1_480px] min-w-0 flex flex-col gap-2 lg:h-full">
+      <div className={`flex gap-5 ${fits ? 'flex-nowrap items-stretch h-full' : 'flex-wrap items-start lg:flex-nowrap lg:items-stretch lg:h-full'}`}>
+        {periodsFolded
+          ? <PeriodStrip periods={planner.periods} period={period} months={planner.monthChoices} onChangeMonths={planner.changeMonths} selectedId={period.id} onSelect={planner.selectPeriod} onExpand={() => foldPeriods(false)} />
+          : <PeriodList periods={planner.periods} period={period} months={planner.monthChoices} onChangeMonths={planner.changeMonths} selectedId={period.id} onSelect={planner.selectPeriod} onCollapse={() => foldPeriods(true)} />}
+        <div className={`${fits ? 'flex-1 h-full' : 'flex-[999_1_480px] lg:h-full'} min-w-0 flex flex-col gap-2`}>
           <PlannerBar planner={planner} moreOpen={moreOpen} onMoreToggle={() => setMoreOpen(o => !o)} />
           <article data-tour="results" aria-label={`Plan: ${period.title}`} className="flex-1 min-h-0 rounded-[20px] shadow-sm bg-white flex flex-col overflow-hidden">
             {moreOpen && <MoreOptions planner={planner} province={province} onProvinceChange={onProvinceChange} />}

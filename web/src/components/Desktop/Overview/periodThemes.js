@@ -19,6 +19,9 @@ export const STRIP_THEMES = {
   year: 'bg-linear-to-r from-indigo-100 to-white',
 }
 
+// Short names under the period icons (phone strip, folded desktop column).
+export const PERIOD_SHORT = { custom: 'Custom', next: 'Up next', xmas: 'Christmas', easter: 'Easter', school: 'School' }
+
 // What each period is for, in plain words (on its step 1 card).
 export const CARD_DESCRIPTIONS = {
   next: 'Stretch the next public holiday into a long weekend, or more.',
