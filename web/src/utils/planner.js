@@ -41,45 +41,71 @@ const GROUPS = {
 }
 const groupName = name => GROUPS[name] ?? name
 
+// Short names for the holiday line on the period cards.
+const SHORT_NAMES = { 'Day of Reconciliation': 'Reconciliation', "New Year's Day": 'New Year', 'National Women\'s Day': "Women's Day", }
+// Short enough for one line on a card: "Easter weekend", "Human Rights Day & Easter", "Reconciliation to New Year".
+const listNames = names => {
+  if (names.length === 1) return names[0] === 'Easter' ? 'Easter weekend' : names[0]
+  if (names.length === 2) return `${names[0]} & ${names[1]}`
+  return names.length ? `${names[0]} to ${names.at(-1)}` : 'No public holidays'
+}
+
 /**
  * The leave periods offered in step 1 (Custom is handled by the caller).
  *
- * Returns [{ id, kind, title, subtitle, from, to, holidays }] in display
- * order, skipping any that fall outside the holiday data. holidays = how many
- * public holidays fall on a weekday in the period (a Saturday one gives nothing).
+ * Returns [{ id, kind, title, holidayLine, dates, from, to, holidays }] in
+ * display order, skipping any that fall outside the holiday data. Each card
+ * shows three lines: title, holidayLine (which holidays are in it), and the
+ * holiday count with `dates`. holidays = how many public holidays fall on a
+ * weekday in the period (a Saturday one gives nothing).
+ *
+ * Up next = the next public holiday that falls on a weekday and isn't inside
+ * the Christmas (15 Dec – 10 Jan) or Easter (10 days before Good Friday to 14
+ * after) periods, which have their own cards; holidays with no workday between
+ * count as one. Its period is a week either side.
  */
 export function planPeriods({ today, provinceCode = 'GP' }) {
   const horizon = `${Number(today.slice(0, 4)) + 2}-12-31`
   const holidays = holidaysAround(today, horizon)
   const sorted = [...holidays.keys()].sort()
   const periods = []
+  // The weekday holidays in [from, to], each set named once ("Reconciliation, Christmas & New Year").
+  const namesIn = (from, to) => [...new Set(sorted.filter(d => d >= from && d <= to && !isWeekend(d)).map(d => groupName(holidays.get(d))))].map(n => SHORT_NAMES[n] ?? n)
 
-  // Up next: a week either side of the next weekday public holiday (or holiday set).
-  const next = sorted.find(d => d > today && !isWeekend(d))
+  // Up next: skip holidays the Christmas and Easter cards cover.
+  const goodFridays = sorted.filter(d => holidays.get(d) === 'Good Friday')
+  const inSeason = d => {
+    const md = d.slice(5)
+    return md >= '12-15' || md <= '01-10' || goodFridays.some(g => d >= addDays(g, -10) && d <= addDays(g, 14))
+  }
+  const next = sorted.find(d => d > today && !isWeekend(d) && !inSeason(d))
   if (next) {
     const name = groupName(holidays.get(next))
     const lastOfSet = sorted.filter(d => d >= next && d <= addDays(next, 4) && groupName(holidays.get(d)) === name).pop()
     const span = lastOfSet === next ? fmtDay(next) : fmtShortRange(next, lastOfSet)
+    const from = maxDate(addDays(today, 1), addDays(next, -7))
+    const to = addDays(lastOfSet, 7)
     periods.push({
-      id: 'next', kind: 'next', title: 'Up next', subtitle: `${name} · ${span}`,
-      from: maxDate(addDays(today, 1), addDays(next, -7)), to: addDays(lastOfSet, 7),
+      id: 'next', kind: 'next', title: 'Up next', holidayLine: `Next public holiday: ${SHORT_NAMES[name] ?? name}`,
+      dates: span, from, to,
     })
   }
 
   // Christmas: 15 Dec to 10 Jan, this year's unless it's already over.
   const year = Number(today.slice(0, 4))
   const xmasYear = today > `${year}-12-25` ? year + 1 : year
-  periods.push({
-    id: 'xmas', kind: 'xmas', title: 'Christmas holidays', subtitle: 'Dec – Jan',
-    from: maxDate(addDays(today, 1), `${xmasYear}-12-15`), to: `${xmasYear + 1}-01-10`,
-  })
+  {
+    const from = maxDate(addDays(today, 1), `${xmasYear}-12-15`)
+    const to = `${xmasYear + 1}-01-10`
+    periods.push({ id: 'xmas', kind: 'xmas', title: 'Christmas holidays', holidayLine: listNames(namesIn(from, to)), dates: fmtShortRange(from, to), from, to })
+  }
 
   // Easter: about ten days before Good Friday to two weeks after.
-  const goodFriday = sorted.find(d => d > today && holidays.get(d) === 'Good Friday')
+  const goodFriday = goodFridays.find(d => d > today)
   if (goodFriday) {
     const from = maxDate(addDays(today, 1), addDays(goodFriday, -10))
     const to = addDays(goodFriday, 14)
-    periods.push({ id: 'easter', kind: 'easter', title: 'Easter', subtitle: fmtShortRange(from, to), from, to })
+    periods.push({ id: 'easter', kind: 'easter', title: 'Easter', holidayLine: listNames(namesIn(from, to)), dates: fmtShortRange(from, to), from, to })
   }
 
   // School holidays: the next (or current) one for the province.
@@ -87,22 +113,16 @@ export function planPeriods({ today, provinceCode = 'GP' }) {
   if (school) {
     const from = maxDate(addDays(today, 1), school.start)
     periods.push({
-      id: 'school', kind: 'school', title: 'School holidays', subtitle: `${provinceLabel(provinceCode)} · ${fmtShortRange(from, school.end)}`,
-      from, to: school.end,
+      id: 'school', kind: 'school', title: 'School holidays',
+      holidayLine: `${provinceLabel(provinceCode)} school holidays`,
+      dates: fmtShortRange(from, school.end), from, to: school.end,
     })
   }
 
-  periods.push({ id: 'year', kind: 'year', title: String(year + 1), subtitle: 'Jan – Dec', from: `${year + 1}-01-01`, to: `${year + 1}-12-31` })
+  periods.push({ id: 'year', kind: 'year', title: String(year + 1), holidayLine: `Every public holiday in ${year + 1}`, dates: '1 Jan – 31 Dec', from: `${year + 1}-01-01`, to: `${year + 1}-12-31` })
 
   const weekdayHolidays = (from, to) => sorted.filter(d => d >= from && d <= to && !isWeekend(d)).length
-  const valid = periods.filter(p => p.from <= p.to).map(p => ({ ...p, holidays: weekdayHolidays(p.from, p.to) }))
-
-  // When the next holiday IS Christmas or Easter, that card replaces Up next
-  // at the top (only if its dates hold the holiday, so it's the right one).
-  const leadId = next && { Christmas: 'xmas', Easter: 'easter' }[groupName(holidays.get(next))]
-  const lead = valid.find(p => p.id === leadId && p.from <= next && next <= p.to)
-  if (!lead) return valid
-  return [lead, ...valid.filter(p => p !== lead && p.id !== 'next')]
+  return periods.filter(p => p.from <= p.to).map(p => ({ ...p, holidays: weekdayHolidays(p.from, p.to) }))
 }
 
 /** How many workdays (so the most leave days you can use) fall in [from, to]. */

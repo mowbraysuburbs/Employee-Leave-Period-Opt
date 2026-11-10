@@ -5,7 +5,6 @@ import { formatMultiplier } from '../../../utils/breaks'
 import { PlannerTable } from './PlannerTable'
 import { CustomOptionsTable } from './CustomOptionsTable'
 import { RecLine } from './RecLine'
-import { PERIOD_DESCRIPTIONS } from './periodThemes'
 import { fmtLongRange } from '../../../utils/dateFormat'
 
 /**
@@ -98,7 +97,7 @@ export function PlannerResults({ planner, isSaved, onAdd, onView, onUseRest, onH
               <div className="flex-1 min-w-[124px]">
                 <h3 className="m-0 text-[17px] leading-tight font-extrabold">{period.title}</h3>
                 <span className="block text-[12px] leading-snug text-slate-500">
-                  {[PERIOD_DESCRIPTIONS[period.kind], fmtLongRange(period.from, period.to)].filter(Boolean).join(' · ')}
+                  {[period.holidayLine, fmtLongRange(period.from, period.to)].filter(Boolean).join(' · ')}
                 </span>
               </div>
               <button

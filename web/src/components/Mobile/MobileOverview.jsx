@@ -3,7 +3,7 @@ import { PlanIcon } from '../Desktop/Overview/PlanIcon'
 import { PlanMonths } from '../Desktop/Overview/PlanMonths'
 import { PlannerResults } from '../Desktop/Overview/PlannerResults'
 import { PeriodMonths } from '../Desktop/Overview/PeriodMonths'
-import { PERIOD_DESCRIPTIONS, PERIOD_SHORT } from '../Desktop/Overview/periodThemes'
+import { PERIOD_SHORT } from '../Desktop/Overview/periodThemes'
 import { fmtShortRange } from '../../utils/dateFormat'
 import { PlanSettingsSheet } from './PlanSettingsSheet'
 
@@ -41,7 +41,7 @@ export function MobileOverview({ planner, isSaved, onAdd, onView, onUseRest, pro
             <div className="flex-1 min-w-0">
               <h1 className="m-0 text-[15px] font-extrabold truncate">{period.title}</h1>
               <p className="m-0 text-[11.5px] leading-snug text-slate-500">
-                {[PERIOD_DESCRIPTIONS[period.kind], fmtShortRange(period.from, period.to)].filter(Boolean).join(' · ')}
+                {[period.holidayLine, fmtShortRange(period.from, period.to)].filter(Boolean).join(' · ')}
               </p>
             </div>
           </div>
